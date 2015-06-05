@@ -56,7 +56,8 @@ window.addEventListener 'game.response', async (e) ->
         console.error e
 module.exports =
   name: 'Reporter'
-  displayName: [<FontAwesome key={0} name='pie-chart' />, '数据汇报']
+  author: [<a key={0} href="https://github.com/magicae">Magica</a>]
+  displayName: [<FontAwesome key={0} name='pie-chart' />, ' 数据汇报']
   description: '汇报建造数据、海域掉落数据'
   show: false
   version: '1.0.0'
