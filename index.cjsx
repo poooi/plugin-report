@@ -20,7 +20,7 @@ window.addEventListener 'game.response', async (e) ->
     when '/kcsapi/api_req_kousyou/createship'
       creating = true
       kdockId = parseInt(postBody.api_kdock_id) - 1
-      secretaryIdx = _.sortedIndex _ships, {api_id: _decks[0].api_ship[0]}, 'api_id'
+      secretaryIdx = _decks[0].api_ship[0]
       detail =
         items: [parseInt(postBody.api_item1), parseInt(postBody.api_item2), parseInt(postBody.api_item3), parseInt(postBody.api_item4), parseInt(postBody.api_item5)]
         kdockId: kdockId
