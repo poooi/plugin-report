@@ -54,10 +54,17 @@ window.addEventListener 'game.response', async (e) ->
             data: JSON.stringify info
       catch e
         console.error e
+    when '/kcsapi/api_get_member/questlist'
+      try
+        yield request.postAsync "http://#{SERVER_HOSTNAME}/api/report/quest_list",
+          form:
+            data: JSON.stringify body.api_list
+      catch e
+        console.error e
 module.exports =
   name: 'Reporter'
   author: [<a key={0} href="https://github.com/magicae">Magica</a>]
   displayName: [<FontAwesome key={0} name='pie-chart' />, ' 数据汇报']
-  description: '汇报建造数据、海域掉落数据'
+  description: '汇报建造数据、海域掉落数据、任务数据'
   show: false
-  version: '1.0.0'
+  version: '1.1.0'
