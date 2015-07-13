@@ -54,6 +54,7 @@ window.addEventListener 'game.response', async (e) ->
             data: JSON.stringify info
       catch e
         console.error e
+    ###
     when '/kcsapi/api_get_member/questlist'
       try
         yield request.postAsync "http://#{SERVER_HOSTNAME}/api/report/quest_list",
@@ -61,6 +62,7 @@ window.addEventListener 'game.response', async (e) ->
             data: JSON.stringify body.api_list
       catch e
         console.error e
+    ###
 module.exports =
   name: 'Reporter'
   author: [<a key={0} href="https://github.com/magicae">Magica</a>]
