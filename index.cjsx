@@ -64,7 +64,7 @@ window.addEventListener 'game.response', async (e) ->
 module.exports =
   name: 'Reporter'
   author: [<a key={0} href="https://github.com/magicae">Magica</a>]
-  displayName: [<FontAwesome key={0} name='pie-chart' />, ' 数据汇报']
+  displayName: <span><FontAwesome key={0} name='pie-chart' /> 数据汇报</span>
   description: '汇报建造数据、海域掉落数据、任务数据'
   show: false
   version: '1.1.0'
