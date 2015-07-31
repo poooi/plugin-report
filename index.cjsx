@@ -41,6 +41,8 @@ window.addEventListener 'game.response', async (e) ->
         yield request.postAsync "http://#{SERVER_HOSTNAME}/api/report/v2/create_ship",
           form:
             data: JSON.stringify detail
+          headers:
+            'User-Agent': 'Reporter v2.0.0'
       catch err
         console.error err
     # Create item report
@@ -56,6 +58,8 @@ window.addEventListener 'game.response', async (e) ->
         yield request.postAsync "http://#{SERVER_HOSTNAME}/api/report/v2/create_item",
           form:
             data: JSON.stringify info
+          headers:
+            'User-Agent': 'Reporter v2.0.0'
       catch err
         console.error err
 # Drop ship report
@@ -80,6 +84,8 @@ window.addEventListener 'battle.result', async (e) ->
     yield request.postAsync "http://#{SERVER_HOSTNAME}/api/report/v2/drop_ship",
       form:
         data: JSON.stringify info
+      headers:
+        'User-Agent': 'Reporter v2.0.0'
   catch err
     console.error err
 
