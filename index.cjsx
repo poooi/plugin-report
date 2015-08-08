@@ -28,6 +28,22 @@ if config.get('plugin.ShipInfo.enable', true)
           mapLv[map.api_id] = 0
           if map.api_eventmap?
             mapLv[map.api_id] = map.api_eventmap.api_selected_rank
+      # Eventmap select report
+      when '/kcsapi/api_req_map/select_eventmap_rank'
+        {_teitokuLv, _nickNameId} = window
+        info =
+          teitokuLv: _teitokuLv
+          teitokuId: _nickNameId
+          mapareaId: parseInt(postBody.api_maparea_id)
+          rank: parseInt(postBody.api_rank)
+        try
+          yield request.postAsync "http://#{SERVER_HOSTNAME}/api/report/v2/select_rank",
+            form:
+              data: JSON.stringify info
+            headers:
+              'User-Agent': 'Reporter v2.1.0'
+        catch err
+          console.error err
       # Create ship report
       when '/kcsapi/api_req_kousyou/createship'
         creating = true
