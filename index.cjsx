@@ -34,8 +34,9 @@ if config.get('plugin.ShipInfo.enable', true)
         info =
           teitokuLv: _teitokuLv
           teitokuId: _nickNameId
-          mapareaId: parseInt(postBody.api_maparea_id)
+          mapareaId: parseInt(postBody.api_maparea_id) * 10 + parseInt(postBody.api_map_no)
           rank: parseInt(postBody.api_rank)
+        mapLv[parseInt(postBody.api_maparea_id) * 10 + parseInt(postBody.api_map_no)] = parseInt(postBody.api_rank)
         try
           yield request.postAsync "http://#{SERVER_HOSTNAME}/api/report/v2/select_rank",
             form:
