@@ -91,8 +91,8 @@ if config.get('plugin.ShipInfo.enable', true)
           console.error err
   # Drop ship report
   window.addEventListener 'battle.result', async (e) ->
-    {rank, boss, map, mapCell, quest, enemy, dropShipId, enemyShipId, enemyFormation} = e.detail
-    {_teitokuLv} = window
+    {rank, boss, map, mapCell, quest, enemy, dropShipId, enemyShipId, enemyFormation, getEventItem} = e.detail
+    {_teitokuLv, _nickNameId} = window
     info =
       shipId: dropShipId
       quest: quest
@@ -113,6 +113,20 @@ if config.get('plugin.ShipInfo.enable', true)
           'User-Agent': 'Reporter v2.1.0'
     catch err
       console.error err
+    if getEventItem
+      info =
+        teitokuId: _nickNameId
+        teitokuLv: _teitokuLv
+        mapId: map
+        mapLv: mapLv[map] or 0
+      try
+        yield request.postAsync "http://#{SERVER_HOSTNAME}/api/report/v2/pass_event",
+          form:
+            data: JSON.stringify info
+          headers:
+            'User-Agent': 'Reporter v2.1.0'
+      catch err
+        console.error err
 
 module.exports =
   name: 'Reporter'
