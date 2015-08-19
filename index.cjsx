@@ -2,6 +2,7 @@
 Promise = require 'bluebird'
 async = Promise.coroutine
 request = Promise.promisifyAll require 'request'
+REPORTER_VERSION = '2.1.1'
 
 if config.get('plugin.ShipInfo.enable', true)
   # Map lv record
@@ -42,7 +43,7 @@ if config.get('plugin.ShipInfo.enable', true)
             form:
               data: JSON.stringify info
             headers:
-              'User-Agent': 'Reporter v2.1.0'
+              'User-Agent': "Reporter v#{REPORTER_VERSION}"
         catch err
           console.error err
       # Create ship report
@@ -69,7 +70,7 @@ if config.get('plugin.ShipInfo.enable', true)
             form:
               data: JSON.stringify detail
             headers:
-              'User-Agent': 'Reporter v2.1.0'
+              'User-Agent': "Reporter v#{REPORTER_VERSION}"
         catch err
           console.error err
       # Create item report
@@ -86,7 +87,7 @@ if config.get('plugin.ShipInfo.enable', true)
             form:
               data: JSON.stringify info
             headers:
-              'User-Agent': 'Reporter v2.1.0'
+              'User-Agent': "Reporter v#{REPORTER_VERSION}"
         catch err
           console.error err
   # Drop ship report
@@ -110,7 +111,7 @@ if config.get('plugin.ShipInfo.enable', true)
         form:
           data: JSON.stringify info
         headers:
-          'User-Agent': 'Reporter v2.1.0'
+          'User-Agent': "Reporter v#{REPORTER_VERSION}"
     catch err
       console.error err
     if getEventItem
@@ -124,7 +125,7 @@ if config.get('plugin.ShipInfo.enable', true)
           form:
             data: JSON.stringify info
           headers:
-            'User-Agent': 'Reporter v2.1.0'
+            'User-Agent': "Reporter v#{REPORTER_VERSION}"
       catch err
         console.error err
 
@@ -134,4 +135,4 @@ module.exports =
   displayName: <span><FontAwesome key={0} name='pie-chart' /> 数据汇报</span>
   description: '汇报建造数据、海域掉落数据、开发数据'
   show: false
-  version: '2.1.0'
+  version: REPORTER_VERSION
