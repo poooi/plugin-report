@@ -1,0 +1,19 @@
+{
+  "name": "report",
+  "version": "2.1.0",
+  "description": "Report ship creating info and drop info, and so on.",
+  "main": "index.cjsx",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/poooi/plugin-report.git"
+  },
+  "author": "Magica",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/poooi/plugin-report/issues"
+  },
+  "homepage": "https://github.com/poooi/plugin-report#readme"
+}
