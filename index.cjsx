@@ -2,9 +2,12 @@
 Promise = require 'bluebird'
 async = Promise.coroutine
 request = Promise.promisifyAll require 'request'
-REPORTER_VERSION = '2.1.1'
+REPORTER_VERSION = '2.2.0'
 
 if config.get('plugin.ShipInfo.enable', true)
+  # Quest
+  knownQuests = []
+  questReportEnabled = false
   # Map lv record
   mapLv = []
   # Create ship record
@@ -18,11 +21,36 @@ if config.get('plugin.ShipInfo.enable', true)
     secretary: -1
     shipId: -1
   # Game listener
-  ### TODO Add event map level ###
+  request.get "http://#{SERVER_HOSTNAME}/api/report/v2/known_quests", (err, response, body) ->
+    return if err? || response.statusCode != 200
+    knownQuests = JSON.parse(body).quests
+    questReportEnabled = true
   window.addEventListener 'game.response', async (e) ->
     {method, path, body, postBody} = e.detail
     {_ships, _decks, _teitokuLv} = window
     switch path
+      # Quest detail
+      when '/kcsapi/api_get_member/questlist'
+        for quest in body.api_list
+          continue unless questReportEnabled
+          continue if quest == -1
+          continue if _.indexOf(knownQuests, quest.api_no, true) != -1
+          info =
+            questId: quest.api_no
+            title: quest.api_title
+            detail: quest.api_detail
+            category: quest.api_category
+            type: quest.api_type
+          knownQuests.push quest.api_no
+          knownQuests.sort()
+          try
+            yield request.postAsync "http://#{SERVER_HOSTNAME}/api/report/v2/quest/#{quest.api_no}",
+              form:
+                data: JSON.stringify info
+              headers:
+                'User-Agent': "Reporter v#{REPORTER_VERSION}"
+          catch err
+            console.error err
       # Map selected rank
       when '/kcsapi/api_get_member/mapinfo'
         for map in body

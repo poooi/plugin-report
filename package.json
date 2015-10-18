@@ -1,6 +1,6 @@
 {
   "name": "report",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "Report ship creating info and drop info, and so on.",
   "main": "index.cjsx",
   "scripts": {
