@@ -2,7 +2,7 @@
 Promise = require 'bluebird'
 async = Promise.coroutine
 request = Promise.promisifyAll require 'request'
-REPORTER_VERSION = '2.2.0'
+REPORTER_VERSION = '2.2.1'
 
 if config.get('plugin.ShipInfo.enable', true)
   # Quest
