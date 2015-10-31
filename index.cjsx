@@ -122,7 +122,7 @@ if config.get('plugin.ShipInfo.enable', true)
   # Drop ship report
   window.addEventListener 'battle.result', async (e) ->
     {rank, boss, map, mapCell, quest, enemy, dropShipId, enemyShipId, enemyFormation, getEventItem} = e.detail
-    {_teitokuLv, _nickNameId} = window
+    {_teitokuLv, _nickName, _nickNameId} = window
     info =
       shipId: dropShipId
       quest: quest
@@ -147,6 +147,7 @@ if config.get('plugin.ShipInfo.enable', true)
       info =
         teitokuId: _nickNameId
         teitokuLv: _teitokuLv
+        teitoku: _nickName
         mapId: map
         mapLv: mapLv[map] or 0
       try
