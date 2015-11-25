@@ -1,5 +1,5 @@
 {
-  "name": "report",
+  "name": "poi-plugin-report",
   "version": "2.2.0",
   "description": "Report ship creating info and drop info, and so on.",
   "main": "index.cjsx",
