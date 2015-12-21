@@ -2,7 +2,19 @@
 Promise = require 'bluebird'
 async = Promise.coroutine
 request = Promise.promisifyAll require 'request'
-REPORTER_VERSION = '2.2.2'
+path = require 'path-extra'
+REPORTER_VERSION = '2.3.0'
+
+window.i18n.report = new(require 'i18n-2')
+  locales:['en-US', 'ja-JP', 'zh-CN', 'zh-TW'],
+  defaultLocale: 'zh-CN',
+  directory: path.join(__dirname, 'i18n'),
+  updateFiles: false,
+  indent: "\t",
+  extension: '.json'
+  devMode: false
+window.i18n.report.setLocale(window.language)
+__ = window.i18n.report.__.bind(window.i18n.report)
 
 if config.get('plugin.Reporter.enable', true)
   # Quest
@@ -161,8 +173,9 @@ if config.get('plugin.Reporter.enable', true)
 
 module.exports =
   name: 'Reporter'
-  author: [<a key={0} href="https://github.com/magicae">Magica</a>]
-  displayName: <span><FontAwesome key={0} name='pie-chart' /> 数据汇报</span>
-  description: '汇报建造数据、海域掉落数据、开发数据'
+  author: "Magica"
+  link: "https://github.com/magicae"
+  displayName: <span><FontAwesome key={0} name='pie-chart' /> {__ "Data Report"}</span>
+  description: __ "Report data to database(http://db.kcwiki.moe)"
   show: false
   version: REPORTER_VERSION
