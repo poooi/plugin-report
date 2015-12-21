@@ -3,7 +3,7 @@ Promise = require 'bluebird'
 async = Promise.coroutine
 request = Promise.promisifyAll require 'request'
 path = require 'path-extra'
-REPORTER_VERSION = '2.3.0'
+REPORTER_VERSION = '2.3.1'
 
 window.i18n.report = new(require 'i18n-2')
   locales:['en-US', 'ja-JP', 'zh-CN', 'zh-TW'],
