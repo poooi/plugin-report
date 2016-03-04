@@ -10,10 +10,19 @@
     "type": "git",
     "url": "git+https://github.com/poooi/plugin-report.git"
   },
-  "author": "Magica",
+  "author": {
+    "name": "Magica",
+    "link": "https://github.com/magicae"
+  },
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/poooi/plugin-report/issues"
   },
-  "homepage": "https://github.com/poooi/plugin-report#readme"
+  "homepage": "https://github.com/poooi/plugin-report#readme",
+  "poiPlugin": {
+    "title": "Data Report",
+    "description": "Report data to database(http://db.kcwiki.moe)",
+    "icon": "fa/pie-chart",
+    "priority": 9
+  }
 }
