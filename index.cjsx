@@ -72,10 +72,10 @@ if config.get('plugin.Reporter.enable', true)
             mapLv[map.api_id] = map.api_eventmap.api_selected_rank
       # Eventmap select report
       when '/kcsapi/api_req_map/select_eventmap_rank'
-        {_teitokuLv, _nickNameId} = window
+        {_teitokuLv, _teitokuId} = window
         info =
           teitokuLv: _teitokuLv
-          teitokuId: _nickNameId
+          teitokuId: _teitokuId
           mapareaId: parseInt(postBody.api_maparea_id) * 10 + parseInt(postBody.api_map_no)
           rank: parseInt(postBody.api_rank)
         mapLv[parseInt(postBody.api_maparea_id) * 10 + parseInt(postBody.api_map_no)] = parseInt(postBody.api_rank)
@@ -134,7 +134,7 @@ if config.get('plugin.Reporter.enable', true)
   # Drop ship report
   window.addEventListener 'battle.result', async (e) ->
     {rank, boss, map, mapCell, quest, enemy, dropShipId, enemyShipId, enemyFormation, getEventItem} = e.detail
-    {_teitokuLv, _nickName, _nickNameId} = window
+    {_teitokuLv, _nickName, _teitokuId} = window
     info =
       shipId: dropShipId
       quest: quest
@@ -157,7 +157,7 @@ if config.get('plugin.Reporter.enable', true)
       console.error err
     if getEventItem
       info =
-        teitokuId: _nickNameId
+        teitokuId: _teitokuId
         teitokuLv: _teitokuLv
         teitoku: _nickName
         mapId: map
