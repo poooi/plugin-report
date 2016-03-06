@@ -5,39 +5,25 @@ request = Promise.promisifyAll require 'request'
 path = require 'path-extra'
 REPORTER_VERSION = '2.3.1'
 
-window.i18n.report = new(require 'i18n-2')
-  locales:['en-US', 'ja-JP', 'zh-CN', 'zh-TW'],
-  defaultLocale: 'zh-CN',
-  directory: path.join(__dirname, 'i18n'),
-  updateFiles: false,
-  indent: "\t",
-  extension: '.json'
-  devMode: false
-window.i18n.report.setLocale(window.language)
-__ = window.i18n.report.__.bind(window.i18n.report)
+__ = window.i18n["poi-plugin-report"].__.bind(window.i18n["poi-plugin-report"])
 
-if config.get('plugin.Reporter.enable', true)
-  # Quest
-  knownQuests = []
-  questReportEnabled = false
-  # Map lv record
-  mapLv = []
-  # Create ship record
-  creating = false
-  kdockId = -1
-  detail =
-    items: []
-    highspeed: -1
-    kdockId: -1
-    largeFlag: false
-    secretary: -1
-    shipId: -1
-  # Game listener
-  request.get "http://#{SERVER_HOSTNAME}/api/report/v2/known_quests", (err, response, body) ->
-    return if err? || response.statusCode != 200
-    knownQuests = JSON.parse(body).quests
-    questReportEnabled = true
-  window.addEventListener 'game.response', async (e) ->
+# Quest
+knownQuests = []
+questReportEnabled = false
+# Map lv record
+mapLv = []
+# Create ship record
+creating = false
+kdockId = -1
+detail =
+  items: []
+  highspeed: -1
+  kdockId: -1
+  largeFlag: false
+  secretary: -1
+  shipId: -1
+
+reportToServer = async (e) ->
     {method, path, body, postBody} = e.detail
     {_ships, _decks, _teitokuLv} = window
     switch path
@@ -132,7 +118,7 @@ if config.get('plugin.Reporter.enable', true)
         catch err
           console.error err
   # Drop ship report
-  window.addEventListener 'battle.result', async (e) ->
+reportBattleResultToServer = async (e) ->
     {rank, boss, map, mapCell, quest, enemy, dropShipId, enemyShipId, enemyFormation, getEventItem} = e.detail
     {_teitokuLv, _nickName, _teitokuId} = window
     info =
@@ -172,10 +158,15 @@ if config.get('plugin.Reporter.enable', true)
         console.error err
 
 module.exports =
-  name: 'Reporter'
-  author: "Magica"
-  link: "https://github.com/magicae"
-  displayName: <span><FontAwesome key={0} name='pie-chart' /> {__ "Data Report"}</span>
-  description: __ "Report data to database(http://db.kcwiki.moe)"
   show: false
-  version: REPORTER_VERSION
+  pluginDidLoad: (e) ->
+    # Game listener
+    request.get "http://#{SERVER_HOSTNAME}/api/report/v2/known_quests", (err, response, body) ->
+      return if err? || response.statusCode != 200
+      knownQuests = JSON.parse(body).quests
+      questReportEnabled = true
+    window.addEventListener 'game.response', reportToServer
+    window.addEventListener 'battle.result', reportBattleResultToServer
+  pluginWillUnload: (e) ->
+    window.removeEventListener 'game.response', reportToServer
+    window.removeEventListener 'battle.result', reportBattleResultToServer
