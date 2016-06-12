@@ -22,6 +22,9 @@ detail =
   largeFlag: false
   secretary: -1
   shipId: -1
+# Remodel item
+remodelItemId = -1
+remodelItemLevel = -1
 
 reportToServer = async (e) ->
     {method, path, body, postBody} = e.detail
@@ -111,6 +114,35 @@ reportToServer = async (e) ->
           items: [parseInt(postBody.api_item1), parseInt(postBody.api_item2), parseInt(postBody.api_item3), parseInt(postBody.api_item4)]
         try
           yield request.postAsync "http://#{SERVER_HOSTNAME}/api/report/v2/create_item",
+            form:
+              data: JSON.stringify info
+            headers:
+              'User-Agent': "Reporter v#{REPORTER_VERSION}"
+        catch err
+          console.error err
+      # Remodel item report
+      when '/kcsapi/api_req_kousyou/remodel_slotlist_detail'
+        remodelItemId = postBody.api_slot_id
+        remodelItemLevel = _slotitems[remodelItemId].api_level
+      when '/kcsapi/api_req_kousyou/remodel_slot'
+        if remodelItemId != postBody.api_slot_id
+          console.error 'Inconsistent remodel item data: #{remodelItemId}, #{postBody.api_slot_id}'
+          return
+        flagship = _ships[_decks[0].api_ship[0]]
+        consort  = _ships[_decks[0].api_ship[1]]
+        info =
+          successful: body.api_remodel_flag
+          itemId: body.api_remodel_id[0]
+          itemLevel: remodelItemLevel
+          flagshipId: flagship.api_ship_id
+          flagshipLevel: flagship.api_lv
+          flagshipCond: flagship.api_cond
+          consortId: consort.api_ship_id
+          consortLevel: consort.api_lv
+          consortCond: consort.api_cond
+          teitokuLv: _teitokuLv
+        try
+          yield request.postAsync "http://#{SERVER_HOSTNAME}/api/report/v2/remodel_item",
             form:
               data: JSON.stringify info
             headers:
