@@ -128,6 +128,8 @@ reportToServer = async (e) ->
         if remodelItemId != postBody.api_slot_id
           console.error 'Inconsistent remodel item data: #{remodelItemId}, #{postBody.api_slot_id}'
           return
+        if parseInt(postBody.api_certain_flag) == 1
+          return
         flagship = _ships[_decks[0].api_ship[0]]
         consort  = _ships[_decks[0].api_ship[1]]
         info =
