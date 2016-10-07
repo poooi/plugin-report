@@ -3,7 +3,7 @@ Promise = require 'bluebird'
 async = Promise.coroutine
 request = Promise.promisifyAll require 'request'
 path = require 'path-extra'
-REPORTER_VERSION = '2.4.0'
+REPORTER_VERSION = '2.5.3'
 
 __ = window.i18n["poi-plugin-report"].__.bind(window.i18n["poi-plugin-report"])
 
@@ -25,10 +25,17 @@ detail =
 # Remodel item
 remodelItemId = -1
 remodelItemLevel = -1
+# Third party server
+thirdParty = false
 
 reportToServer = async (e) ->
     {method, path, body, postBody} = e.detail
     {_ships, _decks, _teitokuLv} = window
+    # Third party server
+    if path in ['/kcsapi/api_port/port']
+      thirdParty = body.api_thirdparty
+    return if thirdParty
+
     switch path
       # Quest detail
       when '/kcsapi/api_get_member/questlist'
@@ -154,6 +161,8 @@ reportToServer = async (e) ->
 reportBattleResultToServer = async (e) ->
     {rank, boss, map, mapCell, quest, enemy, dropShipId, enemyShipId, enemyFormation, getEventItem} = e.detail
     {_teitokuLv, _nickName, _teitokuId} = window
+    # Third party server
+    return if thirdParty
     info =
       shipId: dropShipId
       quest: quest
