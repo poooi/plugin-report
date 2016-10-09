@@ -3,7 +3,7 @@ Promise = require 'bluebird'
 async = Promise.coroutine
 request = Promise.promisifyAll require 'request'
 path = require 'path-extra'
-REPORTER_VERSION = '2.5.3'
+REPORTER_VERSION = '2.6.0'
 
 __ = window.i18n["poi-plugin-report"].__.bind(window.i18n["poi-plugin-report"])
 

@@ -1,6 +1,6 @@
 {
   "name": "poi-plugin-report",
-  "version": "2.5.3",
+  "version": "2.6.0",
   "description": "Report ship creating info and drop info, and so on.",
   "main": "index.cjsx",
   "scripts": {
