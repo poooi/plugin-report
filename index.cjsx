@@ -25,8 +25,32 @@ detail =
 # Remodel item
 remodelItemId = -1
 remodelItemLevel = -1
+# Drop ship
+DropInfo =
+  mapId: null
+  cellId: null
+  isBoss: null
+  mapLv: null
+  enemy: null
+  enemyShips: null
+  enemyFormation: null
+  quest: null
+  rank: null
+  shipId: null
+  teitokuLv: null
+drop = null
 # Third party server
 thirdParty = false
+
+report = async (path, info) ->
+  try
+    yield request.postAsync "http://#{SERVER_HOSTNAME}#{path}",
+      form:
+        data: JSON.stringify info
+      headers:
+        'User-Agent': "Reporter v#{REPORTER_VERSION}"
+  catch err
+    console.error err
 
 reportToServer = async (e) ->
     {method, path, body, postBody} = e.detail
@@ -60,29 +84,6 @@ reportToServer = async (e) ->
                   'User-Agent': "Reporter v#{REPORTER_VERSION}"
             catch err
               console.error err
-      # Map selected rank
-      when '/kcsapi/api_get_member/mapinfo'
-        for map in body
-          mapLv[map.api_id] = 0
-          if map.api_eventmap?
-            mapLv[map.api_id] = map.api_eventmap.api_selected_rank
-      # Eventmap select report
-      when '/kcsapi/api_req_map/select_eventmap_rank'
-        {_teitokuLv, _teitokuId} = window
-        info =
-          teitokuLv: _teitokuLv
-          teitokuId: _teitokuId
-          mapareaId: parseInt(postBody.api_maparea_id) * 10 + parseInt(postBody.api_map_no)
-          rank: parseInt(postBody.api_rank)
-        mapLv[parseInt(postBody.api_maparea_id) * 10 + parseInt(postBody.api_map_no)] = parseInt(postBody.api_rank)
-        try
-          yield request.postAsync "http://#{SERVER_HOSTNAME}/api/report/v2/select_rank",
-            form:
-              data: JSON.stringify info
-            headers:
-              'User-Agent': "Reporter v#{REPORTER_VERSION}"
-        catch err
-          console.error err
       # Create ship report
       when '/kcsapi/api_req_kousyou/createship'
         creating = true
@@ -157,47 +158,57 @@ reportToServer = async (e) ->
               'User-Agent': "Reporter v#{REPORTER_VERSION}"
         catch err
           console.error err
-  # Drop ship report
-reportBattleResultToServer = async (e) ->
-    {rank, boss, map, mapCell, quest, enemy, dropShipId, enemyShipId, enemyFormation, getEventItem} = e.detail
-    {_teitokuLv, _nickName, _teitokuId} = window
-    # Third party server
-    return if thirdParty
-    info =
-      shipId: dropShipId
-      quest: quest
-      enemy: enemy
-      rank: rank
-      isBoss: boss
-      mapId: map
-      cellId: mapCell
-      teitokuLv: _teitokuLv
-      mapLv: mapLv[map] or 0
-      enemyShips: enemyShipId
-      enemyFormation: enemyFormation
-    try
-      yield request.postAsync "http://#{SERVER_HOSTNAME}/api/report/v2/drop_ship",
-        form:
-          data: JSON.stringify info
-        headers:
-          'User-Agent': "Reporter v#{REPORTER_VERSION}"
-    catch err
-      console.error err
-    if getEventItem
-      info =
-        teitokuId: _teitokuId
-        teitokuLv: _teitokuLv
-        teitoku: _nickName
-        mapId: map
-        mapLv: mapLv[map] or 0
-      try
-        yield request.postAsync "http://#{SERVER_HOSTNAME}/api/report/v2/pass_event",
-          form:
-            data: JSON.stringify info
-          headers:
-            'User-Agent': "Reporter v#{REPORTER_VERSION}"
-      catch err
-        console.error err
+      # Drop ship report
+      ## Map selected rank
+      when '/kcsapi/api_get_member/mapinfo'
+        for map in body
+          mapLv[map.api_id] = 0
+          if map.api_eventmap?
+            mapLv[map.api_id] = map.api_eventmap.api_selected_rank
+      ## Eventmap select report
+      when '/kcsapi/api_req_map/select_eventmap_rank'
+        mapLv[parseInt(postBody.api_maparea_id) * 10 + parseInt(postBody.api_map_no)] = parseInt(postBody.api_rank)
+        {_teitokuLv, _teitokuId} = window
+        info =
+          teitokuLv: _teitokuLv
+          teitokuId: _teitokuId
+          mapareaId: parseInt(postBody.api_maparea_id) * 10 + parseInt(postBody.api_map_no)
+          rank: parseInt(postBody.api_rank)
+        try
+          yield request.postAsync "http://#{SERVER_HOSTNAME}/api/report/v2/select_rank",
+            form:
+              data: JSON.stringify info
+            headers:
+              'User-Agent': "Reporter v#{REPORTER_VERSION}"
+        catch err
+          console.error err
+      when '/kcsapi/api_req_map/start', '/kcsapi/api_req_map/next'
+        drop = Object.clone(DropInfo)
+        drop.mapId = body.api_maparea_id * 10 + body.api_mapinfo_no
+        drop.cellId = body.api_no
+        drop.isBoss = body.api_event_id == 5
+        drop.mapLv = mapLv[drop.mapId]
+      when '/kcsapi/api_req_sortie/battle', '/kcsapi/api_req_sortie/airbattle', '/kcsapi/api_req_sortie/ld_airbattle', '/kcsapi/api_req_combined_battle/battle', '/kcsapi/api_req_combined_battle/battle_water', '/kcsapi/api_req_combined_battle/airbattle', '/kcsapi/api_req_combined_battle/ld_airbattle', '/kcsapi/api_req_combined_battle/ec_battle', '/kcsapi/api_req_battle_midnight/sp_midnight', '/kcsapi/api_req_combined_battle/sp_midnight'
+        drop.enemyShips = []
+        for ships in [body.api_ship_ke, body.api_ship_ke_combined]
+          if ships?
+            drop.enemyShips = drop.enemyShips.concat(ships.slice(1, 7))
+        drop.enemyFormation = body.api_formation[1]
+      when '/kcsapi/api_req_sortie/battleresult', '/kcsapi/api_req_combined_battle/battleresult'
+        drop.enemy = body.api_enemy_info.api_deck_name
+        drop.quest = body.api_quest_name
+        drop.rank = body.api_win_rank
+        drop.shipId = body.api_get_ship?.api_ship_id || -1
+        drop.teitokuLv = _teitokuLv
+        yield report('/api/report/v2/drop_ship', drop)
+        # Report pass event
+        if body.api_get_eventitem?
+          yield report '/api/report/v2/pass_event',
+            teitokuId: _teitokuId
+            teitokuLv: _teitokuLv
+            teitoku: _nickName
+            mapId: drop.mapId
+            mapLv: drop.mapLv
 
 module.exports =
   show: false
@@ -208,7 +219,5 @@ module.exports =
       knownQuests = JSON.parse(body).quests
       questReportEnabled = true
     window.addEventListener 'game.response', reportToServer
-    window.addEventListener 'battle.result', reportBattleResultToServer
   pluginWillUnload: (e) ->
     window.removeEventListener 'game.response', reportToServer
-    window.removeEventListener 'battle.result', reportBattleResultToServer
