@@ -37,6 +37,7 @@ DropInfo =
   quest: null
   rank: null
   shipId: null
+  itemId: null
   teitokuLv: null
 drop = null
 # Third party server
@@ -199,6 +200,7 @@ reportToServer = async (e) ->
         drop.quest = body.api_quest_name
         drop.rank = body.api_win_rank
         drop.shipId = body.api_get_ship?.api_ship_id || -1
+        drop.itemId = body.api_get_useitem?.api_useitem_id || -1
         drop.teitokuLv = _teitokuLv
         yield report('/api/report/v2/drop_ship', drop)
         # Report pass event
