@@ -1,9 +1,11 @@
 {_, SERVER_HOSTNAME} = window
 Promise = require 'bluebird'
-async = Promise.coroutine
-request = Promise.promisifyAll require 'request'
 path = require 'path-extra'
-REPORTER_VERSION = '2.6.0'
+request = Promise.promisifyAll require 'request'
+_package = require('./package.json')
+async = Promise.coroutine
+REPORTER_USERAGENT = "Reporter v#{_package.version}"
+console.debug(REPORTER_USERAGENT)
 
 __ = window.i18n["poi-plugin-report"].__.bind(window.i18n["poi-plugin-report"])
 
@@ -49,7 +51,7 @@ report = async (path, info) ->
       form:
         data: JSON.stringify info
       headers:
-        'User-Agent': "Reporter v#{REPORTER_VERSION}"
+        'User-Agent': REPORTER_USERAGENT
   catch err
     console.error err
 
@@ -82,7 +84,7 @@ reportToServer = async (e) ->
                 form:
                   data: JSON.stringify info
                 headers:
-                  'User-Agent': "Reporter v#{REPORTER_VERSION}"
+                  'User-Agent': REPORTER_USERAGENT
             catch err
               console.error err
       # Create ship report
@@ -109,7 +111,7 @@ reportToServer = async (e) ->
             form:
               data: JSON.stringify detail
             headers:
-              'User-Agent': "Reporter v#{REPORTER_VERSION}"
+              'User-Agent': REPORTER_USERAGENT
         catch err
           console.error err
       # Create item report
@@ -126,7 +128,7 @@ reportToServer = async (e) ->
             form:
               data: JSON.stringify info
             headers:
-              'User-Agent': "Reporter v#{REPORTER_VERSION}"
+              'User-Agent': REPORTER_USERAGENT
         catch err
           console.error err
       # Remodel item report
@@ -156,7 +158,7 @@ reportToServer = async (e) ->
             form:
               data: JSON.stringify info
             headers:
-              'User-Agent': "Reporter v#{REPORTER_VERSION}"
+              'User-Agent': REPORTER_USERAGENT
         catch err
           console.error err
       # Drop ship report
@@ -180,7 +182,7 @@ reportToServer = async (e) ->
             form:
               data: JSON.stringify info
             headers:
-              'User-Agent': "Reporter v#{REPORTER_VERSION}"
+              'User-Agent': REPORTER_USERAGENT
         catch err
           console.error err
       when '/kcsapi/api_req_map/start', '/kcsapi/api_req_map/next'
