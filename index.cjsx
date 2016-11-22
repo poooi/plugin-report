@@ -189,7 +189,17 @@ reportToServer = async (e) ->
         drop.cellId = body.api_no
         drop.isBoss = body.api_event_id == 5
         drop.mapLv = mapLv[drop.mapId]
-      when '/kcsapi/api_req_sortie/battle', '/kcsapi/api_req_sortie/airbattle', '/kcsapi/api_req_sortie/ld_airbattle', '/kcsapi/api_req_combined_battle/battle', '/kcsapi/api_req_combined_battle/battle_water', '/kcsapi/api_req_combined_battle/airbattle', '/kcsapi/api_req_combined_battle/ld_airbattle', '/kcsapi/api_req_combined_battle/ec_battle', '/kcsapi/api_req_combined_battle/each_battle', '/kcsapi/api_req_battle_midnight/sp_midnight', '/kcsapi/api_req_combined_battle/sp_midnight'
+      when '/kcsapi/api_req_sortie/battle', \
+           '/kcsapi/api_req_sortie/airbattle', \
+           '/kcsapi/api_req_sortie/ld_airbattle', \
+           '/kcsapi/api_req_combined_battle/battle', \
+           '/kcsapi/api_req_combined_battle/battle_water', \
+           '/kcsapi/api_req_combined_battle/airbattle', \
+           '/kcsapi/api_req_combined_battle/ld_airbattle', \
+           '/kcsapi/api_req_combined_battle/ec_battle', \
+           '/kcsapi/api_req_combined_battle/each_battle', \
+           '/kcsapi/api_req_battle_midnight/sp_midnight', \
+           '/kcsapi/api_req_combined_battle/sp_midnight'
         drop.enemyShips = []
         for ships in [body.api_ship_ke, body.api_ship_ke_combined]
           if ships?
