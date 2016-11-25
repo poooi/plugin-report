@@ -200,6 +200,7 @@ reportToServer = async (e) ->
            '/kcsapi/api_req_combined_battle/ld_airbattle', \
            '/kcsapi/api_req_combined_battle/ec_battle', \
            '/kcsapi/api_req_combined_battle/each_battle', \
+           '/kcsapi/api_req_combined_battle/each_battle_water', \
            '/kcsapi/api_req_battle_midnight/sp_midnight', \
            '/kcsapi/api_req_combined_battle/sp_midnight'
         drop.enemyShips = []
