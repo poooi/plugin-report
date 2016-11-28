@@ -87,6 +87,7 @@ reportToServer = async (e) ->
                   'User-Agent': REPORTER_USERAGENT
             catch err
               console.error err
+
       # Create ship report
       when '/kcsapi/api_req_kousyou/createship'
         creating = true
@@ -114,6 +115,7 @@ reportToServer = async (e) ->
               'User-Agent': REPORTER_USERAGENT
         catch err
           console.error err
+
       # Create item report
       when '/kcsapi/api_req_kousyou/createitem'
         secretaryIdx = _decks[0].api_ship[0]
@@ -131,36 +133,39 @@ reportToServer = async (e) ->
               'User-Agent': REPORTER_USERAGENT
         catch err
           console.error err
+
       # Remodel item report
-      when '/kcsapi/api_req_kousyou/remodel_slotlist_detail'
-        remodelItemId = postBody.api_slot_id
-        remodelItemLevel = _slotitems[remodelItemId].api_level
-      when '/kcsapi/api_req_kousyou/remodel_slot'
-        if remodelItemId != postBody.api_slot_id
-          console.error 'Inconsistent remodel item data: #{remodelItemId}, #{postBody.api_slot_id}'
-          return
-        flagship = _ships[_decks[0].api_ship[0]]
-        consort  = _ships[_decks[0].api_ship[1]]
-        info =
-          successful: body.api_remodel_flag
-          itemId: body.api_remodel_id[0]
-          itemLevel: remodelItemLevel
-          flagshipId: flagship.api_ship_id
-          flagshipLevel: flagship.api_lv
-          flagshipCond: flagship.api_cond
-          consortId: consort.api_ship_id
-          consortLevel: consort.api_lv
-          consortCond: consort.api_cond
-          teitokuLv: _teitokuLv
-          certain: postBody.api_certain_flag
-        try
-          yield request.postAsync "http://#{SERVER_HOSTNAME}/api/report/v2/remodel_item",
-            form:
-              data: JSON.stringify info
-            headers:
-              'User-Agent': REPORTER_USERAGENT
-        catch err
-          console.error err
+      ## Stopped at 2016.11.28. We have collected 800k records.
+      # when '/kcsapi/api_req_kousyou/remodel_slotlist_detail'
+      #   remodelItemId = postBody.api_slot_id
+      #   remodelItemLevel = _slotitems[remodelItemId].api_level
+      # when '/kcsapi/api_req_kousyou/remodel_slot'
+      #   if remodelItemId != postBody.api_slot_id
+      #     console.error 'Inconsistent remodel item data: #{remodelItemId}, #{postBody.api_slot_id}'
+      #     return
+      #   flagship = _ships[_decks[0].api_ship[0]]
+      #   consort  = _ships[_decks[0].api_ship[1]]
+      #   info =
+      #     successful: body.api_remodel_flag
+      #     itemId: body.api_remodel_id[0]
+      #     itemLevel: remodelItemLevel
+      #     flagshipId: flagship.api_ship_id
+      #     flagshipLevel: flagship.api_lv
+      #     flagshipCond: flagship.api_cond
+      #     consortId: consort.api_ship_id
+      #     consortLevel: consort.api_lv
+      #     consortCond: consort.api_cond
+      #     teitokuLv: _teitokuLv
+      #     certain: postBody.api_certain_flag
+      #   try
+      #     yield request.postAsync "http://#{SERVER_HOSTNAME}/api/report/v2/remodel_item",
+      #       form:
+      #         data: JSON.stringify info
+      #       headers:
+      #         'User-Agent': REPORTER_USERAGENT
+      #   catch err
+      #     console.error err
+
       # Drop ship report
       ## Map selected rank
       when '/kcsapi/api_get_member/mapinfo'
@@ -168,6 +173,7 @@ reportToServer = async (e) ->
           mapLv[map.api_id] = 0
           if map.api_eventmap?
             mapLv[map.api_id] = map.api_eventmap.api_selected_rank
+
       ## Eventmap select report
       when '/kcsapi/api_req_map/select_eventmap_rank'
         mapLv[parseInt(postBody.api_maparea_id) * 10 + parseInt(postBody.api_map_no)] = parseInt(postBody.api_rank)
