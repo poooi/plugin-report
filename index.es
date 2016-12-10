@@ -306,7 +306,7 @@ class BattleAPIReporter extends BaseReporter {
       'api_opening_taisen_flag', 'api_opening_taisen',
       'api_opening_flag',        'api_opening_atack',
       'api_hourai_flag',
-      // 'api_hougeki1', 'api_hougeki2', 'api_hougeki3',
+      'api_hougeki1', 'api_hougeki2', 'api_hougeki3',
       'api_raigeki',
       'api_hougeki',
     ]
