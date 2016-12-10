@@ -6,7 +6,6 @@ import request from 'request'
 Promise.promisifyAll(request)
 const { SERVER_HOSTNAME } = window
 
-
 class BaseReporter {
   constructor() {
     const _package = require('./package.json')
@@ -80,7 +79,7 @@ class CreateShipReporter extends BaseReporter {
     this.kdockId  = -1
     this.info     = null
   }
-  handler(method, path, body, postBody) {
+  handle(method, path, body, postBody) {
     const { _decks, _ships, _teitokuLv } = window
     if (path === '/kcsapi/api_req_kousyou/createship') {
       this.creating = true
@@ -136,7 +135,7 @@ class DropShipReporter extends BaseReporter {
     const { _teitokuId, _teitokuLv, _nickName } = window
     switch(path) {
     case '/kcsapi/api_get_member/mapinfo': {
-      for (const map of body) {
+      for (const map of body.api_map_info) {
         mapLv[map.api_id] = 0
         if (map.api_eventmap != null)
           mapLv[map.api_id] = map.api_eventmap.api_selected_rank
@@ -220,7 +219,6 @@ class DropShipReporter extends BaseReporter {
     }
   }
 }
-
 
 let reporters = []
 const handleResponse = (e) => {
