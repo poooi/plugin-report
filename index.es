@@ -263,7 +263,8 @@ class BattleAPIReporter extends BaseReporter {
       'api_air_base_injection',
       'api_air_base_attack',
       'api_injection_kouku',
-      'api_stage_flag',          'api_kouku', 'api_kouku2',
+      'api_stage_flag',          'api_kouku',
+      'api_stage_flag2',         'api_kouku2',
       'api_support_flag',        'api_support_info',
       'api_opening_taisen_flag', 'api_opening_taisen',
       'api_opening_flag',        'api_opening_atack',
@@ -328,6 +329,7 @@ class RemodelItemReporter extends BaseReporter {
     }
   }
 }
+
 
 let reporters = []
 const handleResponse = (e) => {
