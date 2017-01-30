@@ -333,8 +333,9 @@ class RemodelItemReporter extends BaseReporter {
 
 // Collect night contact data with followed conditions:
 // 1. Non-combined fleet
-// 2. Only one plane 102 equipped.
+// 2. Only one contactable plane equipped.
 // 3. Plane level must larger than 0.
+// 4. Plane count must larger than 0.
 class NightContactReportor extends BaseReporter {
   constructor() {
     super()
@@ -367,9 +368,11 @@ class NightContactReportor extends BaseReporter {
       for (const sid of ships) {
         const ship = _ships[sid] || {}
         const items = ship.api_slot || []
-        for (const iid of items) {
+        const count = ship.api_onslot || []
+        for (const [iid, cnt] of _.zip(items, count)) {
           const item = _slotitems[iid] || {}
-          if (item.api_slotitem_id === this.VALID_PLANE_ID)
+          // Condition * & 4
+          if (item.api_slotitem_id === this.VALID_PLANE_ID && cnt > 0)
             entries.push([ship, item])
         }
       }
