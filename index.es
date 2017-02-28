@@ -334,7 +334,7 @@ class RemodelItemReporter extends BaseReporter {
 // Collect night contact data with followed conditions:
 // 1. Non-combined fleet
 // 2. Only one contactable plane equipped.
-// 3. Plane level must larger than 0.
+// 3. Plane level must be equal or larger than 0.
 // 4. Plane count must larger than 0.
 class NightContactReportor extends BaseReporter {
   constructor() {
@@ -388,7 +388,7 @@ class NightContactReportor extends BaseReporter {
         itemLv: item.api_level,
         contact: touchId > -1,
       }
-      if (! (1 <= info.itemLv && info.itemLv <= 10 ))  // Condition 3
+      if (! (0 <= info.itemLv && info.itemLv <= 10 ))  // Condition 3
         break
 
       // Prevent reporting data with null value.
