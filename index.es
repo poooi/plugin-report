@@ -330,6 +330,29 @@ class RemodelItemReporter extends BaseReporter {
   }
 }
 
+// Collecting remodel recipes
+// a recipe =
+//   id -> /kcsapi/api_req_kousyou/remodel_slotlist_detail postBody.api_id,
+//   itemId -> /kcsapi/api_req_kousyou/remodel_slotlist_detail postBody.api_slot_id, _slotitems
+//   itemLevel -> /kcsapi/api_req_kousyou/remodel_slotlist_detail postBody.api_slot_id, _slotitems
+//   upgradeToItemId -> /kcsapi/api_req_kousyou/remodel_slot body.body.api_remodel_id[1]
+//   upgradeToItemLevel -> /kcsapi/api_req_kousyou/remodel_slot body.api_after_slot
+//   day of the week -> moment.js
+//   secretary (actually the second slot kanmusu)  -> api_req_kousyou/remodel_slot  api_voice_ship_id
+//   fuel -> /kcsapi/api_req_kousyou/remodel_slotlist_detail postBody.api_id,
+//     /kcsapi/api_req_kousyou/remodel_slotlist, body, api_req_*
+//   ammo -> similar to above
+//   steel -> similar to above
+//   bauxite -> similar to above
+//   reqItemId -> /kcsapi/api_req_kousyou/remodel_slotlist_detail body.api_req_slot_id
+//   reqItemCount -> /kcsapi/api_req_kousyou/remodel_slotlist_detail body.api_req_slot_num
+//   buildkit -> /kcsapi/api_req_kousyou/remodel_slotlist_detail body.api_req_buildkit
+//   remodelkit -> similar to above
+//   certainBuildkit -> similar to above
+//   certainRemodelkit -> similar to above
+
+
+
 
 // Collect night contact data with followed conditions:
 // 1. Non-combined fleet
