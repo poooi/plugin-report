@@ -2,7 +2,7 @@ import url from 'url'
 import _ from 'lodash'
 import Promise from 'bluebird'
 import request from 'request'
-import momemt from 'moment'
+import moment from 'moment'
 
 Promise.promisifyAll(request)
 const { SERVER_HOSTNAME } = window
@@ -365,7 +365,7 @@ class RemodelRecipeReporter extends BaseReporter {
       this.recipes = _.keyBy(body, 'api_id')
     } break
     case '/kcsapi/api_req_kousyou/remodel_slotlist_detail': {
-      const utc = momemt.utc()
+      const utc = moment.utc()
       const hour = utc.hour()
       const day = utc.day()
       // remodel list refreshes at 00:00 UTC+8
