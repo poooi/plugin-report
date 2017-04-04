@@ -368,8 +368,8 @@ class RemodelRecipeReporter extends BaseReporter {
       const utc = moment.utc()
       const hour = utc.hour()
       const day = utc.day()
-      // remodel list refreshes at 00:00 UTC+8
-      this.day = hour >= 16 ? (day + 1) % 7 : day
+      // remodel list refreshes at 00:00 UTC+9
+      this.day = hour >= 15 ? (day + 1) % 7 : day
 
       this.recipeId = parseInt(postBody.api_id)
       let itemSlotId = postBody.api_slot_id
