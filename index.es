@@ -410,7 +410,7 @@ class RemodelRecipeReporter extends BaseReporter {
       }
       console.log(info)
 
-      this.report('/api/report/v2/remodel_recipe_partial', info)
+      this.report('/api/report/v2/remodel_recipe', info)
     } break
     case '/kcsapi/api_req_kousyou/remodel_slot': {
       if (this.itemId != body.api_remodel_id[0]) {
@@ -431,27 +431,15 @@ class RemodelRecipeReporter extends BaseReporter {
 
       const info = {
         recipeId: this.recipeId,
-        itemId: this.itemId,
-        itemLevel: this.itemLevel,
         upgradeToItemId,
         upgradeToItemLevel,
         day: this.day,
         secretary,
-        fuel: this.fuel,
-        ammo: this.ammo,
-        steel: this.steel,
-        bauxite: this.bauxite,
-        reqItemId: this.reqItemId,
-        reqItemCount: this.reqItemCount,
-        buildkit: this.buildkit,
-        remodelkit: this.remodelkit,
-        certainBuildkit: this.certainBuildkit,
-        certainRemodelkit: this.certainRemodelkit,
         success,
       }
       console.log(info)
 
-      this.report('/api/report/v2/remodel_recipe', info)
+      this.report('/api/report/v2/remodel_recipe_upgrade', info)
     } break
     }
   }
