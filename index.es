@@ -408,7 +408,6 @@ class RemodelRecipeReporter extends BaseReporter {
         certainBuildkit: this.certainBuildkit,
         certainRemodelkit: this.certainRemodelkit,
       }
-      console.log(info)
 
       this.report('/api/report/v2/remodel_recipe', info)
     } break
@@ -422,11 +421,12 @@ class RemodelRecipeReporter extends BaseReporter {
         return
       }
 
-      const newItemId = body.api_remodel_id[1]
+      const upgradeToItemId = body.api_remodel_id[1]
+      if (upgradeToItemId == this.itemId) {
+        return
+      }
       const afterSlot = body.api_after_slot || {}
-      const success = (afterSlot.api_level > this.itemLevel) || (newItemId != this.itemId)
-      const upgradeToItemId = this.itemId != newItemId ? newItemId : -1
-      const upgradeToItemLevel = this.upgradeToItemId >= 0 ? afterSlot.api_levl : -1
+      const upgradeToItemLevel = afterSlot.api_level || -1
       const secretary = body.api_voice_ship_id || -1
 
       const info = {
@@ -435,9 +435,7 @@ class RemodelRecipeReporter extends BaseReporter {
         upgradeToItemLevel,
         day: this.day,
         secretary,
-        success,
       }
-      console.log(info)
 
       this.report('/api/report/v2/remodel_recipe_upgrade', info)
     } break
