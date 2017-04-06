@@ -373,6 +373,19 @@ class RemodelRecipeReporter extends BaseReporter {
     this.id = -1
     this.itemId = -1
     this.recipes = {}
+
+    this.knownRecipes = []
+    this.enabled = false
+
+    request.get(
+      url.resolve(`http://${SERVER_HOSTNAME}`, '/api/report/v2/known_recipes'),
+      (err, response, body) => {
+        if (err != null || response.statusCode != 200)
+          return
+        this.knownRecipes = JSON.parse(body).recipes
+        this.enabled = true
+      }
+    )
   }
   handle(method, path, body, postBody) {
     const { _slotitems } = window
@@ -412,6 +425,10 @@ class RemodelRecipeReporter extends BaseReporter {
       this.certainRemodelkit = body.api_certain_remodelkit || 0
     } break
     case '/kcsapi/api_req_kousyou/remodel_slot': {
+      if (!this.enabled) {
+        return
+      }
+
       if (this.itemId != body.api_remodel_id[0]) {
         console.error(`Inconsistent remodel item data: ${this.itemId}, ${postBody.api_slot_id}`)
         return
@@ -451,6 +468,12 @@ class RemodelRecipeReporter extends BaseReporter {
         upgradeToItemLevel,
         key: `r${this.recipeId}-i${this.itemId}-s${this.stage}-d${this.day}-s${secretary}`,
       }
+      console.log(info)
+      if (this.knownRecipes.includes(info.key)) {
+        return
+      }
+      this.knownRecipes.push(info.key)
+
       this.report('/api/report/v2/remodel_recipe', info)
     } break
     }
