@@ -395,6 +395,9 @@ class RemodelRecipeReporter extends BaseReporter {
       this.recipes = _.keyBy(body, 'api_id')
     } break
     case '/kcsapi/api_req_kousyou/remodel_slotlist_detail': {
+      if (Object.keys(this.recipes).length === 0) {
+        return
+      }
       const utc = moment.utc()
       const hour = utc.hour()
       const day = utc.day()
@@ -413,10 +416,6 @@ class RemodelRecipeReporter extends BaseReporter {
       this.stage = getStage(itemLevel)
       const recipe = this.recipes[this.recipeId] || {}
 
-      if (Object.keys(recipe).length === 0) {
-        return
-      }
-
       this.fuel = recipe.api_req_fuel || 0
       this.ammo = recipe.api_req_bull || 0
       this.steel = recipe.api_req_steel || 0
@@ -431,6 +430,10 @@ class RemodelRecipeReporter extends BaseReporter {
     } break
     case '/kcsapi/api_req_kousyou/remodel_slot': {
       if (!this.enabled) {
+        return
+      }
+
+      if (typeof this.fuel === 'undefined') {
         return
       }
 
@@ -473,7 +476,6 @@ class RemodelRecipeReporter extends BaseReporter {
         upgradeToItemLevel,
         key: `r${this.recipeId}-i${this.itemId}-s${this.stage}-d${this.day}-s${secretary}`,
       }
-      console.log(info)
       if (this.knownRecipes.includes(info.key)) {
         return
       }
