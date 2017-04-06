@@ -346,9 +346,6 @@ const getStage = (level) => {
 
 const COMMON_RECIPES = [101, 201, 301]
 
-const getRecipeKey = ({ recipeId, itemId, stage, day, secretary }) =>
-  `r${recipeId}-e${itemId}-s${stage}-d${day}-s${secretary}`
-
 // Collecting remodel recipes
 // a recipe =
 //   id -> /kcsapi/api_req_kousyou/remodel_slotlist_detail postBody.api_id,
@@ -452,7 +449,7 @@ class RemodelRecipeReporter extends BaseReporter {
         certainRemodelkit: this.certainRemodelkit,
         upgradeToItemId,
         upgradeToItemLevel,
-        key: `r${this.recipeId}-e${this.itemId}-s${this.stage}-d${this.day}-s${secretary}`,
+        key: `r${this.recipeId}-i${this.itemId}-s${this.stage}-d${this.day}-s${secretary}`,
       }
       this.report('/api/report/v2/remodel_recipe', info)
     } break
