@@ -372,6 +372,7 @@ class RemodelRecipeReporter extends BaseReporter {
     super()
     this.id = -1
     this.itemId = -1
+    this.recipeId = -1
     this.recipes = {}
 
     this.knownRecipes = []
@@ -411,6 +412,10 @@ class RemodelRecipeReporter extends BaseReporter {
       const itemLevel = (_slotitems[itemSlotId] || {}).api_level || -1
       this.stage = getStage(itemLevel)
       const recipe = this.recipes[this.recipeId] || {}
+
+      if (Object.keys(recipe).length === 0) {
+        return
+      }
 
       this.fuel = recipe.api_req_fuel || 0
       this.ammo = recipe.api_req_bull || 0
