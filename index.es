@@ -331,11 +331,30 @@ class RemodelItemReporter extends BaseReporter {
   }
 }
 
+const getStage = (level) => {
+  switch (true) {
+  case (level >= 0 && level < 6):
+    return 0
+  case (level >= 6 && level < 10):
+    return 1
+  case (level == 10):
+    return 2
+  default:
+    return -1
+  }
+}
+
+const COMMON_RECIPES = [101, 201, 301]
+
+const getRecipeKey = ({ recipeId, itemId, stage, day, secretary }) =>
+  `r${recipeId}-e${itemId}-s${stage}-d${day}-s${secretary}`
+
 // Collecting remodel recipes
 // a recipe =
 //   id -> /kcsapi/api_req_kousyou/remodel_slotlist_detail postBody.api_id,
 //   itemId -> /kcsapi/api_req_kousyou/remodel_slotlist_detail postBody.api_slot_id, _slotitems
-//   itemLevel -> /kcsapi/api_req_kousyou/remodel_slotlist_detail postBody.api_slot_id, _slotitems
+//   stage -> based on item level, /kcsapi/api_req_kousyou/remodel_slotlist_detail postBody.api_slot_id, _slotitems
+//     [0,6) = 0, [6, 10) = 1, 10 = 2
 //   upgradeToItemId -> /kcsapi/api_req_kousyou/remodel_slot body.body.api_remodel_id[1]
 //   upgradeToItemLevel -> /kcsapi/api_req_kousyou/remodel_slot body.api_after_slot
 //   day of the week -> moment.js
@@ -359,7 +378,7 @@ class RemodelRecipeReporter extends BaseReporter {
     this.recipes = {}
   }
   handle(method, path, body, postBody) {
-    const { _decks, _ships, _slotitems } = window
+    const { _slotitems } = window
     switch(path) {
     case '/kcsapi/api_req_kousyou/remodel_slotlist': {
       this.recipes = _.keyBy(body, 'api_id')
@@ -372,9 +391,15 @@ class RemodelRecipeReporter extends BaseReporter {
       this.day = hour >= 15 ? (day + 1) % 7 : day
 
       this.recipeId = parseInt(postBody.api_id)
+
+      if (COMMON_RECIPES.includes(this.recipeId)) {
+        return
+      }
+
       let itemSlotId = postBody.api_slot_id
       this.itemId = (_slotitems[itemSlotId] || {}).api_slotitem_id || -1
-      this.itemLevel = (_slotitems[itemSlotId] || {}).api_level || -1
+      const itemLevel = (_slotitems[itemSlotId] || {}).api_level || -1
+      this.stage = getStage(itemLevel)
       const recipe = this.recipes[this.recipeId] || {}
 
       this.fuel = recipe.api_req_fuel || 0
@@ -388,13 +413,31 @@ class RemodelRecipeReporter extends BaseReporter {
       this.remodelkit = body.api_req_remodelkit || 0
       this.certainBuildkit = body.api_certain_buildkit || 0
       this.certainRemodelkit = body.api_certain_remodelkit || 0
+    } break
+    case '/kcsapi/api_req_kousyou/remodel_slot': {
+      if (this.itemId != body.api_remodel_id[0]) {
+        console.error(`Inconsistent remodel item data: ${this.itemId}, ${postBody.api_slot_id}`)
+        return
+      }
+      if (this.recipeId != postBody.api_id) {
+        console.error(`Inconsistent remodel item data: ${this.recipeId}, ${postBody.api_id}`)
+        return
+      }
 
-      const secretary = _.get(_ships, `${_decks[0].api_ship[1]}.api_ship_id`) || -1
+      // unsuccessful upgrade will be noise for upgrade item record
+      if (!body.api_remodel_flag) {
+        return
+      }
+
+      const upgradeToItemId = body.api_remodel_id[1] != this.itemId ? body.api_remodel_id[1] : -1
+      const afterSlot = body.api_after_slot || {}
+      const upgradeToItemLevel = upgradeToItemId >= 0 ? afterSlot.api_level : -1
+      const secretary = body.api_voice_ship_id || -1
 
       const info = {
         recipeId: this.recipeId,
         itemId: this.itemId,
-        itemLevel: this.itemLevel,
+        stage: this.stage,
         day: this.day,
         secretary,
         fuel: this.fuel,
@@ -407,37 +450,11 @@ class RemodelRecipeReporter extends BaseReporter {
         remodelkit: this.remodelkit,
         certainBuildkit: this.certainBuildkit,
         certainRemodelkit: this.certainRemodelkit,
-      }
-
-      this.report('/api/report/v2/remodel_recipe', info)
-    } break
-    case '/kcsapi/api_req_kousyou/remodel_slot': {
-      if (this.itemId != body.api_remodel_id[0]) {
-        console.error(`Inconsistent remodel item data: ${this.itemId}, ${postBody.api_slot_id}`)
-        return
-      }
-      if (this.recipeId != postBody.api_id) {
-        console.error(`Inconsistent remodel item data: ${this.recipeId}, ${postBody.api_id}`)
-        return
-      }
-
-      const upgradeToItemId = body.api_remodel_id[1]
-      if (upgradeToItemId == this.itemId) {
-        return
-      }
-      const afterSlot = body.api_after_slot || {}
-      const upgradeToItemLevel = afterSlot.api_level || -1
-      const secretary = body.api_voice_ship_id || -1
-
-      const info = {
-        recipeId: this.recipeId,
         upgradeToItemId,
         upgradeToItemLevel,
-        day: this.day,
-        secretary,
+        key: `r${this.recipeId}-e${this.itemId}-s${this.stage}-d${this.day}-s${secretary}`,
       }
-
-      this.report('/api/report/v2/remodel_recipe_upgrade', info)
+      this.report('/api/report/v2/remodel_recipe', info)
     } break
     }
   }
