@@ -344,7 +344,11 @@ const getStage = (level) => {
   }
 }
 
-const COMMON_RECIPES = [101, 201, 301]
+// 2 = 12.7cm連装砲
+// 4 = 14cm単装砲
+// 14 = 61cm四連装魚雷
+// 44 = 九四式爆雷投射機
+const COMMON_ITEM_ID = [2, 4, 14, 44]
 
 // Collecting remodel recipes
 // a recipe =
@@ -389,7 +393,6 @@ class RemodelRecipeReporter extends BaseReporter {
     )
   }
   handle(method, path, body, postBody) {
-    const { _slotitems } = window
     switch(path) {
     case '/kcsapi/api_req_kousyou/remodel_slotlist': {
       this.recipes = _.keyBy(body, 'api_id')
@@ -406,13 +409,9 @@ class RemodelRecipeReporter extends BaseReporter {
 
       this.recipeId = parseInt(postBody.api_id)
 
-      if (COMMON_RECIPES.includes(this.recipeId)) {
-        return
-      }
-
       let itemSlotId = postBody.api_slot_id
-      this.itemId = (_slotitems[itemSlotId] || {}).api_slotitem_id || -1
-      const itemLevel = (_slotitems[itemSlotId] || {}).api_level || -1
+      this.itemId = (window._slotitems[itemSlotId] || {}).api_slotitem_id || -1
+      const itemLevel = (window._slotitems[itemSlotId] || {}).api_level || -1
       this.stage = getStage(itemLevel)
       const recipe = this.recipes[this.recipeId] || {}
 
@@ -446,8 +445,9 @@ class RemodelRecipeReporter extends BaseReporter {
         return
       }
 
-      // unsuccessful upgrade will be noise for upgrade item record
-      if (!body.api_remodel_flag) {
+      // unsuccessful upgrade will be noise for upgrade item record, 
+      // and common items with any ship will produce much more data
+      if (!body.api_remodel_flag || COMMON_ITEM_ID.includes(this.itemId)) {
         return
       }
 
