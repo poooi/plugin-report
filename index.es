@@ -447,7 +447,11 @@ class RemodelRecipeReporter extends BaseReporter {
 
       // unsuccessful upgrade will be noise for upgrade item record, 
       // and common items with any ship will produce much more data
-      if (!body.api_remodel_flag || COMMON_ITEM_ID.includes(this.itemId)) {
+      // stage == -1 because /port will not update slotitems with api_level, they are 
+      // updated only when restarting game
+      if (!body.api_remodel_flag || 
+            COMMON_ITEM_ID.includes(this.itemId) ||
+            this.stage == -1 ) {
         return
       }
 
