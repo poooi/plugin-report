@@ -348,7 +348,6 @@ const getStage = (level) => {
 // 4 = 14cm単装砲
 // 14 = 61cm四連装魚雷
 // 44 = 九四式爆雷投射機
-const COMMON_ITEM_ID = [2, 4, 14, 44]
 
 // Collecting remodel recipes
 // a recipe =
@@ -449,8 +448,7 @@ class RemodelRecipeReporter extends BaseReporter {
       // and common items with any ship will produce much more data
       // stage == -1 because /port will not update slotitems with api_level, they are 
       // updated only when restarting game
-      if (!body.api_remodel_flag || 
-            COMMON_ITEM_ID.includes(this.itemId) ||
+      if (!body.api_remodel_flag ||
             this.stage == -1 ) {
         return
       }
