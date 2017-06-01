@@ -331,46 +331,28 @@ class RemodelItemReporter extends BaseReporter {
   }
 }
 
-const getStage = (level) => {
-  switch (true) {
-  case (level >= 0 && level < 6):
-    return 0
-  case (level >= 6 && level < 10):
-    return 1
-  case (level == 10):
-    return 2
-  default:
-    return -1
-  }
-}
-
-// 2 = 12.7cm連装砲
-// 4 = 14cm単装砲
-// 14 = 61cm四連装魚雷
-// 44 = 九四式爆雷投射機
-
 // Collecting remodel recipes
-// a recipe =
-//   id -> /kcsapi/api_req_kousyou/remodel_slotlist_detail postBody.api_id,
-//   itemId -> /kcsapi/api_req_kousyou/remodel_slotlist_detail postBody.api_slot_id, _slotitems
-//   stage -> based on item level, /kcsapi/api_req_kousyou/remodel_slotlist_detail postBody.api_slot_id, _slotitems
-//     [0,6) = 0, [6, 10) = 1, 10 = 2
-//   upgradeToItemId -> /kcsapi/api_req_kousyou/remodel_slot body.body.api_remodel_id[1]
-//   upgradeToItemLevel -> /kcsapi/api_req_kousyou/remodel_slot body.api_after_slot
-//   day of the week -> moment.js
-//   secretary (actually the second slot kanmusu)  -> api_req_kousyou/remodel_slot  api_voice_ship_id
-//   fuel -> /kcsapi/api_req_kousyou/remodel_slotlist_detail postBody.api_id,
-//     /kcsapi/api_req_kousyou/remodel_slotlist, body, api_req_*
-//   ammo -> similar to above
-//   steel -> similar to above
-//   bauxite -> similar to above
-//   reqItemId -> /kcsapi/api_req_kousyou/remodel_slotlist_detail body.api_req_slot_id
-//   reqItemCount -> /kcsapi/api_req_kousyou/remodel_slotlist_detail body.api_req_slot_num
-//   buildkit -> /kcsapi/api_req_kousyou/remodel_slotlist_detail body.api_req_buildkit
-//   remodelkit -> similar to above
-//   certainBuildkit -> similar to above
-//   certainRemodelkit -> similar to above
 class RemodelRecipeReporter extends BaseReporter {
+  // a recipe =
+  //   id -> /kcsapi/api_req_kousyou/remodel_slotlist_detail postBody.api_id,
+  //   itemId -> /kcsapi/api_req_kousyou/remodel_slotlist_detail postBody.api_slot_id, _slotitems
+  //   stage -> based on item level, /kcsapi/api_req_kousyou/remodel_slotlist_detail postBody.api_slot_id, _slotitems
+  //     [0,6) = 0, [6, 10) = 1, 10 = 2
+  //   upgradeToItemId -> /kcsapi/api_req_kousyou/remodel_slot body.body.api_remodel_id[1]
+  //   upgradeToItemLevel -> /kcsapi/api_req_kousyou/remodel_slot body.api_after_slot
+  //   day of the week -> moment.js
+  //   secretary (actually the second slot kanmusu)  -> api_req_kousyou/remodel_slot  api_voice_ship_id
+  //   fuel -> /kcsapi/api_req_kousyou/remodel_slotlist_detail postBody.api_id,
+  //     /kcsapi/api_req_kousyou/remodel_slotlist, body, api_req_*
+  //   ammo -> similar to above
+  //   steel -> similar to above
+  //   bauxite -> similar to above
+  //   reqItemId -> /kcsapi/api_req_kousyou/remodel_slotlist_detail body.api_req_slot_id
+  //   reqItemCount -> /kcsapi/api_req_kousyou/remodel_slotlist_detail body.api_req_slot_num
+  //   buildkit -> /kcsapi/api_req_kousyou/remodel_slotlist_detail body.api_req_buildkit
+  //   remodelkit -> similar to above
+  //   certainBuildkit -> similar to above
+  //   certainRemodelkit -> similar to above
   constructor() {
     super()
     this.id = -1
@@ -390,6 +372,18 @@ class RemodelRecipeReporter extends BaseReporter {
         this.enabled = true
       }
     )
+  }
+  getStage(level) {
+    switch (true) {
+    case (level >= 0 && level < 6):
+      return 0
+    case (level >= 6 && level < 10):
+      return 1
+    case (level == 10):
+      return 2
+    default:
+      return -1
+    }
   }
   handle(method, path, body, postBody) {
     switch(path) {
@@ -411,7 +405,7 @@ class RemodelRecipeReporter extends BaseReporter {
       let itemSlotId = postBody.api_slot_id
       this.itemId = (window._slotitems[itemSlotId] || {}).api_slotitem_id || -1
       const itemLevel = (window._slotitems[itemSlotId] || {}).api_level || -1
-      this.stage = getStage(itemLevel)
+      this.stage = this.getStage(itemLevel)
       const recipe = this.recipes[this.recipeId] || {}
 
       this.fuel = recipe.api_req_fuel || 0
@@ -460,19 +454,19 @@ class RemodelRecipeReporter extends BaseReporter {
 
       const info = {
         recipeId: this.recipeId,
-        itemId: this.itemId,
-        stage: this.stage,
-        day: this.day,
+        itemId  : this.itemId,
+        stage   : this.stage,
+        day     : this.day,
         secretary,
-        fuel: this.fuel,
-        ammo: this.ammo,
-        steel: this.steel,
+        fuel   : this.fuel,
+        ammo   : this.ammo,
+        steel  : this.steel,
         bauxite: this.bauxite,
-        reqItemId: this.reqItemId,
+        reqItemId   : this.reqItemId,
         reqItemCount: this.reqItemCount,
-        buildkit: this.buildkit,
+        buildkit  : this.buildkit,
         remodelkit: this.remodelkit,
-        certainBuildkit: this.certainBuildkit,
+        certainBuildkit  : this.certainBuildkit,
         certainRemodelkit: this.certainRemodelkit,
         upgradeToItemId,
         upgradeToItemLevel,
