@@ -15,6 +15,7 @@ class BaseReporter {
   }
 
   report = async (path, info) => {
+    // return console.log(path, info)
     try {
       await request.postAsync(
         url.resolve(`http://${SERVER_HOSTNAME}`, path),
@@ -483,8 +484,6 @@ class RemodelRecipeReporter extends BaseReporter {
   }
 }
 
-
-
 // Collect night contact data with followed conditions:
 // 1. Non-combined fleet
 // 2. Only one contactable plane equipped.
@@ -556,6 +555,54 @@ class NightContactReportor extends BaseReporter {
   }
 }
 
+class AACIReporter extends BaseReporter {
+  constructor() {
+    super()
+    setTimeout(() => {
+      try {
+        const aaci = require('views/utils/aaci')
+        this.getShipAACIs = aaci.getShipAACIs
+      }
+      catch (err) {
+        // console.log(`AACI reporter is disabled.`)
+      }
+    }, 0)
+  }
+  handle(method, path, body, postBody) {
+    if (this.getShipAACIs == null) {
+      return
+    }
+    const { _decks, _ships, _slotitems } = window
+    switch(path) {
+    case '/kcsapi/api_req_hensei/change':
+    case '/kcsapi/api_req_practice/battle': {
+      const deckId = 0 //(body.api_deck_id || body.api_dock_id || 0) - 1
+      const deck = _decks[deckId]
+      if (deck == null)  break
+      const aacis = (deck.api_ship || [])
+        .map(shipId => {
+          const ship = _ships[shipId]
+          if (ship == null)  return null
+          const equips = (ship.api_slot || [])
+            .map(equipId => {
+              const equip = _slotitems[equipId]
+              if (equip == null)  return null
+              return equip
+            })
+            .filter(equip => equip != null)
+          return this.getShipAACIs(ship, equips)
+        })
+        .filter(aaci => aaci.length > 0)
+      if (aacis.length === 1) {
+        this.report('/api/report/v2/aaci', {
+          available: aacis[0].join(','),
+        })
+      }
+    } break
+    }
+  }
+}
+
 
 let reporters = []
 const handleResponse = (e) => {
@@ -580,6 +627,7 @@ export const pluginDidLoad = (e) => {
     new BattleAPIReporter(),
     new NightContactReportor(),
     new RemodelRecipeReporter(),
+    new AACIReporter(),
   ]
   window.addEventListener('game.response', handleResponse)
 }
