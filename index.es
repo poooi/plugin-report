@@ -13,9 +13,8 @@ class BaseReporter {
     const _package = require('./package.json')
     this.USERAGENT = `Reporter v${_package.version}`
   }
-
   report = async (path, info) => {
-    // return console.log(path, info)
+    // console.log(path, info)
     try {
       await request.postAsync(
         url.resolve(`http://${SERVER_HOSTNAME}`, path),
@@ -558,15 +557,13 @@ class NightContactReportor extends BaseReporter {
 class AACIReporter extends BaseReporter {
   constructor() {
     super()
-    setTimeout(() => {
-      try {
-        const aaci = require('views/utils/aaci')
-        this.getShipAACIs = aaci.getShipAACIs
-      }
-      catch (err) {
-        // console.log(`AACI reporter is disabled.`)
-      }
-    }, 0)
+    try {
+      const aaci = require('views/utils/aaci')
+      this.getShipAACIs = aaci.getShipAACIs
+    }
+    catch (err) {
+      // console.log(`AACI reporter is disabled.`)
+    }
   }
   handle(method, path, body, postBody) {
     if (this.getShipAACIs == null) {
@@ -574,30 +571,45 @@ class AACIReporter extends BaseReporter {
     }
     const { _decks, _ships, _slotitems } = window
     switch(path) {
-    case '/kcsapi/api_req_hensei/change':
-    case '/kcsapi/api_req_practice/battle': {
-      const deckId = 0 //(body.api_deck_id || body.api_dock_id || 0) - 1
-      const deck = _decks[deckId]
+    case '/kcsapi/api_req_sortie/battle': {
+      const deckId = (body.api_deck_id || body.api_dock_id || 0) - 1
+      const deck   = _decks[deckId]
       if (deck == null)  break
-      const aacis = (deck.api_ship || [])
+
+      // Available AACI
+      const deckAACIs = (deck.api_ship || [])
         .map(shipId => {
           const ship = _ships[shipId]
-          if (ship == null)  return null
+          if (ship == null)  return
           const equips = (ship.api_slot || [])
             .map(equipId => {
               const equip = _slotitems[equipId]
-              if (equip == null)  return null
+              if (equip == null)  return
               return equip
             })
             .filter(equip => equip != null)
           return this.getShipAACIs(ship, equips)
         })
-        .filter(aaci => aaci.length > 0)
-      if (aacis.length === 1) {
-        this.report('/api/report/v2/aaci', {
-          available: aacis[0].join(','),
-        })
-      }
+      const availIdx  = deckAACIs.findIndex(aaci => aaci.length > 0)
+      const availKind = deckAACIs[availIdx]
+      if (deckAACIs.filter(aaci => aaci.length > 0).length !== 1)
+        break  // Report one available ship only.
+
+      // Triggered AACI
+      const eFrom = _.get(body, 'api_kouku.api_plane_from[1]')
+      if (eFrom == null || eFrom[0] === -1)
+        break
+      const idx  = _.get(body, 'api_kouku.api_stage2.api_air_fire.api_idx')
+      const kind = _.get(body, 'api_kouku.api_stage2.api_air_fire.api_kind')
+      if (! ((idx == null && kind == null) ||
+             (idx === availIdx && availKind.includes(kind))))
+        break
+
+      // Report
+      this.report('/api/report/v2/aaci', {
+        available: availKind,
+        triggered: kind,
+      })
     } break
     }
   }
