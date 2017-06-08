@@ -596,8 +596,7 @@ class AACIReporter extends BaseReporter {
         break  // Report one available ship only.
 
       // Triggered AACI
-      const eFrom = _.get(body, 'api_kouku.api_plane_from[1]')
-      if (eFrom == null || eFrom[0] === -1)
+      if (_.get(body, 'api_kouku.api_stage2.api_e_count', 0) <= 0)
         break
       const idx  = _.get(body, 'api_kouku.api_stage2.api_air_fire.api_idx')
       const kind = _.get(body, 'api_kouku.api_stage2.api_air_fire.api_kind')
