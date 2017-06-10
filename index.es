@@ -13,8 +13,8 @@ class BaseReporter {
     const _package = require('./package.json')
     this.USERAGENT = `Reporter v${_package.version}`
   }
-
   report = async (path, info) => {
+    // console.log(path, info)
     try {
       await request.postAsync(
         url.resolve(`http://${SERVER_HOSTNAME}`, path),
@@ -331,46 +331,28 @@ class RemodelItemReporter extends BaseReporter {
   }
 }
 
-const getStage = (level) => {
-  switch (true) {
-  case (level >= 0 && level < 6):
-    return 0
-  case (level >= 6 && level < 10):
-    return 1
-  case (level == 10):
-    return 2
-  default:
-    return -1
-  }
-}
-
-// 2 = 12.7cm連装砲
-// 4 = 14cm単装砲
-// 14 = 61cm四連装魚雷
-// 44 = 九四式爆雷投射機
-
 // Collecting remodel recipes
-// a recipe =
-//   id -> /kcsapi/api_req_kousyou/remodel_slotlist_detail postBody.api_id,
-//   itemId -> /kcsapi/api_req_kousyou/remodel_slotlist_detail postBody.api_slot_id, _slotitems
-//   stage -> based on item level, /kcsapi/api_req_kousyou/remodel_slotlist_detail postBody.api_slot_id, _slotitems
-//     [0,6) = 0, [6, 10) = 1, 10 = 2
-//   upgradeToItemId -> /kcsapi/api_req_kousyou/remodel_slot body.body.api_remodel_id[1]
-//   upgradeToItemLevel -> /kcsapi/api_req_kousyou/remodel_slot body.api_after_slot
-//   day of the week -> moment.js
-//   secretary (actually the second slot kanmusu)  -> api_req_kousyou/remodel_slot  api_voice_ship_id
-//   fuel -> /kcsapi/api_req_kousyou/remodel_slotlist_detail postBody.api_id,
-//     /kcsapi/api_req_kousyou/remodel_slotlist, body, api_req_*
-//   ammo -> similar to above
-//   steel -> similar to above
-//   bauxite -> similar to above
-//   reqItemId -> /kcsapi/api_req_kousyou/remodel_slotlist_detail body.api_req_slot_id
-//   reqItemCount -> /kcsapi/api_req_kousyou/remodel_slotlist_detail body.api_req_slot_num
-//   buildkit -> /kcsapi/api_req_kousyou/remodel_slotlist_detail body.api_req_buildkit
-//   remodelkit -> similar to above
-//   certainBuildkit -> similar to above
-//   certainRemodelkit -> similar to above
 class RemodelRecipeReporter extends BaseReporter {
+  // a recipe =
+  //   id -> /kcsapi/api_req_kousyou/remodel_slotlist_detail postBody.api_id,
+  //   itemId -> /kcsapi/api_req_kousyou/remodel_slotlist_detail postBody.api_slot_id, _slotitems
+  //   stage -> based on item level, /kcsapi/api_req_kousyou/remodel_slotlist_detail postBody.api_slot_id, _slotitems
+  //     [0,6) = 0, [6, 10) = 1, 10 = 2
+  //   upgradeToItemId -> /kcsapi/api_req_kousyou/remodel_slot body.body.api_remodel_id[1]
+  //   upgradeToItemLevel -> /kcsapi/api_req_kousyou/remodel_slot body.api_after_slot
+  //   day of the week -> moment.js
+  //   secretary (actually the second slot kanmusu)  -> api_req_kousyou/remodel_slot  api_voice_ship_id
+  //   fuel -> /kcsapi/api_req_kousyou/remodel_slotlist_detail postBody.api_id,
+  //     /kcsapi/api_req_kousyou/remodel_slotlist, body, api_req_*
+  //   ammo -> similar to above
+  //   steel -> similar to above
+  //   bauxite -> similar to above
+  //   reqItemId -> /kcsapi/api_req_kousyou/remodel_slotlist_detail body.api_req_slot_id
+  //   reqItemCount -> /kcsapi/api_req_kousyou/remodel_slotlist_detail body.api_req_slot_num
+  //   buildkit -> /kcsapi/api_req_kousyou/remodel_slotlist_detail body.api_req_buildkit
+  //   remodelkit -> similar to above
+  //   certainBuildkit -> similar to above
+  //   certainRemodelkit -> similar to above
   constructor() {
     super()
     this.id = -1
@@ -390,6 +372,18 @@ class RemodelRecipeReporter extends BaseReporter {
         this.enabled = true
       }
     )
+  }
+  getStage(level) {
+    switch (true) {
+    case (level >= 0 && level < 6):
+      return 0
+    case (level >= 6 && level < 10):
+      return 1
+    case (level == 10):
+      return 2
+    default:
+      return -1
+    }
   }
   handle(method, path, body, postBody) {
     switch(path) {
@@ -411,7 +405,7 @@ class RemodelRecipeReporter extends BaseReporter {
       let itemSlotId = postBody.api_slot_id
       this.itemId = (window._slotitems[itemSlotId] || {}).api_slotitem_id || -1
       const itemLevel = (window._slotitems[itemSlotId] || {}).api_level || -1
-      this.stage = getStage(itemLevel)
+      this.stage = this.getStage(itemLevel)
       const recipe = this.recipes[this.recipeId] || {}
 
       this.fuel = recipe.api_req_fuel || 0
@@ -460,19 +454,19 @@ class RemodelRecipeReporter extends BaseReporter {
 
       const info = {
         recipeId: this.recipeId,
-        itemId: this.itemId,
-        stage: this.stage,
-        day: this.day,
+        itemId  : this.itemId,
+        stage   : this.stage,
+        day     : this.day,
         secretary,
-        fuel: this.fuel,
-        ammo: this.ammo,
-        steel: this.steel,
+        fuel   : this.fuel,
+        ammo   : this.ammo,
+        steel  : this.steel,
         bauxite: this.bauxite,
-        reqItemId: this.reqItemId,
+        reqItemId   : this.reqItemId,
         reqItemCount: this.reqItemCount,
-        buildkit: this.buildkit,
+        buildkit  : this.buildkit,
         remodelkit: this.remodelkit,
-        certainBuildkit: this.certainBuildkit,
+        certainBuildkit  : this.certainBuildkit,
         certainRemodelkit: this.certainRemodelkit,
         upgradeToItemId,
         upgradeToItemLevel,
@@ -488,8 +482,6 @@ class RemodelRecipeReporter extends BaseReporter {
     }
   }
 }
-
-
 
 // Collect night contact data with followed conditions:
 // 1. Non-combined fleet
@@ -562,6 +554,66 @@ class NightContactReportor extends BaseReporter {
   }
 }
 
+class AACIReporter extends BaseReporter {
+  constructor() {
+    super()
+    try {
+      const aaci = require('views/utils/aaci')
+      this.getShipAACIs = aaci.getShipAACIs
+    }
+    catch (err) {
+      // console.log(`AACI reporter is disabled.`)
+    }
+  }
+  handle(method, path, body, postBody) {
+    if (this.getShipAACIs == null) {
+      return
+    }
+    const { _decks, _ships, _slotitems } = window
+    switch(path) {
+    case '/kcsapi/api_req_sortie/battle': {
+      const deckId = (body.api_deck_id || body.api_dock_id || 0) - 1
+      const deck   = _decks[deckId]
+      if (deck == null)  break
+
+      // Available AACI
+      const deckAACIs = (deck.api_ship || [])
+        .map(shipId => {
+          const ship = _ships[shipId]
+          if (ship == null)  return
+          const equips = (ship.api_slot || [])
+            .map(equipId => {
+              const equip = _slotitems[equipId]
+              if (equip == null)  return
+              return equip
+            })
+            .filter(equip => equip != null)
+          return this.getShipAACIs(ship, equips)
+        })
+      const availIdx  = deckAACIs.findIndex(aaci => aaci.length > 0)
+      const availKind = deckAACIs[availIdx]
+      if (deckAACIs.filter(aaci => aaci.length > 0).length !== 1)
+        break  // Report one available ship only.
+
+      // Triggered AACI
+      if (_.get(body, 'api_kouku.api_stage2.api_e_count', 0) <= 0)
+        break
+      const idx  = _.get(body, 'api_kouku.api_stage2.api_air_fire.api_idx')
+      const kind = _.get(body, 'api_kouku.api_stage2.api_air_fire.api_kind')
+      if (! ((idx == null && kind == null) ||
+             (idx === availIdx && availKind.includes(kind))))
+        break
+
+      // Report
+      this.report('/api/report/v2/aaci', {
+        available: availKind,
+        triggered: kind,
+      })
+    } break
+    }
+  }
+}
+
 
 let reporters = []
 const handleResponse = (e) => {
@@ -586,6 +638,7 @@ export const pluginDidLoad = (e) => {
     new BattleAPIReporter(),
     new NightContactReportor(),
     new RemodelRecipeReporter(),
+    new AACIReporter(),
   ]
   window.addEventListener('game.response', handleResponse)
 }
