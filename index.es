@@ -603,12 +603,18 @@ class AACIReporter extends BaseReporter {
              (idx === availIdx && availKind.includes(kind))))
         break
 
+      const [ship, equips] = deckData[idx]
+
       // Report
       this.report('/api/report/v2/aaci', {
+        poiVersion: window.POI_VERSION,
         available: availKind,
         triggered: kind,
-        items: deckData[idx][1].map(equip => equip.api_slotitem_id),
-        improvement: deckData[idx][1].map(equip => equip.api_level || 0),
+        items: equips.map(equip => equip.api_slotitem_id),
+        improvement: equips.map(equip => equip.api_level || 0),
+        rawLuck: ship.api_luck[0] + ship.api_kyouka[4],
+        rawTaiku: ship.api_tyku[0] + ship.api_kyouka[2],
+        lv: ship.api_lv,
       })
     } break
     }
