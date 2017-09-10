@@ -438,9 +438,9 @@ class RemodelRecipeReporter extends BaseReporter {
         return
       }
 
-      // unsuccessful upgrade will be noise for upgrade item record, 
+      // unsuccessful upgrade will be noise for upgrade item record,
       // and common items with any ship will produce much more data
-      // stage == -1 because /port will not update slotitems with api_level, they are 
+      // stage == -1 because /port will not update slotitems with api_level, they are
       // updated only when restarting game
       if (!body.api_remodel_flag ||
             this.stage == -1 ) {
@@ -560,6 +560,9 @@ class AACIReporter extends BaseReporter {
     try {
       const aaci = require('views/utils/aaci')
       this.getShipAACIs = aaci.getShipAACIs
+      const { shipDataSelectorFactory, shipEquipDataSelectorFactory } = require('views/utils/selectors')
+      this.shipDataSelectorFactory = shipDataSelectorFactory
+      this.shipEquipDataSelectorFactory = shipEquipDataSelectorFactory
     }
     catch (err) {
       // console.log(`AACI reporter is disabled.`)
@@ -569,27 +572,23 @@ class AACIReporter extends BaseReporter {
     if (this.getShipAACIs == null) {
       return
     }
-    const { _decks, _ships, _slotitems } = window
+    const { _decks } = window
     switch(path) {
     case '/kcsapi/api_req_sortie/battle': {
       const deckId = (body.api_deck_id || body.api_dock_id || 0) - 1
       const deck   = _decks[deckId]
+      const state = window.getStore()
       if (deck == null)  break
 
       // Available AACI
-      const deckAACIs = (deck.api_ship || [])
-        .map(shipId => {
-          const ship = _ships[shipId]
-          if (ship == null)  return
-          const equips = (ship.api_slot || [])
-            .map(equipId => {
-              const equip = _slotitems[equipId]
-              if (equip == null)  return
-              return equip
-            })
-            .filter(equip => equip != null)
-          return this.getShipAACIs(ship, equips)
-        })
+      const deckData = (deck.api_ship || []).map(shipId => {
+        const [_ship = {}, $ship = {}] = this.shipDataSelectorFactory(shipId)(state) || []
+        const equips = (this.shipEquipDataSelectorFactory(shipId)(state) || [])
+          .filter(([_equip, $equip, onslot] = []) => !!_equip && !!$equip)
+          .map(([_equip, $equip, onslot]) => ({ ...$equip, ..._equip }))
+        return [{...$ship, ..._ship}, equips]
+      })
+      const deckAACIs = deckData.map(([ship, equips]) => this.getShipAACIs(ship, equips))
       const availIdx  = deckAACIs.findIndex(aaci => aaci.length > 0)
       const availKind = deckAACIs[availIdx]
       if (deckAACIs.filter(aaci => aaci.length > 0).length !== 1)
@@ -608,6 +607,8 @@ class AACIReporter extends BaseReporter {
       this.report('/api/report/v2/aaci', {
         available: availKind,
         triggered: kind,
+        items: deckData[idx][1].map(equip => equip.api_slotitem_id),
+        improvement: deckData[idx][1].map(equip => equip.api_level || 0),
       })
     } break
     }
