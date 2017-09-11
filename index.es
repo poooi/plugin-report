@@ -615,7 +615,7 @@ class AACIReporter extends BaseReporter {
         rawLuck: ship.api_luck[0] + ship.api_kyouka[4],
         rawTaiku: ship.api_tyku[0] + ship.api_kyouka[2],
         lv: ship.api_lv,
-        hpPercent: ship.api_nowhp / ship.api_maxhp,
+        hpPercent: Math.floor((ship.api_nowhp * 10000) / ship.api_maxhp) / 100,
         pos: idx,
       })
     } break
