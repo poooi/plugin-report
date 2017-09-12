@@ -3,6 +3,7 @@ import _ from 'lodash'
 import Promise from 'bluebird'
 import request from 'request'
 import moment from 'moment'
+import { get } from 'lodash'
 
 Promise.promisifyAll(request)
 const { SERVER_HOSTNAME } = window
@@ -623,6 +624,111 @@ class AACIReporter extends BaseReporter {
   }
 }
 
+const hasAtLeast = num => f => xs => xs.filter(f).length >= num
+const validAll = (...func) => x => func.every(f => f(x))
+const validAny = (...func) => x => func.some(f => f(x))
+
+const equipype2Is = num => equip => get(equip, 'api_type.2') === num
+const equipIdIs = num => equip => equip.api_slotitem_id === num
+
+// T = Torpedo
+// LMT = Late Model Torpedo
+// R = Radar
+
+const getCIType = (equips) => {
+  if (validAll(
+    hasAtLeast(1)(equipype2Is(51)),
+    hasAtLeast(1)(
+      validAny(
+        equipIdIs(213),
+        equipIdIs(214),
+      )
+    ))(equips))
+    {
+    return 'LMTR'
+  }
+  if (hasAtLeast(2)(
+    validAny(
+      equipIdIs(213),
+      equipIdIs(214),
+    ))(equips))
+    {
+    return 'LMTLMT'
+  }
+  if (validAny(
+    hasAtLeast(1)(equipype2Is(51)),
+    hasAtLeast(1)(
+      validAny(
+        equipIdIs(213),
+        equipIdIs(214),
+      )
+  ))(equips))
+    {
+    return 'TT'
+  }
+
+  return ''
+}
+
+class NightBattleSSCIReporter extends BaseReporter {
+  constructor() {
+    super()
+    try {
+      const { shipDataSelectorFactory, shipEquipDataSelectorFactory } = require('views/utils/selectors')
+      this.shipDataSelectorFactory = shipDataSelectorFactory
+      this.shipEquipDataSelectorFactory = shipEquipDataSelectorFactory
+    }
+    catch (err) {
+      // console.log(`Night Battle SS CI reporter is disabled.`)
+    }
+  }
+
+  processData = (body, postBody) => {
+    const state = window.getStore()
+
+    // 15: N -> O
+    // 19: M -> O
+    // 20: K -> O
+    if (state.sortie.sortieMapId !== 54 &&
+      ![15, 19, 20].includes(state.sortie.currentNode)
+    ) {
+      return
+    }
+
+    const deckId = (body.api_deck_id || body.api_dock_id || 0) - 1
+    const deck   = window._decks[deckId]
+
+    if (deck == null)  return
+
+    const deckData = (deck.api_ship || []).map(shipId => {
+      const [_ship = {}, $ship = {}] = this.shipDataSelectorFactory(shipId)(state) || []
+      const equips = (this.shipEquipDataSelectorFactory(shipId)(state) || [])
+        .filter(([_equip, $equip, onslot] = []) => !!_equip && !!$equip)
+        .map(([_equip, $equip, onslot]) => ({ ...$equip, ..._equip }))
+      return [{...$ship, ..._ship}, equips]
+    })
+
+    const SSIndex = deckData
+      .map(([ship, _], index) => [13, 14].includes(ship.api_stype) ? index : -1)
+      .filter(i => i >= 0)
+
+    const SSCI = SSIndex
+      .map(i => getCIType(deckData[i][1]))
+
+    if (!SSCI.some(Boolean)) {
+      return
+    }
+  }
+
+  handle(method, path, body, postBody) {
+    switch(path) {
+    case '/kcsapi/api_req_battle_midnight/battle': {
+
+
+    } break
+    }
+  }
+}
 
 let reporters = []
 const handleResponse = (e) => {
