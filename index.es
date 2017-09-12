@@ -3,7 +3,8 @@ import _ from 'lodash'
 import Promise from 'bluebird'
 import request from 'request'
 import moment from 'moment'
-import { get } from 'lodash'
+
+import { shipDataSelectorFactory, shipEquipDataSelectorFactory } from 'views/utils/selectors'
 
 Promise.promisifyAll(request)
 const { SERVER_HOSTNAME } = window
@@ -561,9 +562,6 @@ class AACIReporter extends BaseReporter {
     try {
       const aaci = require('views/utils/aaci')
       this.getShipAACIs = aaci.getShipAACIs
-      const { shipDataSelectorFactory, shipEquipDataSelectorFactory } = require('views/utils/selectors')
-      this.shipDataSelectorFactory = shipDataSelectorFactory
-      this.shipEquipDataSelectorFactory = shipEquipDataSelectorFactory
     }
     catch (err) {
       // console.log(`AACI reporter is disabled.`)
@@ -583,8 +581,8 @@ class AACIReporter extends BaseReporter {
 
       // Available AACI
       const deckData = (deck.api_ship || []).map(shipId => {
-        const [_ship = {}, $ship = {}] = this.shipDataSelectorFactory(shipId)(state) || []
-        const equips = (this.shipEquipDataSelectorFactory(shipId)(state) || [])
+        const [_ship = {}, $ship = {}] = shipDataSelectorFactory(shipId)(state) || []
+        const equips = (shipEquipDataSelectorFactory(shipId)(state) || [])
           .filter(([_equip, $equip, onslot] = []) => !!_equip && !!$equip)
           .map(([_equip, $equip, onslot]) => ({ ...$equip, ..._equip }))
         return [{...$ship, ..._ship}, equips]
@@ -628,7 +626,7 @@ const hasAtLeast = num => f => xs => xs.filter(f).length >= num
 const validAll = (...func) => x => func.every(f => f(x))
 const validAny = (...func) => x => func.some(f => f(x))
 
-const equipype2Is = num => equip => get(equip, 'api_type.2') === num
+const equipype2Is = num => equip => _.get(equip, 'api_type.2') === num
 const equipIdIs = num => equip => equip.api_slotitem_id === num
 
 // T = Torpedo
@@ -671,18 +669,6 @@ const getCIType = (equips) => {
 }
 
 class NightBattleSSCIReporter extends BaseReporter {
-  constructor() {
-    super()
-    try {
-      const { shipDataSelectorFactory, shipEquipDataSelectorFactory } = require('views/utils/selectors')
-      this.shipDataSelectorFactory = shipDataSelectorFactory
-      this.shipEquipDataSelectorFactory = shipEquipDataSelectorFactory
-    }
-    catch (err) {
-      // console.log(`Night Battle SS CI reporter is disabled.`)
-    }
-  }
-
   processData = (body, postBody) => {
     const state = window.getStore()
 
@@ -701,8 +687,8 @@ class NightBattleSSCIReporter extends BaseReporter {
     if (deck == null)  return
 
     const deckData = (deck.api_ship || []).map(shipId => {
-      const [_ship = {}, $ship = {}] = this.shipDataSelectorFactory(shipId)(state) || []
-      const equips = (this.shipEquipDataSelectorFactory(shipId)(state) || [])
+      const [_ship = {}, $ship = {}] = shipDataSelectorFactory(shipId)(state) || []
+      const equips = (shipEquipDataSelectorFactory(shipId)(state) || [])
         .filter(([_equip, $equip, onslot] = []) => !!_equip && !!$equip)
         .map(([_equip, $equip, onslot]) => ({ ...$equip, ..._equip }))
       return [{...$ship, ..._ship}, equips]
