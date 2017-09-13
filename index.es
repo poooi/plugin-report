@@ -684,12 +684,8 @@ class NightBattleSSCIReporter extends BaseReporter {
   processData = (body, time) => {
     const state = window.getStore()
 
-    // 15: N -> O
-    // 19: M -> O
-    // 20: K -> O
-    if (state.sortie.sortieMapId !== 54 &&
-      ![15, 19, 20].includes(state.sortie.currentNode)
-    ) {
+    // normal map only
+    if (state.sortie.sortieMapId > 100) {
       return
     }
 
