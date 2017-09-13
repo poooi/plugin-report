@@ -718,6 +718,7 @@ class NightBattleSSCIReporter extends BaseReporter {
     const {
       api_at_list,
       api_df_list,
+      api_si_list,
       api_sp_list,
       api_cl_list,
       api_damage,
@@ -755,6 +756,7 @@ class NightBattleSSCIReporter extends BaseReporter {
       const damage = api_damage[order]
 
       const sp = api_sp_list[order]
+      const si = api_si_list[order]
       const cl = api_cl_list[order]
 
       const [ship, equips] = deckData[i]
@@ -771,8 +773,9 @@ class NightBattleSSCIReporter extends BaseReporter {
         flare: api_flare_pos[0],
         defenseId,
         defenseTypeId,
-        sp,
-        cl,
+        ciType: sp,
+        display: _.isArray(si) ? si.map(Number) : [Number(si)], // could this be -1?
+        hitType: cl,
         damage,
         damageTotal: _.sum(damage),
         time: +new Date(time),
