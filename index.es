@@ -629,6 +629,18 @@ const validAny = (...func) => x => func.some(f => f(x))
 const equipype2Is = num => equip => _.get(equip, 'api_type.2') === num
 const equipIdIs = num => equip => equip.api_slotitem_id === num
 
+const getHpStyle = (percent) => {
+  if (percent <= 25) {
+    return 'red'
+  } else if (percent <= 50){
+    return 'orange'
+  } else if (percent <= 75){
+    return 'yellow'
+  } else {
+    return 'green'
+  }
+}
+
 // T = Torpedo
 // LMT = Late Model Torpedo
 // R = Radar
@@ -669,7 +681,7 @@ const getCIType = (equips) => {
 }
 
 class NightBattleSSCIReporter extends BaseReporter {
-  processData = (body, postBody) => {
+  processData = (body, time) => {
     const state = window.getStore()
 
     // 15: N -> O
@@ -698,19 +710,84 @@ class NightBattleSSCIReporter extends BaseReporter {
       .map(([ship, _], index) => [13, 14].includes(ship.api_stype) ? index : -1)
       .filter(i => i >= 0)
 
-    const SSCI = SSIndex
-      .map(i => getCIType(deckData[i][1]))
+    // api from body counts from array index 1
+    const {
+      api_nowhps,
+      api_maxhps,
+      api_ship_ke,
+      api_flare_pos,
+      api_hougeki,
+    } = body
 
-    if (!SSCI.some(Boolean)) {
-      return
-    }
+    const {
+      api_at_list,
+      api_df_list,
+      api_sp_list,
+      api_cl_list,
+      api_damage,
+    } = api_hougeki
+
+    // api from lib battle counts from array index 0
+    const endHps = _.get(state, 'battle._status.result.deckHp', [])
+
+    const searchLight = deckData.some(([_, equips], index) =>
+      equips.some(equip => equip.api_type[3] === 24) && api_nowhps[index + 1] > 0
+    )
+
+    SSIndex.forEach((i) => {
+      const CI = getCIType(deckData[i][1])
+      if (!CI) {
+        return
+      }
+
+      const startStatus = getHpStyle(api_nowhps[i + 1] / api_maxhps[i + 1])
+      const endStatus = getHpStyle(endHps[i] / api_maxhps[i + 1])
+
+      if (startStatus !== endStatus || startStatus === 'red') {
+        return
+      }
+
+      const order = api_at_list.findIndex(pos => pos === i + 1)
+      if (order <= 0) { // api_at_list[0] is always -1
+        return
+      }
+
+      const defense = api_df_list[order][0]
+      const defenseId = api_ship_ke[defense]
+      const defenseTypeId = _.get(state, `const.$ships.${defenseId}.api_stype`)
+
+      const damage = api_damage[order]
+
+      const sp = api_sp_list[order]
+      const cl = api_cl_list[order]
+
+      const [ship, equips] = deckData[i]
+
+      console.log({
+        shipId: ship.api_ship_id,
+        lv: ship.api_lv,
+        rawLuck: ship.api_luck[0] + ship.api_kyouka[4],
+        pos: i,
+        status: startStatus,
+        items: equips.map(equip => equip.api_slotitem_id),
+        searchLight,
+        flare: api_flare_pos[0],
+        defenseId,
+        defenseTypeId,
+        sp,
+        cl,
+        damage,
+        time: +new Date(time),
+      })
+
+    })
   }
 
-  handle(method, path, body, postBody) {
+  handle(method, path, body, postBody, time) {
     switch(path) {
     case '/kcsapi/api_req_battle_midnight/battle': {
-
-
+      // delay to wait for updated battle store
+      setTimeout(() => this.processData(body, time), 1000)
     } break
     }
   }
@@ -718,10 +795,10 @@ class NightBattleSSCIReporter extends BaseReporter {
 
 let reporters = []
 const handleResponse = (e) => {
-  const {method, path, body, postBody} = e.detail
+  const {method, path, body, postBody, time = String(new Date())} = e.detail
   for (const reporter of reporters) {
     try {
-      reporter.handle(method, path, body, postBody)
+      reporter.handle(method, path, body, postBody, time)
     }
     catch (err) {
       console.error(err.stack)
@@ -740,6 +817,7 @@ export const pluginDidLoad = (e) => {
     new NightContactReportor(),
     new RemodelRecipeReporter(),
     new AACIReporter(),
+    new NightBattleSSCIReporter()
   ]
   window.addEventListener('game.response', handleResponse)
 }
