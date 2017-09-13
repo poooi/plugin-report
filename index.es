@@ -761,7 +761,7 @@ class NightBattleSSCIReporter extends BaseReporter {
 
       const [ship, equips] = deckData[i]
 
-      this.report('/api/report/v2/nightbattle_ss_ci', {
+      this.report('/api/report/v2/night_battle_ss_ci', {
         shipId: ship.api_ship_id,
         CI,
         lv: ship.api_lv,
@@ -769,6 +769,7 @@ class NightBattleSSCIReporter extends BaseReporter {
         pos: i,
         status: startStatus,
         items: equips.map(equip => equip.api_slotitem_id),
+        improvement: equips.map(equip => equip.api_level || 0),
         searchLight,
         flare: api_flare_pos[0],
         defenseId,
