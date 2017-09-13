@@ -655,7 +655,7 @@ const getCIType = (equips) => {
       )
     ))(equips))
     {
-    return 'LMTR'
+    return 'LMT-R'
   }
   if (hasAtLeast(2)(
     validAny(
@@ -663,7 +663,7 @@ const getCIType = (equips) => {
       equipIdIs(214),
     ))(equips))
     {
-    return 'LMTLMT'
+    return 'LMT-LMT'
   }
   if (validAny(
     hasAtLeast(1)(equipype2Is(51)),
@@ -674,7 +674,7 @@ const getCIType = (equips) => {
       )
   ))(equips))
     {
-    return 'TT'
+    return 'T-T'
   }
 
   return ''
@@ -736,8 +736,8 @@ class NightBattleSSCIReporter extends BaseReporter {
         return
       }
 
-      const startStatus = getHpStyle(api_nowhps[i + 1] / api_maxhps[i + 1])
-      const endStatus = getHpStyle(endHps[i] / api_maxhps[i + 1])
+      const startStatus = getHpStyle(api_nowhps[i + 1] * 100 / api_maxhps[i + 1])
+      const endStatus = getHpStyle(endHps[i] * 100 / api_maxhps[i + 1])
 
       if (startStatus !== endStatus || startStatus === 'red') {
         return
@@ -749,7 +749,7 @@ class NightBattleSSCIReporter extends BaseReporter {
       }
 
       const defense = api_df_list[order][0]
-      const defenseId = api_ship_ke[defense]
+      const defenseId = api_ship_ke[defense - 6]
       const defenseTypeId = _.get(state, `const.$ships.${defenseId}.api_stype`)
 
       const damage = api_damage[order]
@@ -759,8 +759,9 @@ class NightBattleSSCIReporter extends BaseReporter {
 
       const [ship, equips] = deckData[i]
 
-      console.log({
+      this.report('/api/report/v2/nightbattle_ss_ci', {
         shipId: ship.api_ship_id,
+        CI,
         lv: ship.api_lv,
         rawLuck: ship.api_luck[0] + ship.api_kyouka[4],
         pos: i,
@@ -773,9 +774,9 @@ class NightBattleSSCIReporter extends BaseReporter {
         sp,
         cl,
         damage,
+        damageTotal: _.sum(damage),
         time: +new Date(time),
       })
-
     })
   }
 
@@ -813,7 +814,7 @@ export const pluginDidLoad = (e) => {
     new NightContactReportor(),
     new RemodelRecipeReporter(),
     new AACIReporter(),
-    new NightBattleSSCIReporter()
+    new NightBattleSSCIReporter(),
   ]
   window.addEventListener('game.response', handleResponse)
 }
