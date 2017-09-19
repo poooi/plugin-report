@@ -6,7 +6,7 @@ import moment from 'moment'
 
 import { shipDataSelectorFactory, shipEquipDataSelectorFactory } from 'views/utils/selectors'
 
-import { getHpStyle, getCIType } from './utils'
+import { getHpStyle, getNightBattleSSCIType } from './utils'
 
 Promise.promisifyAll(request)
 const { SERVER_HOSTNAME } = window
@@ -676,7 +676,7 @@ class NightBattleSSCIReporter extends BaseReporter {
     )
 
     SSIndex.forEach((i) => {
-      const CI = getCIType(deckData[i][1])
+      const CI = getNightBattleSSCIType(deckData[i][1])
       if (!CI) {
         return
       }

@@ -23,7 +23,7 @@ export const getHpStyle = (percent) => {
 // LMT = Late Model Torpedo
 // R = Radar
 
-export const getCIType = (equips) => {
+export const getNightBattleSSCIType = (equips) => {
   if (validAll(
     hasAtLeast(1)(equipype2Is(51)),
     hasAtLeast(1)(
