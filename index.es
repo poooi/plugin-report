@@ -624,8 +624,6 @@ class AACIReporter extends BaseReporter {
   }
 }
 
-
-
 class NightBattleSSCIReporter extends BaseReporter {
   processData = (body, time) => {
     const state = window.getStore()
@@ -725,7 +723,7 @@ class NightBattleSSCIReporter extends BaseReporter {
         hitType: cl,
         damage,
         damageTotal: _.sum(damage),
-        time: +new Date(time),
+        time,
       })
     })
   }
@@ -742,7 +740,7 @@ class NightBattleSSCIReporter extends BaseReporter {
 
 let reporters = []
 const handleResponse = (e) => {
-  const {method, path, body, postBody, time = String(new Date())} = e.detail
+  const {method, path, body, postBody, time = Date.now()} = e.detail
   for (const reporter of reporters) {
     try {
       reporter.handle(method, path, body, postBody, time)
