@@ -604,7 +604,7 @@ class AACIReporter extends BaseReporter {
              (idx === availIdx && availKind.includes(kind))))
         break
 
-      const [ship, equips] = deckData[idx]
+      const [ship, equips] = deckData[availIdx]
 
       // Report
       this.report('/api/report/v2/aaci', {
