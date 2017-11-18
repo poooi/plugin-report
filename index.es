@@ -194,11 +194,8 @@ class DropShipReporter extends BaseReporter {
     case '/kcsapi/api_req_battle_midnight/sp_midnight':
     case '/kcsapi/api_req_combined_battle/sp_midnight': {
       const { drop } = this
-      drop.enemyShips = []
-      for (const ships of [body.api_ship_ke, body.api_ship_ke_combined]) {
-        if (ships != null)
-          drop.enemyShips = drop.enemyShips.concat(ships.slice(1, 7))
-      }
+      drop.enemyShips1 = body.api_ship_ke
+      drop.enemyShips2 = body.api_ship_ke_combined
       drop.enemyFormation = body.api_formation[1]
     } break
     case '/kcsapi/api_req_sortie/battleresult':
