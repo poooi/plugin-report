@@ -192,7 +192,8 @@ class DropShipReporter extends BaseReporter {
     case '/kcsapi/api_req_combined_battle/each_battle':
     case '/kcsapi/api_req_combined_battle/each_battle_water':
     case '/kcsapi/api_req_battle_midnight/sp_midnight':
-    case '/kcsapi/api_req_combined_battle/sp_midnight': {
+    case '/kcsapi/api_req_combined_battle/sp_midnight':
+    case '/kcsapi/api_req_combined_battle/ec_night_to_day': {
       const { drop } = this
       drop.enemyShips1 = body.api_ship_ke
       drop.enemyShips2 = body.api_ship_ke_combined
@@ -244,6 +245,7 @@ class BattleAPIReporter extends BaseReporter {
       '/kcsapi/api_req_combined_battle/midnight_battle',
       '/kcsapi/api_req_combined_battle/sp_midnight',
       '/kcsapi/api_req_combined_battle/ec_midnight_battle',
+      '/kcsapi/api_req_combined_battle/ec_night_to_day',
     ]
     this.BATTLE_KEYS = [
       'api_active_deck',
@@ -274,6 +276,8 @@ class BattleAPIReporter extends BaseReporter {
       'api_hougeki1', 'api_hougeki2', 'api_hougeki3',
       'api_raigeki',
       'api_hougeki',
+      'api_n_support_flag',      'api_n_support_info',
+      'api_n_hougeki1', 'api_n_hougeki2',
     ]
   }
   handle(method, path, body, postBody) {
@@ -755,7 +759,7 @@ export const pluginDidLoad = (e) => {
     new CreateShipReporter(),
     new CreateItemReporter(),
     new DropShipReporter(),
-    new BattleAPIReporter(),
+    // new BattleAPIReporter(), // close temperarily
     new NightContactReportor(),
     new RemodelRecipeReporter(),
     new AACIReporter(),
