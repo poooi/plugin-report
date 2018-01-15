@@ -1,6 +1,6 @@
 import BaseReporter from './base'
 
-export class CreateShipReporter extends BaseReporter {
+export default class CreateShipReporter extends BaseReporter {
   constructor() {
     super()
 

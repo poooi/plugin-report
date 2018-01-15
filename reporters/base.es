@@ -1,8 +1,9 @@
+import Promise from 'bluebird'
 import request from 'request'
 import url from 'url'
 
 Promise.promisifyAll(request)
-const packageMeta = require('./package.json')
+const packageMeta = require('../package.json')
 const { SERVER_HOSTNAME } = window
 
 export default class BaseReporter {
