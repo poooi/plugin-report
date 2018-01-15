@@ -45,6 +45,7 @@ module.exports = {
       'lodash',
       'cson',
       'moment',
+      'views/utils/selectors',
     ],
   },
 }
