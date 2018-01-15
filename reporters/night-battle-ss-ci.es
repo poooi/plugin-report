@@ -19,22 +19,26 @@ export default class NightBattleSSCIReporter extends BaseReporter {
 
     if (deck == null)  return
 
-    const deckData = (deck.api_ship || []).map(shipId => {
-      const [_ship = {}, $ship = {}] = shipDataSelectorFactory(shipId)(state) || []
-      const equips = (shipEquipDataSelectorFactory(shipId)(state) || [])
-        .filter(([_equip, $equip, onslot] = []) => !!_equip && !!$equip)
-        .map(([_equip, $equip, onslot]) => ({ ...$equip, ..._equip }))
-      return [{...$ship, ..._ship}, equips]
-    })
+    const deckData = _(deck.api_ship)
+      .map(shipId => {
+        const [_ship = {}, $ship = {}] = shipDataSelectorFactory(shipId)(state) || []
+        const equips = _(shipEquipDataSelectorFactory(shipId)(state))
+          .filter(([_equip, $equip, onslot] = []) => !!_equip && !!$equip)
+          .map(([_equip, $equip, onslot]) => ({ ...$equip, ..._equip }))
+          .value()
+        return [{...$ship, ..._ship}, equips]
+      })
+      .value()
 
-    const SSIndex = deckData
-      .map(([ship, _], index) => [13, 14].includes(ship.api_stype) ? index : -1)
+    const SSIndex = _(deckData)
+      .map(([ship], index) => [13, 14].includes(ship.api_stype) ? index : -1)
       .filter(i => i >= 0)
+      .value()
 
     // api from body counts from array index 1
     const {
-      api_nowhps,
-      api_maxhps,
+      api_f_nowhps,
+      api_f_maxhps,
       api_ship_ke,
       api_flare_pos,
       api_hougeki,
@@ -53,7 +57,7 @@ export default class NightBattleSSCIReporter extends BaseReporter {
     const endHps = _.get(state, 'battle._status.result.deckHp', [])
 
     const searchLight = deckData.some(([_, equips], index) =>
-      equips.some(equip => equip.api_type[3] === 24) && api_nowhps[index + 1] > 0
+      equips.some(equip => equip.api_type[3] === 24) && api_f_nowhps[index] > 0
     )
 
     SSIndex.forEach((i) => {
@@ -62,15 +66,15 @@ export default class NightBattleSSCIReporter extends BaseReporter {
         return
       }
 
-      const startStatus = getHpStyle(api_nowhps[i + 1] * 100 / api_maxhps[i + 1])
-      const endStatus = getHpStyle(endHps[i] * 100 / api_maxhps[i + 1])
+      const startStatus = getHpStyle(api_f_nowhps[i] * 100 / api_f_maxhps[i])
+      const endStatus = getHpStyle(endHps[i] * 100 / api_f_maxhps[i])
 
       if (startStatus !== endStatus || startStatus === 'red') {
         return
       }
 
-      const order = api_at_list.findIndex(pos => pos === i + 1)
-      if (order <= 0) { // api_at_list[0] is always -1
+      const order = api_at_list.findIndex(pos => pos === i)
+      if (order < 0) {
         return
       }
 
