@@ -4,6 +4,8 @@
   "description": "Report ship creating info and drop info, and so on.",
   "main": "index.cjsx",
   "scripts": {
+    "prepack": "poi-util-transpile --sm",
+    "postpublish": "git clean -f && git checkout .",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -28,6 +30,7 @@
   "devDependencies": {
     "babel-eslint": "^7.2.1",
     "eslint": "^3.19.0",
-    "eslint-plugin-import": "^2.2.0"
+    "eslint-plugin-import": "^2.2.0",
+    "poi-util-transpile": "^8.0.0"
   }
 }
