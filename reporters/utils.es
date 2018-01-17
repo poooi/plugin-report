@@ -33,7 +33,7 @@ export const getNightBattleSSCIType = (equips) => {
       )
     ))(equips))
     {
-    return 'LMT-R'
+    return 'SS_LMT_R'
   }
   if (hasAtLeast(2)(
     validAny(
@@ -41,7 +41,7 @@ export const getNightBattleSSCIType = (equips) => {
       equipIdIs(214),
     ))(equips))
     {
-    return 'LMT-LMT'
+    return 'SS_LMT_LMT'
   }
   if (validAny(
     hasAtLeast(1)(equipype2Is(51)),
@@ -52,7 +52,43 @@ export const getNightBattleSSCIType = (equips) => {
       )
   ))(equips))
     {
-    return 'T-T'
+    return 'SS_T_T'
+  }
+
+  return ''
+}
+
+const houmAboveOrEqual = num => equip => equip.api_houm >= num
+
+// G_T_R = Gun Torpedo Radar
+// T_R_P = Torpedo Radar Personnel
+export const getNightBattleDDCIType = (equips) => {
+  if (validAll(
+    hasAtLeast(1)(equipype2Is(1)),
+    hasAtLeast(1)(equipype2Is(5)),
+    hasAtLeast(1)(validAll(
+      validAny(
+        equipype2Is(12),
+        equipype2Is(13),
+      ),
+      houmAboveOrEqual(3)
+    ))
+  )(equips)) {
+    return 'DD_G_T_R'
+  }
+
+  if (validAll(
+    hasAtLeast(1)(equipype2Is(5)),
+    hasAtLeast(1)(equipIdIs(129)),
+    hasAtLeast(1)(validAll(
+      validAny(
+        equipype2Is(12),
+        equipype2Is(13),
+      ),
+      houmAboveOrEqual(3),
+    )),
+  )(equips)) {
+    return 'DD_T_R_P'
   }
 
   return ''

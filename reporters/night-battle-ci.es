@@ -2,10 +2,10 @@ import _ from 'lodash'
 import { shipDataSelectorFactory, shipEquipDataSelectorFactory } from 'views/utils/selectors'
 
 import BaseReporter from './base'
-import { getHpStyle, getNightBattleSSCIType } from './utils'
+import { getHpStyle, getNightBattleSSCIType, getNightBattleDDCIType } from './utils'
 
 
-export default class NightBattleSSCIReporter extends BaseReporter {
+export default class NightBattleCIReporter extends BaseReporter {
   processData = (body, time) => {
     const state = window.getStore()
 
@@ -30,10 +30,11 @@ export default class NightBattleSSCIReporter extends BaseReporter {
       })
       .value()
 
-    const SSIndex = _(deckData)
-      .map(([ship], index) => [13, 14].includes(ship.api_stype) ? index : -1)
+    const ReportIndex = _(deckData)
+      .map(([ship], index) => [2, 13, 14].includes(ship.api_stype) ? index : -1)
       .filter(i => i >= 0)
       .value()
+
 
     // api from body counts from array index 1
     const {
@@ -45,6 +46,7 @@ export default class NightBattleSSCIReporter extends BaseReporter {
     } = body
 
     const {
+      api_at_eflag,
       api_at_list,
       api_df_list,
       api_si_list,
@@ -60,8 +62,16 @@ export default class NightBattleSSCIReporter extends BaseReporter {
       equips.some(equip => equip.api_type[3] === 24) && api_f_nowhps[index] > 0
     )
 
-    SSIndex.forEach((i) => {
-      const CI = getNightBattleSSCIType(deckData[i][1])
+    ReportIndex.forEach((i) => {
+      const [ship, equips] = deckData[i]
+
+      const type = ship.api_stype === 2
+        ? 'DD'
+        : 'SS'
+
+      const CI = ship.api_stype === 2
+        ? getNightBattleDDCIType(equips)
+        : getNightBattleSSCIType(equips)
       if (!CI) {
         return
       }
@@ -69,17 +79,19 @@ export default class NightBattleSSCIReporter extends BaseReporter {
       const startStatus = getHpStyle(api_f_nowhps[i] * 100 / api_f_maxhps[i])
       const endStatus = getHpStyle(endHps[i] * 100 / api_f_maxhps[i])
 
+      // we will filter out heavily damaged and status changed ships
+      // The stat will not be biased as those changed ships have consistent possibilities
       if (startStatus !== endStatus || startStatus === 'red') {
         return
       }
 
-      const order = api_at_list.findIndex(pos => pos === i)
+      const order = api_at_list.findIndex((pos, i) => pos === i && api_at_eflag[i] === 0)
       if (order < 0) {
         return
       }
 
       const defense = api_df_list[order][0]
-      const defenseId = api_ship_ke[defense - 6]
+      const defenseId = api_ship_ke[defense]
       const defenseTypeId = _.get(state, `const.$ships.${defenseId}.api_stype`)
 
       const damage = api_damage[order]
@@ -88,10 +100,11 @@ export default class NightBattleSSCIReporter extends BaseReporter {
       const si = api_si_list[order]
       const cl = api_cl_list[order]
 
-      const [ship, equips] = deckData[i]
 
-      this.report('/api/report/v2/night_battle_ss_ci', {
+
+      this.report('/api/report/v2/night_battle_ci', {
         shipId: ship.api_ship_id,
+        type,
         CI,
         lv: ship.api_lv,
         rawLuck: ship.api_luck[0] + ship.api_kyouka[4],
@@ -107,7 +120,7 @@ export default class NightBattleSSCIReporter extends BaseReporter {
         display: _.isArray(si) ? si.map(Number) : [Number(si)], // could this be -1?
         hitType: cl,
         damage,
-        damageTotal: _.sum(damage),
+        damageTotal: _.sum(damage.filter(v => v > 0)),
         time,
       })
     })

@@ -6,7 +6,7 @@ import {
   NightContactReportor,
   RemodelRecipeReporter,
   AACIReporter,
-  NightBattleSSCIReporter,
+  NightBattleCIReporter,
 } from './reporters'
 
 let reporters = []
@@ -33,7 +33,7 @@ export const pluginDidLoad = (e) => {
     new NightContactReportor(),
     new RemodelRecipeReporter(),
     new AACIReporter(),
-    new NightBattleSSCIReporter(),
+    new NightBattleCIReporter(),
   ]
   window.addEventListener('game.response', handleResponse)
 }
