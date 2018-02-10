@@ -38,7 +38,8 @@ export default class DropShipReporter extends BaseReporter {
         isBoss: null,
         mapLv : null,
         enemy : null,
-        enemyShips: null,
+        enemyShips1: null,
+        enemyShips2: null,
         enemyFormation: null,
         quest : null,
         rank  : null,
@@ -51,6 +52,23 @@ export default class DropShipReporter extends BaseReporter {
       drop.isBoss = body.api_event_id == 5
       drop.mapLv  = mapLv[drop.mapId]
       this.drop = drop
+      if (body.api_destruction_battle != null) {
+        this.report('/api/report/v2/drop_ship', {
+          mapId: drop.mapId,
+          cellId: -1,
+          isBoss: drop.isBoss,
+          mapLv: drop.mapLv,
+          enemy: null,
+          enemyShips1: body.api_destruction_battle.api_ship_ke,
+          enemyShips2: body.api_destruction_battle.api_ship_ke_combined,
+          enemyFormation: (body.api_destruction_battle.api_formation || {})[1],
+          quest: null,
+          rank: null,
+          shipId: -1,
+          itemId: -1,
+          teitokuLv: _teitokuLv
+        })
+      }
     } break
     case '/kcsapi/api_req_sortie/battle':
     case '/kcsapi/api_req_sortie/airbattle':
