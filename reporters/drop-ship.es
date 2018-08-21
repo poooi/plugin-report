@@ -38,8 +38,10 @@ export default class DropShipReporter extends BaseReporter {
         isBoss: null,
         mapLv : null,
         enemy : null,
-        enemyShips: null,
+        enemyShips1: null,
+        enemyShips2: null,
         enemyFormation: null,
+        baseExp: null,
         quest : null,
         rank  : null,
         shipId: null,
@@ -76,6 +78,7 @@ export default class DropShipReporter extends BaseReporter {
       drop.enemy = body.api_enemy_info.api_deck_name
       drop.quest = body.api_quest_name
       drop.rank = body.api_win_rank
+      drop.baseExp = body.api_get_base_exp
       drop.shipId = (body.api_get_ship || {}).api_ship_id || -1
       drop.itemId = (body.api_get_useitem || {}).api_useitem_id || -1
       drop.teitokuLv = _teitokuLv
