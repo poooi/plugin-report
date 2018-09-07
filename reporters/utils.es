@@ -1,3 +1,4 @@
+import { createHash } from 'crypto'
 import _ from 'lodash'
 
 const hasAtLeast = num => f => xs => xs.filter(f).length >= num
@@ -92,4 +93,19 @@ export const getNightBattleDDCIType = (equips) => {
   }
 
   return ''
+}
+
+let teitokuId = window._teitokuId
+let teitokuHash = null
+
+export const getTeitokuHash = () => {
+  const { _teitokuId, _nickName, _nickNameId } = window
+  if ((teitokuId !== _teitokuId || !teitokuHash)
+      && _teitokuId !== -1 && _nickName && _nickNameId !== -1) {
+    teitokuId = _teitokuId
+    teitokuHash = createHash('sha1')
+      .update(`${_teitokuId}_${_nickName}_${_nickNameId}`)
+      .digest('base64')
+  }
+  return teitokuHash
 }

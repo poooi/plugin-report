@@ -1,4 +1,5 @@
 import BaseReporter from './base'
+import { getTeitokuHash } from './utils'
 
 export default class DropShipReporter extends BaseReporter {
   constructor() {
@@ -9,7 +10,8 @@ export default class DropShipReporter extends BaseReporter {
   }
   handle(method, path, body, postBody) {
     const { mapLv } = this
-    const { _teitokuId, _teitokuLv, _nickName } = window
+    const { _teitokuLv } = window
+    const teitokuId = getTeitokuHash()
     switch(path) {
     case '/kcsapi/api_get_member/mapinfo': {
       for (const map of body.api_map_info) {
@@ -24,7 +26,7 @@ export default class DropShipReporter extends BaseReporter {
       mapLv[mapareaId] = parseInt(postBody.api_rank)
       // Report select map difficulty
       this.report("/api/report/v2/select_rank", {
-        teitokuId: _teitokuId,
+        teitokuId,
         teitokuLv: _teitokuLv,
         mapareaId: mapareaId,
         rank: rank,
@@ -47,6 +49,7 @@ export default class DropShipReporter extends BaseReporter {
         shipId: null,
         itemId: null,
         teitokuLv: null,
+        teitokuId: null,
       }
       drop.mapId  = body.api_maparea_id * 10 + body.api_mapinfo_no
       drop.cellId = body.api_no
@@ -82,13 +85,13 @@ export default class DropShipReporter extends BaseReporter {
       drop.shipId = (body.api_get_ship || {}).api_ship_id || -1
       drop.itemId = (body.api_get_useitem || {}).api_useitem_id || -1
       drop.teitokuLv = _teitokuLv
+      drop.teitokuId = teitokuId
       this.report('/api/report/v2/drop_ship', drop)
       // Report pass event
       if (body.api_get_eventitem != null) {
         this.report('/api/report/v2/pass_event', {
-          teitokuId: _teitokuId,
+          teitokuId,
           teitokuLv: _teitokuLv,
-          teitoku: _nickName,
           mapId: drop.mapId,
           mapLv: drop.mapLv,
         })
