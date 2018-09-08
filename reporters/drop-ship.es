@@ -1,5 +1,5 @@
 import BaseReporter from './base'
-import { countOwnedShips, getTeitokuHash } from './utils'
+import { getOwnedShipIds, countOwnedShipForms, getTeitokuHash } from './utils'
 
 export default class DropShipReporter extends BaseReporter {
   constructor() {
@@ -7,6 +7,7 @@ export default class DropShipReporter extends BaseReporter {
 
     this.mapLv = []
     this.drop = null
+    this.ownedShipIds = null
   }
   handle(method, path, body, postBody) {
     const { mapLv } = this
@@ -25,7 +26,7 @@ export default class DropShipReporter extends BaseReporter {
       const rank = parseInt(postBody.api_rank)
       mapLv[mapareaId] = parseInt(postBody.api_rank)
       // Report select map difficulty
-      this.report("/api/report/v2/select_rank", {
+      this.report('/api/report/v2/select_rank', {
         teitokuId,
         teitokuLv: _teitokuLv,
         mapareaId: mapareaId,
@@ -57,6 +58,7 @@ export default class DropShipReporter extends BaseReporter {
       drop.isBoss = body.api_event_id == 5
       drop.mapLv  = mapLv[drop.mapId]
       this.drop = drop
+      this.ownedShipIds = getOwnedShipIds()
     } break
     case '/kcsapi/api_req_sortie/battle':
     case '/kcsapi/api_req_sortie/airbattle':
@@ -85,7 +87,7 @@ export default class DropShipReporter extends BaseReporter {
       drop.baseExp = body.api_get_base_exp
       drop.shipId = (body.api_get_ship || {}).api_ship_id || -1
       drop.itemId = (body.api_get_useitem || {}).api_useitem_id || -1
-      drop.shipCounts = drop.shipId !== -1 ? countOwnedShips(drop.shipId) : []
+      drop.shipCounts = drop.shipId !== -1 ? countOwnedShipForms(this.ownedShipIds, drop.shipId) : []
       drop.teitokuLv = _teitokuLv
       drop.teitokuId = teitokuId
       // Report enemy pattern and drops

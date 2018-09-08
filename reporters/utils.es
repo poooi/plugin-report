@@ -110,6 +110,8 @@ export const getTeitokuHash = () => {
   return teitokuHash
 }
 
+export const getOwnedShipIds = () => _.map(window._ships, e => e.api_ship_id)
+
 /**
  * Count all owned remodels of a given ship.
  *
@@ -117,9 +119,8 @@ export const getTeitokuHash = () => {
  *
  * Returns [] if none of the forms are owned.
  */
-export const countOwnedShips = (baseId) => {
-  const $ships = window.$ships || {}
-  const _ships = window._ships || {}
+export const countOwnedShipForms = (ownedShipsIds, baseId) => {
+  const $ships = window.$ships
   let current = $ships[baseId]
   let nextId = +(current.api_aftershipid || 0)
   let ids = [baseId]
@@ -130,6 +131,6 @@ export const countOwnedShips = (baseId) => {
     nextId = +(current.api_aftershipid || 0)
     --cutoff
   }
-  const counts = ids.map(api_ship_id => _.filter(_ships, { api_ship_id }).length)
+  const counts = ids.map(api_ship_id => ownedShipsIds.filter(id => id === api_ship_id).length)
   return _.dropRightWhile(counts, e => !e)
 }
