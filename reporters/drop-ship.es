@@ -1,5 +1,5 @@
 import BaseReporter from './base'
-import { getTeitokuHash } from './utils'
+import { countOwnedShips, getTeitokuHash } from './utils'
 
 export default class DropShipReporter extends BaseReporter {
   constructor() {
@@ -48,6 +48,7 @@ export default class DropShipReporter extends BaseReporter {
         rank  : null,
         shipId: null,
         itemId: null,
+        shipCounts: null,
         teitokuLv: null,
         teitokuId: null,
       }
@@ -84,6 +85,7 @@ export default class DropShipReporter extends BaseReporter {
       drop.baseExp = body.api_get_base_exp
       drop.shipId = (body.api_get_ship || {}).api_ship_id || -1
       drop.itemId = (body.api_get_useitem || {}).api_useitem_id || -1
+      drop.shipCounts = drop.shipId !== -1 ? countOwnedShips(drop.shipId) : []
       drop.teitokuLv = _teitokuLv
       drop.teitokuId = teitokuId
       this.report('/api/report/v2/drop_ship', drop)
