@@ -88,7 +88,10 @@ export default class DropShipReporter extends BaseReporter {
       drop.shipCounts = drop.shipId !== -1 ? countOwnedShips(drop.shipId) : []
       drop.teitokuLv = _teitokuLv
       drop.teitokuId = teitokuId
-      this.report('/api/report/v2/drop_ship', drop)
+      // Report enemy pattern and drops
+      this.report('/api/report/v2/drop_ship', drop).then(() => {
+        this.drop = null
+      })
       // Report pass event
       if (body.api_get_eventitem != null) {
         this.report('/api/report/v2/pass_event', {
