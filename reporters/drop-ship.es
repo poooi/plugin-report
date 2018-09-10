@@ -101,6 +101,13 @@ export default class DropShipReporter extends BaseReporter {
           teitokuLv: _teitokuLv,
           mapId: drop.mapId,
           mapLv: drop.mapLv,
+          rewards: !Array.isArray(body.api_get_eventitem)
+            ? null
+            : body.api_get_eventitem.map(e => ({
+              rewardType: e.api_type,
+              rewardId: e.api_id,
+              rewardCount: e.api_value,
+            })),
         })
       }
     } break
