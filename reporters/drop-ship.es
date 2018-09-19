@@ -1,5 +1,27 @@
 import BaseReporter from './base'
-import { getOwnedShipIds, countOwnedShipForms, getTeitokuHash } from './utils'
+import { getOwnedShipIds, countOwnedShipForms, getTeitokuHash, getFirstPlaneCounts } from './utils'
+
+/**
+ * Make enemy_info report record from API data.
+ */
+const makeEnemyReport = (data = {}) => {
+  const { planes, bombersMin, bombersMax } = getFirstPlaneCounts(data) || {}
+  return {
+    ships1: data.api_ship_ke || [],
+    levels1: data.api_ship_lv || [],
+    hp1: data.api_e_maxhps || [],
+    stats1: data.api_eParam || [],
+    equips1: data.api_eSlot || [],
+    ships2: data.api_ship_ke_combined || [],
+    levels2: data.api_ship_lv_combined || [],
+    hp2: data.api_e_maxhps_combined || [],
+    stats2: data.api_eParam_combined || [],
+    equips2: data.api_eSlot_combined || [],
+    planes: planes || 0,
+    bombersMin: bombersMin || 0,
+    bombersMax: bombersMax || 0,
+  }
+}
 
 export default class DropShipReporter extends BaseReporter {
   constructor() {
@@ -59,10 +81,16 @@ export default class DropShipReporter extends BaseReporter {
       drop.mapLv  = mapLv[drop.mapId]
       this.drop = drop
       this.ownedShipIds = getOwnedShipIds()
+      if (body.api_destruction_battle) {
+        // Report enemy fleet info for air raids
+        this.report('/api/report/v2/enemy_info', makeEnemyReport(body.api_destruction_battle))
+      }
     } break
     case '/kcsapi/api_req_sortie/battle':
     case '/kcsapi/api_req_sortie/airbattle':
+    case '/kcsapi/api_req_sortie/night_to_day':
     case '/kcsapi/api_req_sortie/ld_airbattle':
+    case '/kcsapi/api_req_battle_midnight/sp_midnight':
     case '/kcsapi/api_req_combined_battle/battle':
     case '/kcsapi/api_req_combined_battle/battle_water':
     case '/kcsapi/api_req_combined_battle/airbattle':
@@ -70,13 +98,14 @@ export default class DropShipReporter extends BaseReporter {
     case '/kcsapi/api_req_combined_battle/ec_battle':
     case '/kcsapi/api_req_combined_battle/each_battle':
     case '/kcsapi/api_req_combined_battle/each_battle_water':
-    case '/kcsapi/api_req_battle_midnight/sp_midnight':
     case '/kcsapi/api_req_combined_battle/sp_midnight':
     case '/kcsapi/api_req_combined_battle/ec_night_to_day': {
       const { drop } = this
       drop.enemyShips1 = body.api_ship_ke
       drop.enemyShips2 = body.api_ship_ke_combined
       drop.enemyFormation = body.api_formation[1]
+      // Report enemy fleet info
+      this.report('/api/report/v2/enemy_info', makeEnemyReport(body))
     } break
     case '/kcsapi/api_req_sortie/battleresult':
     case '/kcsapi/api_req_combined_battle/battleresult': {

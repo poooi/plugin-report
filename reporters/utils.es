@@ -134,3 +134,26 @@ export const countOwnedShipForms = (ownedShipsIds, baseId) => {
   const counts = ids.map(api_ship_id => ownedShipsIds.filter(id => id === api_ship_id).length)
   return _.dropRightWhile(counts, e => !e)
 }
+
+/**
+ * Get total plane and bomber counts from stage1 and stage2.
+ */
+const getPlaneCounts = (data = {}) => {
+  const planes = (data.api_stage1 || {}).api_e_count || 0
+  const lost = (data.api_stage1 || {}).api_e_lostcount || 0
+  const bombers = (data.api_stage2 || {}).api_e_count || 0
+  return planes && {
+    planes,
+    bombersMin: bombers,
+    bombersMax: bombers + lost,
+  }
+}
+
+/**
+ * Get plane counts for first air battle, if any.
+ */
+export const getFirstPlaneCounts = (data = {}) =>
+  getPlaneCounts(data.api_air_base_injection) ||
+  getPlaneCounts(data.api_injection_kouku) ||
+  getPlaneCounts((data.api_air_base_attack || [])[0]) ||
+  getPlaneCounts(data.api_kouku)
