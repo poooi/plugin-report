@@ -1,4 +1,5 @@
 import BaseReporter from './base'
+import { getOwnedShipIds, countOwnedShipForms, getTeitokuHash } from './utils'
 
 export default class DropShipReporter extends BaseReporter {
   constructor() {
@@ -6,10 +7,12 @@ export default class DropShipReporter extends BaseReporter {
 
     this.mapLv = []
     this.drop = null
+    this.ownedShipIds = null
   }
   handle(method, path, body, postBody) {
     const { mapLv } = this
-    const { _teitokuId, _teitokuLv, _nickName } = window
+    const { _teitokuLv } = window
+    const teitokuId = getTeitokuHash()
     switch(path) {
     case '/kcsapi/api_get_member/mapinfo': {
       for (const map of body.api_map_info) {
@@ -23,8 +26,8 @@ export default class DropShipReporter extends BaseReporter {
       const rank = parseInt(postBody.api_rank)
       mapLv[mapareaId] = parseInt(postBody.api_rank)
       // Report select map difficulty
-      this.report("/api/report/v2/select_rank", {
-        teitokuId: _teitokuId,
+      this.report('/api/report/v2/select_rank', {
+        teitokuId,
         teitokuLv: _teitokuLv,
         mapareaId: mapareaId,
         rank: rank,
@@ -46,13 +49,16 @@ export default class DropShipReporter extends BaseReporter {
         rank  : null,
         shipId: null,
         itemId: null,
+        shipCounts: null,
         teitokuLv: null,
+        teitokuId: null,
       }
       drop.mapId  = body.api_maparea_id * 10 + body.api_mapinfo_no
       drop.cellId = body.api_no
       drop.isBoss = body.api_event_id == 5
       drop.mapLv  = mapLv[drop.mapId]
       this.drop = drop
+      this.ownedShipIds = getOwnedShipIds()
     } break
     case '/kcsapi/api_req_sortie/battle':
     case '/kcsapi/api_req_sortie/airbattle':
@@ -81,16 +87,27 @@ export default class DropShipReporter extends BaseReporter {
       drop.baseExp = body.api_get_base_exp
       drop.shipId = (body.api_get_ship || {}).api_ship_id || -1
       drop.itemId = (body.api_get_useitem || {}).api_useitem_id || -1
+      drop.shipCounts = drop.shipId !== -1 ? countOwnedShipForms(this.ownedShipIds, drop.shipId) : []
       drop.teitokuLv = _teitokuLv
-      this.report('/api/report/v2/drop_ship', drop)
+      drop.teitokuId = teitokuId
+      // Report enemy pattern and drops
+      this.report('/api/report/v2/drop_ship', drop).then(() => {
+        this.drop = null
+      })
       // Report pass event
       if (body.api_get_eventitem != null) {
         this.report('/api/report/v2/pass_event', {
-          teitokuId: _teitokuId,
+          teitokuId,
           teitokuLv: _teitokuLv,
-          teitoku: _nickName,
           mapId: drop.mapId,
           mapLv: drop.mapLv,
+          rewards: !Array.isArray(body.api_get_eventitem)
+            ? null
+            : body.api_get_eventitem.map(e => ({
+              rewardType: e.api_type,
+              rewardId: e.api_id,
+              rewardCount: e.api_value,
+            })),
         })
       }
     } break

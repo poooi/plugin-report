@@ -1,3 +1,4 @@
+import { createHash } from 'crypto'
 import _ from 'lodash'
 
 const hasAtLeast = num => f => xs => xs.filter(f).length >= num
@@ -92,4 +93,44 @@ export const getNightBattleDDCIType = (equips) => {
   }
 
   return ''
+}
+
+let teitokuId = window._teitokuId
+let teitokuHash = null
+
+export const getTeitokuHash = () => {
+  const { _teitokuId, _nickName, _nickNameId } = window
+  if ((teitokuId !== _teitokuId || !teitokuHash)
+      && _teitokuId !== -1 && _nickName && _nickNameId !== -1) {
+    teitokuId = _teitokuId
+    teitokuHash = createHash('sha1')
+      .update(`${_teitokuId}_${_nickName}_${_nickNameId}`)
+      .digest('base64')
+  }
+  return teitokuHash
+}
+
+export const getOwnedShipIds = () => _.map(window._ships, e => e.api_ship_id)
+
+/**
+ * Count all owned remodels of a given ship.
+ *
+ * E.g., having 2 Taigei and 1 Ryuuhou Kai will return [2, 0, 1].
+ *
+ * Returns [] if none of the forms are owned.
+ */
+export const countOwnedShipForms = (ownedShipsIds, baseId) => {
+  const $ships = window.$ships
+  let current = $ships[baseId]
+  let nextId = +(current.api_aftershipid || 0)
+  let ids = [baseId]
+  let cutoff = 10
+  while (!ids.includes(nextId) && nextId > 0 && cutoff > 0) {
+    ids = [...ids, nextId]
+    current = $ships[nextId] || {}
+    nextId = +(current.api_aftershipid || 0)
+    --cutoff
+  }
+  const counts = ids.map(api_ship_id => ownedShipsIds.filter(id => id === api_ship_id).length)
+  return _.dropRightWhile(counts, e => !e)
 }
