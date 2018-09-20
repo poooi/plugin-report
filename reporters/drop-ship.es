@@ -107,6 +107,7 @@ export default class DropShipReporter extends BaseReporter {
               rewardType: e.api_type,
               rewardId: e.api_id,
               rewardCount: e.api_value,
+              rewardLevel: e.api_slot_level || 0,
             })),
         })
       }
