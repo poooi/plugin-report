@@ -11,9 +11,10 @@ export default class ShipStatReporter extends BaseReporter {
 
     // check if all slots are empty
     // api_slot_ex could be 0 (not enabled) or -1 (no item)
-    if (_(ship.api_slot)
-      .concat(ship.api_slot_ex)
-      .some(id => id > 0)
+    if (
+      _(ship.api_slot)
+        .concat(ship.api_slot_ex)
+        .some(id => id > 0)
     ) {
       return
     }
@@ -30,6 +31,5 @@ export default class ShipStatReporter extends BaseReporter {
       evasion: ship.api_kaihi[0],
       evasion_max: ship.api_kaihi[1],
     })
-
   }
 }

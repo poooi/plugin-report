@@ -17,19 +17,15 @@ export default class BaseReporter {
   report = async (path, info) => {
     // console.log(path, info)
     try {
-      await this.postAsync(
-        url.resolve(`http://${this.SERVER_HOSTNAME}`, path),
-        {
-          headers: {
-            'User-Agent': this.USERAGENT,
-          },
-          form: {
-            data: JSON.stringify(info),
-          },
-        }
-      )
-    }
-    catch (err) {
+      await this.postAsync(url.resolve(`http://${this.SERVER_HOSTNAME}`, path), {
+        headers: {
+          'User-Agent': this.USERAGENT,
+        },
+        form: {
+          data: JSON.stringify(info),
+        },
+      })
+    } catch (err) {
       console.error(err.stack)
     }
   }

@@ -4,7 +4,6 @@ import { shipDataSelectorFactory, shipEquipDataSelectorFactory } from 'views/uti
 import BaseReporter from './base'
 import { getHpStyle, getNightBattleSSCIType, getNightBattleDDCIType } from './utils'
 
-
 export default class NightBattleCIReporter extends BaseReporter {
   processData = (body, time) => {
     const state = window.getStore()
@@ -15,9 +14,9 @@ export default class NightBattleCIReporter extends BaseReporter {
     }
 
     const deckId = (body.api_deck_id || body.api_dock_id || 0) - 1
-    const deck   = window._decks[deckId]
+    const deck = window._decks[deckId]
 
-    if (deck == null)  return
+    if (deck == null) return
 
     const deckData = _(deck.api_ship)
       .map(shipId => {
@@ -26,24 +25,17 @@ export default class NightBattleCIReporter extends BaseReporter {
           .filter(([_equip, $equip, onslot] = []) => !!_equip && !!$equip)
           .map(([_equip, $equip, onslot]) => ({ ...$equip, ..._equip }))
           .value()
-        return [{...$ship, ..._ship}, equips]
+        return [{ ...$ship, ..._ship }, equips]
       })
       .value()
 
     const ReportIndex = _(deckData)
-      .map(([ship], index) => [2, 13, 14].includes(ship.api_stype) ? index : -1)
+      .map(([ship], index) => ([2, 13, 14].includes(ship.api_stype) ? index : -1))
       .filter(i => i >= 0)
       .value()
 
-
     // api from body counts from array index 1
-    const {
-      api_f_nowhps,
-      api_f_maxhps,
-      api_ship_ke,
-      api_flare_pos,
-      api_hougeki,
-    } = body
+    const { api_f_nowhps, api_f_maxhps, api_ship_ke, api_flare_pos, api_hougeki } = body
 
     const {
       api_at_eflag,
@@ -58,26 +50,24 @@ export default class NightBattleCIReporter extends BaseReporter {
     // api from lib battle counts from array index 0
     const endHps = _.get(state, 'battle._status.result.deckHp', [])
 
-    const searchLight = deckData.some(([_, equips], index) =>
-      equips.some(equip => equip.api_type[3] === 24) && api_f_nowhps[index] > 0
+    const searchLight = deckData.some(
+      ([_, equips], index) =>
+        equips.some(equip => equip.api_type[3] === 24) && api_f_nowhps[index] > 0,
     )
 
-    ReportIndex.forEach((i) => {
+    ReportIndex.forEach(i => {
       const [ship, equips] = deckData[i]
 
-      const type = ship.api_stype === 2
-        ? 'DD'
-        : 'SS'
+      const type = ship.api_stype === 2 ? 'DD' : 'SS'
 
-      const CI = ship.api_stype === 2
-        ? getNightBattleDDCIType(equips)
-        : getNightBattleSSCIType(equips)
+      const CI =
+        ship.api_stype === 2 ? getNightBattleDDCIType(equips) : getNightBattleSSCIType(equips)
       if (!CI) {
         return
       }
 
-      const startStatus = getHpStyle(api_f_nowhps[i] * 100 / api_f_maxhps[i])
-      const endStatus = getHpStyle(endHps[i] * 100 / api_f_maxhps[i])
+      const startStatus = getHpStyle((api_f_nowhps[i] * 100) / api_f_maxhps[i])
+      const endStatus = getHpStyle((endHps[i] * 100) / api_f_maxhps[i])
 
       // we will filter out heavily damaged and status changed ships
       // The stat will not be biased as those changed ships have consistent possibilities
@@ -99,8 +89,6 @@ export default class NightBattleCIReporter extends BaseReporter {
       const sp = api_sp_list[order]
       const si = api_si_list[order]
       const cl = api_cl_list[order]
-
-
 
       this.report('/api/report/v2/night_battle_ci', {
         shipId: ship.api_ship_id,
@@ -127,11 +115,13 @@ export default class NightBattleCIReporter extends BaseReporter {
   }
 
   handle(method, path, body, postBody, time) {
-    switch(path) {
-    case '/kcsapi/api_req_battle_midnight/battle': {
-      // delay to wait for updated battle store
-      setTimeout(() => this.processData(body, time), 1000)
-    } break
+    switch (path) {
+      case '/kcsapi/api_req_battle_midnight/battle':
+        {
+          // delay to wait for updated battle store
+          setTimeout(() => this.processData(body, time), 1000)
+        }
+        break
     }
   }
 }

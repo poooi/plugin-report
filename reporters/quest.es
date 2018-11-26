@@ -12,16 +12,14 @@ export default class QuestReporter extends BaseReporter {
     this.get(
       url.resolve(`http://${this.SERVER_HOSTNAME}`, '/api/report/v2/known_quests'),
       (err, response, body) => {
-        if (err != null || response.statusCode != 200)
-          return
+        if (err != null || response.statusCode != 200) return
         this.knownQuests = JSON.parse(body).quests
         this.enabled = true
-      }
+      },
     )
   }
   handle(method, path, body, postBody) {
-    if (!this.enabled)
-      return
+    if (!this.enabled) return
     if (path === '/kcsapi/api_get_member/questlist') {
       if (body.api_list == null) return
       for (const quest of body.api_list) {
@@ -30,11 +28,11 @@ export default class QuestReporter extends BaseReporter {
         this.knownQuests.push(quest.api_no)
         this.knownQuests.sort()
         this.report(`/api/report/v2/quest/${quest.api_no}`, {
-          questId : quest.api_no,
-          title   : quest.api_title,
-          detail  : quest.api_detail,
+          questId: quest.api_no,
+          title: quest.api_title,
+          detail: quest.api_detail,
           category: quest.api_category,
-          type    : quest.api_type,
+          type: quest.api_type,
         })
       }
     }
