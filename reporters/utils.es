@@ -33,7 +33,7 @@ export const getNightBattleSSCIType = (equips) => {
         equipIdIs(214),
       )
     ))(equips))
-    {
+  {
     return 'SS_LMT_R'
   }
   if (hasAtLeast(2)(
@@ -41,7 +41,7 @@ export const getNightBattleSSCIType = (equips) => {
       equipIdIs(213),
       equipIdIs(214),
     ))(equips))
-    {
+  {
     return 'SS_LMT_LMT'
   }
   if (validAny(
@@ -51,8 +51,8 @@ export const getNightBattleSSCIType = (equips) => {
         equipIdIs(213),
         equipIdIs(214),
       )
-  ))(equips))
-    {
+    ))(equips))
+  {
     return 'SS_T_T'
   }
 
@@ -139,9 +139,9 @@ export const countOwnedShipForms = (ownedShipsIds, baseId) => {
  * Get total plane and bomber counts from stage1 and stage2.
  */
 const getPlaneCounts = (data = {}) => {
-  const planes = (data.api_stage1 || {}).api_e_count || 0
-  const lost = (data.api_stage1 || {}).api_e_lostcount || 0
-  const bombers = (data.api_stage2 || {}).api_e_count || 0
+  const planes = data.api_stage1?.api_e_count || 0
+  const lost = data.api_stage1?.api_e_lostcount || 0
+  const bombers = data.api_stage2?.api_e_count || 0
   return planes && {
     planes,
     bombersMin: bombers,
@@ -155,5 +155,5 @@ const getPlaneCounts = (data = {}) => {
 export const getFirstPlaneCounts = (data = {}) =>
   getPlaneCounts(data.api_air_base_injection) ||
   getPlaneCounts(data.api_injection_kouku) ||
-  getPlaneCounts((data.api_air_base_attack || [])[0]) ||
+  getPlaneCounts(data.api_air_base_attack?.[0]) ||
   getPlaneCounts(data.api_kouku)
