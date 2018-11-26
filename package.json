@@ -28,8 +28,8 @@
     "priority": 100
   },
   "devDependencies": {
-    "babel-eslint": "^7.2.1",
-    "eslint": "^3.19.0",
+    "babel-eslint": "^10.0.1",
+    "eslint": "^5.9.0",
     "eslint-plugin-import": "^2.2.0",
     "poi-util-transpile": "^8.0.0"
   }
