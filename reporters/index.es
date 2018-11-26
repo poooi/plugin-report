@@ -1,5 +1,4 @@
 export AACIReporter from './aaci'
-export BattleAPIReporter from './battle-api'
 export CreateItemReporter from './create-item'
 export CreateShipReporter from './create-ship'
 export DropShipReporter from './drop-ship'
