@@ -30,7 +30,6 @@ export const pluginDidLoad = (e) => {
     new CreateShipReporter(),
     new CreateItemReporter(),
     new DropShipReporter(),
-    // new BattleAPIReporter(), // close temperarily
     new NightContactReportor(),
     new RemodelRecipeReporter(),
     new AACIReporter(),
