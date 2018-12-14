@@ -2,7 +2,12 @@ import _ from 'lodash'
 import { shipDataSelectorFactory, shipEquipDataSelectorFactory } from 'views/utils/selectors'
 
 import BaseReporter from './base'
-import { getHpStyle, getNightBattleSSCIType, getNightBattleDDCIType } from './utils'
+import {
+  getHpStyle,
+  getNightBattleSSCIType,
+  getNightBattleDDCIType,
+  getNightBattleCVCIType,
+} from './utils'
 
 export default class NightBattleCIReporter extends BaseReporter {
   processData = (body, time) => {
@@ -30,7 +35,7 @@ export default class NightBattleCIReporter extends BaseReporter {
       .value()
 
     const ReportIndex = _(deckData)
-      .map(([ship], index) => ([2, 13, 14].includes(ship.api_stype) ? index : -1))
+      .map(([ship], index) => ([2, 7, 11, 13, 14, 18].includes(ship.api_stype) ? index : -1))
       .filter(i => i >= 0)
       .value()
 
@@ -58,10 +63,24 @@ export default class NightBattleCIReporter extends BaseReporter {
     ReportIndex.forEach(i => {
       const [ship, equips] = deckData[i]
 
-      const type = ship.api_stype === 2 ? 'DD' : 'SS'
+      const type = ship.api_stype === 2 ? 'DD' : [13, 14].includes(ship.api_stype) ? 'SS' : 'CV'
+
+      // Checking for valid night carrier attack
+      if (type === 'CV') {
+        if (
+          ship.api_ship_id !== 545 &&
+          !equips.some(equip => [258, 259].includes(equip.api_slotitem_id))
+        ) {
+          return
+        }
+      }
 
       const CI =
-        ship.api_stype === 2 ? getNightBattleDDCIType(equips) : getNightBattleSSCIType(equips)
+        ship.api_stype === 2
+          ? getNightBattleDDCIType(equips)
+          : [13, 14].includes(ship.api_stype)
+          ? getNightBattleSSCIType(equips)
+          : getNightBattleCVCIType(equips)
       if (!CI) {
         return
       }
