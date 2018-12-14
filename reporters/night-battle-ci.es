@@ -51,7 +51,7 @@ export default class NightBattleCIReporter extends BaseReporter {
     const endHps = _.get(state, 'battle._status.result.deckHp', [])
 
     const searchLight = deckData.some(
-      ([_, equips], index) =>
+      ([__, equips], index) =>
         equips.some(equip => equip.api_type[3] === 24) && api_f_nowhps[index] > 0,
     )
 
@@ -75,7 +75,7 @@ export default class NightBattleCIReporter extends BaseReporter {
         return
       }
 
-      const order = api_at_list.findIndex((pos, i) => pos === i && api_at_eflag[i] === 0)
+      const order = api_at_list.findIndex((pos, index) => pos === i && api_at_eflag[index] === 0)
       if (order < 0) {
         return
       }

@@ -23,6 +23,7 @@ module.exports = {
     'no-unused-vars': ['warn', {'args': 'none'}],
     'unicode-bom': 'error',
     'react/prop-types': 'off',
+    'no-shadow': 'error',
     'prettier/prettier': 'error',
   },
 }
