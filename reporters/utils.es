@@ -5,7 +5,8 @@ const hasAtLeast = num => f => xs => xs.filter(f).length >= num
 const validAll = (...func) => x => func.every(f => f(x))
 const validAny = (...func) => x => func.some(f => f(x))
 
-const equipype2Is = num => equip => _.get(equip, 'api_type.2') === num
+const equipType2Is = num => equip => _.get(equip, 'api_type.2') === num
+const equipType3Is = num => equip => _.get(equip, 'api_type.3') === num
 const equipIdIs = num => equip => equip.api_slotitem_id === num
 
 export const getHpStyle = percent => {
@@ -27,7 +28,7 @@ export const getHpStyle = percent => {
 export const getNightBattleSSCIType = equips => {
   if (
     validAll(
-      hasAtLeast(1)(equipype2Is(51)),
+      hasAtLeast(1)(equipType2Is(51)),
       hasAtLeast(1)(validAny(equipIdIs(213), equipIdIs(214))),
     )(equips)
   ) {
@@ -38,7 +39,7 @@ export const getNightBattleSSCIType = equips => {
   }
   if (
     validAny(
-      hasAtLeast(1)(equipype2Is(51)),
+      hasAtLeast(1)(equipType2Is(51)),
       hasAtLeast(1)(validAny(equipIdIs(213), equipIdIs(214))),
     )(equips)
   ) {
@@ -55,9 +56,9 @@ const houmAboveOrEqual = num => equip => equip.api_houm >= num
 export const getNightBattleDDCIType = equips => {
   if (
     validAll(
-      hasAtLeast(1)(equipype2Is(1)),
-      hasAtLeast(1)(equipype2Is(5)),
-      hasAtLeast(1)(validAll(validAny(equipype2Is(12), equipype2Is(13)), houmAboveOrEqual(3))),
+      hasAtLeast(1)(equipType2Is(1)),
+      hasAtLeast(1)(equipType2Is(5)),
+      hasAtLeast(1)(validAll(validAny(equipType2Is(12), equipType2Is(13)), houmAboveOrEqual(3))),
     )(equips)
   ) {
     return 'DD_G_T_R'
@@ -65,12 +66,60 @@ export const getNightBattleDDCIType = equips => {
 
   if (
     validAll(
-      hasAtLeast(1)(equipype2Is(5)),
+      hasAtLeast(1)(equipType2Is(5)),
       hasAtLeast(1)(equipIdIs(129)),
-      hasAtLeast(1)(validAll(validAny(equipype2Is(12), equipype2Is(13)), houmAboveOrEqual(3))),
+      hasAtLeast(1)(validAll(validAny(equipType2Is(12), equipType2Is(13)), houmAboveOrEqual(3))),
     )(equips)
   ) {
     return 'DD_T_R_P'
+  }
+
+  return ''
+}
+
+// NF = Fighter
+// NB = Bomber
+// B = Swordfish/Iwai Fighter-Bomber
+
+export const getNightBattleCVCIType = equips => {
+  if (validAll(hasAtLeast(2)(equipType3Is(45)), hasAtLeast(1)(equipType3Is(46)))(equips)) {
+    return 'CV_NF_NF_NB'
+  }
+
+  if (validAll(hasAtLeast(3)(equipType3Is(45)))(equips)) {
+    return 'CV_NF_NF_NF'
+  }
+
+  if (
+    validAll(
+      hasAtLeast(1)(equipType3Is(45)),
+      hasAtLeast(1)(equipType3Is(46)),
+      hasAtLeast(1)(validAny(equipIdIs(154), equipIdIs(242), equipIdIs(243), equipIdIs(244))),
+    )(equips)
+  ) {
+    return 'CV_NF_NB_B'
+  }
+
+  if (
+    validAll(
+      hasAtLeast(2)(equipType3Is(45)),
+      hasAtLeast(1)(validAny(equipIdIs(154), equipIdIs(242), equipIdIs(243), equipIdIs(244))),
+    )(equips)
+  ) {
+    return 'CV_NF_NF_B'
+  }
+
+  if (
+    validAll(
+      hasAtLeast(1)(equipType3Is(45)),
+      hasAtLeast(2)(validAny(equipIdIs(154), equipIdIs(242), equipIdIs(243), equipIdIs(244))),
+    )(equips)
+  ) {
+    return 'CV_NF_B_B'
+  }
+
+  if (validAll(hasAtLeast(1)(equipType3Is(45)), hasAtLeast(1)(equipType3Is(46)))(equips)) {
+    return 'CV_NF_NB'
   }
 
   return ''
