@@ -95,6 +95,7 @@ export default class DropShipReporter extends BaseReporter {
       case '/kcsapi/api_req_sortie/airbattle':
       case '/kcsapi/api_req_sortie/night_to_day':
       case '/kcsapi/api_req_sortie/ld_airbattle':
+      case '/kcsapi/api_req_sortie/ld_shooting':
       case '/kcsapi/api_req_battle_midnight/sp_midnight':
       case '/kcsapi/api_req_combined_battle/battle':
       case '/kcsapi/api_req_combined_battle/battle_water':
