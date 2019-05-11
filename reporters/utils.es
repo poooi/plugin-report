@@ -80,6 +80,7 @@ export const getNightBattleDDCIType = equips => {
 // NF = Fighter
 // NB = Bomber
 // B = Swordfish/Iwai Fighter-Bomber
+// S = Suisei Model 12 (Type 31 Photoelectric Fuze Bombs)
 
 export const getNightBattleCVCIType = equips => {
   if (validAll(hasAtLeast(2)(equipType3Is(45)), hasAtLeast(1)(equipType3Is(46)))(equips)) {
@@ -117,9 +118,25 @@ export const getNightBattleCVCIType = equips => {
   ) {
     return 'CV_NF_B_B'
   }
-
+  if (
+    validAll(
+      hasAtLeast(1)(equipType3Is(45)),
+      hasAtLeast(1)(equipIdIs(154)),
+      hasAtLeast(1)(equipIdIs(320)),
+    )(equips)
+  ) {
+    return 'CV_NF_B_S'
+  }
   if (validAll(hasAtLeast(1)(equipType3Is(45)), hasAtLeast(1)(equipType3Is(46)))(equips)) {
     return 'CV_NF_NB'
+  }
+
+  if (validAll(hasAtLeast(1)(equipType3Is(46)), hasAtLeast(1)(equipIdIs(320)))(equips)) {
+    return 'CV_NB_S'
+  }
+
+  if (validAll(hasAtLeast(1)(equipType3Is(45)), hasAtLeast(1)(equipIdIs(320)))(equips)) {
+    return 'CV_NF_S'
   }
 
   return ''
