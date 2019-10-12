@@ -11,20 +11,19 @@ import {
 } from './reporters'
 
 let reporters = []
-const handleResponse = (e) => {
-  const {method, path, body, postBody, time = Date.now()} = e.detail
+const handleResponse = e => {
+  const { method, path, body, postBody, time = Date.now() } = e.detail
   for (const reporter of reporters) {
     try {
       reporter.handle(method, path, body, postBody, time)
-    }
-    catch (err) {
+    } catch (err) {
       console.error(err.stack)
     }
   }
 }
 
 export const show = false
-export const pluginDidLoad = (e) => {
+export const pluginDidLoad = e => {
   reporters = [
     new QuestReporter(),
     new CreateShipReporter(),
@@ -38,6 +37,6 @@ export const pluginDidLoad = (e) => {
   ]
   window.addEventListener('game.response', handleResponse)
 }
-export const pluginWillUnload = (e) => {
+export const pluginWillUnload = e => {
   window.removeEventListener('game.response', handleResponse)
 }
