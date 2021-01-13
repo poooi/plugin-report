@@ -1,6 +1,7 @@
 import Promise from 'bluebird'
 import request from 'request'
 import url from 'url'
+import * as Sentry from '@sentry/electron'
 
 Promise.promisifyAll(request)
 const packageMeta = require('../package.json')
@@ -26,6 +27,10 @@ export default class BaseReporter {
         },
       })
     } catch (err) {
+      Sentry.captureException(err, {
+        area: 'poi-plugin-report',
+        path,
+      })
       console.error(err.stack)
     }
   }
