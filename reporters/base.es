@@ -1,9 +1,8 @@
-import Promise from 'bluebird'
-import request from 'request'
 import url from 'url'
 import * as Sentry from '@sentry/electron'
+import request from 'request'
+import fetch from 'node-fetch'
 
-Promise.promisifyAll(request)
 const packageMeta = require('../package.json')
 const { SERVER_HOSTNAME, POI_VERSION } = window
 
@@ -13,18 +12,18 @@ export default class BaseReporter {
     this.USERAGENT = `Reporter/${packageMeta.version} poi/${POI_VERSION}`
   }
   get = (...args) => request.get(...args)
-  postAsync = (...args) => request.postAsync(...args)
 
   report = async (path, info) => {
-    // console.log(path, info)
     try {
-      await this.postAsync(url.resolve(`https://${this.SERVER_HOSTNAME}`, path), {
+      await fetch(url.resolve(`http://${this.SERVER_HOSTNAME}`, path), {
+        method: 'POST',
         headers: {
           'User-Agent': this.USERAGENT,
+          'X-Reporter': this.USERAGENT,
+          'Content-Type': 'application/json',
         },
-        form: {
-          data: JSON.stringify(info),
-        },
+        redirect: 'follow',
+        body: JSON.stringify({ data: info }),
       })
     } catch (err) {
       Sentry.captureException(err, {
