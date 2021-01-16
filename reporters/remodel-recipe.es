@@ -1,4 +1,3 @@
-import url from 'url'
 import moment from 'moment-timezone'
 import _ from 'lodash'
 import BaseReporter from './base'
@@ -31,18 +30,6 @@ export default class RemodelRecipeReporter extends BaseReporter {
     this.itemId = -1
     this.recipeId = -1
     this.recipes = {}
-
-    this.knownRecipes = []
-    this.enabled = false
-
-    this.get(
-      url.resolve(`http://${this.SERVER_HOSTNAME}`, '/api/report/v2/known_recipes'),
-      (err, response, body) => {
-        if (err != null || response.statusCode != 200) return
-        this.knownRecipes = JSON.parse(body).recipes
-        this.enabled = true
-      },
-    )
   }
   getStage(level) {
     switch (true) {
@@ -97,10 +84,6 @@ export default class RemodelRecipeReporter extends BaseReporter {
         break
       case '/kcsapi/api_req_kousyou/remodel_slot':
         {
-          if (!this.enabled) {
-            return
-          }
-
           if (typeof this.fuel === 'undefined') {
             return
           }
@@ -148,10 +131,6 @@ export default class RemodelRecipeReporter extends BaseReporter {
             upgradeToItemLevel,
             key: `r${this.recipeId}-i${this.itemId}-s${this.stage}-d${this.day}-s${secretary}`,
           }
-          if (this.knownRecipes.includes(info.key)) {
-            return
-          }
-          this.knownRecipes.push(info.key)
 
           this.report('/api/report/v2/remodel_recipe', info)
         }

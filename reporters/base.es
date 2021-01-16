@@ -1,6 +1,5 @@
 import url from 'url'
 import * as Sentry from '@sentry/electron'
-import request from 'request'
 import fetch from 'node-fetch'
 
 const packageMeta = require('../package.json')
@@ -11,7 +10,23 @@ export default class BaseReporter {
     this.SERVER_HOSTNAME = SERVER_HOSTNAME
     this.USERAGENT = `Reporter/${packageMeta.version} poi/${POI_VERSION}`
   }
-  get = (...args) => request.get(...args)
+
+  getJson = async path => {
+    try {
+      const resp = await fetch(url.resolve(`http://${this.SERVER_HOSTNAME}`, path), {
+        redirect: 'follow',
+      })
+      const result = await resp.json()
+      return result
+    } catch (err) {
+      Sentry.captureException(err, {
+        area: 'poi-plugin-report',
+        path,
+      })
+
+      return {}
+    }
+  }
 
   report = async (path, info) => {
     try {
