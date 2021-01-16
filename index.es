@@ -1,3 +1,5 @@
+import * as Sentry from '@sentry/electron'
+
 import {
   QuestReporter,
   CreateShipReporter,
@@ -17,6 +19,10 @@ const handleResponse = e => {
     try {
       reporter.handle(method, path, body, postBody, time)
     } catch (err) {
+      Sentry.captureException(err, {
+        area: 'poi-plugin-report',
+        path,
+      })
       console.error(err.stack)
     }
   }
