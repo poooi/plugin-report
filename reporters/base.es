@@ -30,7 +30,7 @@ export default class BaseReporter {
 
   report = async (path, info) => {
     try {
-      await fetch(url.resolve(`http://${this.SERVER_HOSTNAME}`, path), {
+      const resp = await fetch(url.resolve(`https://${this.SERVER_HOSTNAME}`, path), {
         method: 'POST',
         headers: {
           'User-Agent': this.USERAGENT,
@@ -40,10 +40,15 @@ export default class BaseReporter {
         redirect: 'follow',
         body: JSON.stringify({ data: info }),
       })
+
+      if (!resp.ok) {
+        throw new Error(`report failed`)
+      }
     } catch (err) {
       Sentry.captureException(err, {
         area: 'poi-plugin-report',
         path,
+        info,
       })
       console.error(err.stack)
     }
