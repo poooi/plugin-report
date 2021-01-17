@@ -14,6 +14,8 @@ export default class BaseReporter {
   getJson = async path => {
     try {
       const resp = await fetch(url.resolve(`http://${this.SERVER_HOSTNAME}`, path), {
+        'User-Agent': this.USERAGENT,
+        'X-Reporter': this.USERAGENT,
         redirect: 'follow',
       })
       const result = await resp.json()

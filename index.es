@@ -1,4 +1,18 @@
 import * as Sentry from '@sentry/electron'
+import semver from 'semver'
+
+import { init } from './sentry'
+
+if (
+  process.env.NODE_ENV === 'production' &&
+  semver.lte(window.POI_VERSION, '10.6.0') &&
+  config.get('poi.misc.exceptionReporting')
+) {
+  init({
+    build: window.LATEST_COMMIT,
+    paths: [window.ROOT, window.APPDATA_PATH],
+  })
+}
 
 import {
   QuestReporter,
