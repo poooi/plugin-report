@@ -21,9 +21,16 @@ export default class BaseReporter {
       const result = await resp.json()
       return result
     } catch (err) {
-      Sentry.captureException(err, {
-        area: 'poi-plugin-report',
-        path,
+      Sentry.withScope(scope => {
+        scope.setTags({
+          area: 'poi-plugin-report/getJson',
+          path,
+        })
+        Sentry.setContext('versions', {
+          reporter: packageMeta.version,
+          poi: POI_VERSION,
+        })
+        Sentry.captureException(err)
       })
 
       return {}
@@ -44,13 +51,21 @@ export default class BaseReporter {
       })
 
       if (!resp.ok) {
-        throw new Error(`report failed`)
+        const text = await resp.text()
+        throw new Error(`report failed ${resp.status} ${resp.statusText}: ${text}`)
       }
     } catch (err) {
-      Sentry.captureException(err, {
-        area: 'poi-plugin-report',
-        path,
-        info,
+      Sentry.withScope(scope => {
+        scope.setTags({
+          area: 'poi-plugin-report/report',
+          path,
+        })
+        Sentry.setContext('versions', {
+          reporter: packageMeta.version,
+          poi: POI_VERSION,
+        })
+        Sentry.setContext('data', info)
+        Sentry.captureException(err)
       })
       console.error(err.stack)
     }
