@@ -41,6 +41,10 @@ export default class QuestReporter extends BaseReporter {
       })
 
       if (quests.length) {
+        this.knownQuests = [
+          ...this.knownQuests,
+          ..._.map(quests, quest => createQuestHash(quest.api_title, quest.api_detail)),
+        ]
         this.report(`/api/report/v3/quest`, {
           quests: _.map(quests, quest => ({
             questId: quest.api_no,
