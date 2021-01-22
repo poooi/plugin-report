@@ -1,5 +1,15 @@
 import BaseReporter from './base'
 import _ from 'lodash'
+import crypto from 'crypto'
+
+const createHash = _.memoize(text =>
+  crypto
+    .createHash('md5')
+    .update(text)
+    .digest('hex'),
+)
+
+const createQuestHash = (title, detail) => createHash(`${title}${detail}`)
 
 export default class QuestReporter extends BaseReporter {
   constructor() {
@@ -12,7 +22,7 @@ export default class QuestReporter extends BaseReporter {
   }
 
   initialize = async () => {
-    const { quests } = await this.getJson('/api/report/v2/known_quests')
+    const { quests } = await this.getJson('/api/report/v3/known_quests')
 
     if (quests) {
       this.knownQuests = quests
@@ -25,20 +35,22 @@ export default class QuestReporter extends BaseReporter {
       return
     }
     if (path === '/kcsapi/api_get_member/questlist') {
-      _.each(body.api_list, quest => {
-        if (this.knownQuests.includes(quest.api_no)) {
-          return
-        }
-
-        this.knownQuests.push(quest.api_no)
-        this.report(`/api/report/v2/quest/${quest.api_no}`, {
-          questId: quest.api_no,
-          title: quest.api_title,
-          detail: quest.api_detail,
-          category: quest.api_category,
-          type: quest.api_type,
-        })
+      const quests = _.filter(body.api_list, quest => {
+        const hash = createQuestHash(quest.api_title, quest.api_detail)
+        return !_.some(this.knownQuests, partial => hash.startsWith(partial))
       })
+
+      if (quests.length) {
+        this.report(`/api/report/v3/quest`, {
+          quests: _.map(quests, quest => ({
+            questId: quest.api_no,
+            title: quest.api_title,
+            detail: quest.api_detail,
+            category: quest.api_category,
+            type: quest.api_type,
+          })),
+        })
+      }
     }
   }
 }
