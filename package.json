@@ -1,6 +1,6 @@
 {
   "name": "poi-plugin-report",
-  "version": "4.3.0",
+  "version": "5.3.0",
   "description": "Report ship creating info and drop info, and so on.",
   "main": "index.js",
   "scripts": {
@@ -25,21 +25,24 @@
     "title": "Data Report",
     "description": "Report data to database(http://db.kcwiki.moe)",
     "icon": "fa/pie-chart",
-    "priority": 100
+    "priority": 100,
+    "apiVer": {
+      "10.3.99": "4.5.0"
+    }
   },
   "devDependencies": {
-    "@commitlint/cli": "^7.2.1",
-    "@commitlint/config-conventional": "^7.1.2",
-    "babel-eslint": "^10.0.1",
-    "eslint": "^5.9.0",
-    "eslint-config-poi-plugin": "^1.0.0",
-    "eslint-config-prettier": "^3.3.0",
-    "eslint-plugin-import": "^2.2.0",
-    "eslint-plugin-prettier": "^3.0.0",
-    "husky": "^1.2.0",
-    "lint-staged": "^8.1.0",
-    "poi-util-transpile": "^8.0.0",
-    "prettier": "^1.15.2"
+    "@commitlint/cli": "^8.2.0",
+    "@commitlint/config-conventional": "^8.2.0",
+    "babel-eslint": "^10.0.3",
+    "eslint": "^6.5.1",
+    "eslint-config-poi-plugin": "^3.0.1",
+    "eslint-config-prettier": "^6.4.0",
+    "eslint-plugin-import": "^2.18.2",
+    "eslint-plugin-prettier": "^3.1.1",
+    "husky": "^3.0.8",
+    "lint-staged": "^9.4.2",
+    "poi-util-transpile": "^10.3.4",
+    "prettier": "^1.18.2"
   },
   "husky": {
     "hooks": {

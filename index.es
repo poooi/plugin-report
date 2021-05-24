@@ -1,3 +1,19 @@
+import * as Sentry from '@sentry/electron'
+import semver from 'semver'
+
+import { init } from './sentry'
+
+if (
+  process.env.NODE_ENV === 'production' &&
+  semver.lte(window.POI_VERSION, '10.6.0') &&
+  config.get('poi.misc.exceptionReporting')
+) {
+  init({
+    build: window.LATEST_COMMIT,
+    paths: [window.ROOT, window.APPDATA_PATH],
+  })
+}
+
 import {
   QuestReporter,
   CreateShipReporter,
@@ -17,6 +33,10 @@ const handleResponse = e => {
     try {
       reporter.handle(method, path, body, postBody, time)
     } catch (err) {
+      Sentry.captureException(err, {
+        area: 'poi-plugin-report',
+        path,
+      })
       console.error(err.stack)
     }
   }
