@@ -69,7 +69,7 @@ export const getNightBattleDDCIType = equips => {
   if (
     validAll(
       hasAtLeast(1)(equipType2Is(5)),
-      hasAtLeast(1)(equipIdIs(129)),
+      hasAtLeast(1)(equipType2Is(39)),
       hasAtLeast(1)(validAll(validAny(equipType2Is(12), equipType2Is(13)), houmAboveOrEqual(3))),
     )(equips)
   ) {
