@@ -53,6 +53,8 @@ const houmAboveOrEqual = num => equip => equip.api_houm >= num
 
 // G_T_R = Gun Torpedo Radar
 // T_R_P = Torpedo Radar Personnel
+// T_P_T Torpedo Personnel Torpedo
+// T_P_D Torpedo Personnel Drum
 export const getNightBattleDDCIType = equips => {
   if (
     validAll(
@@ -72,6 +74,20 @@ export const getNightBattleDDCIType = equips => {
     )(equips)
   ) {
     return 'DD_T_R_P'
+  }
+
+  if (validAll(hasAtLeast(2)(equipType2Is(5)), hasAtLeast(1)(equipIdIs(412)))(equips)) {
+    return 'DD_T_P_T'
+  }
+
+  if (
+    validAll(
+      hasAtLeast(1)(equipType2Is(5)),
+      hasAtLeast(1)(equipIdIs(412)),
+      hasAtLeast(1)(equipType2Is(30)),
+    )(equips)
+  ) {
+    return 'DD_T_P_D'
   }
 
   return ''
