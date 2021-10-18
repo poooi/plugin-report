@@ -1,6 +1,13 @@
 import url from 'url'
 import * as Sentry from '@sentry/electron'
 import fetch from 'node-fetch'
+import https from 'https'
+
+// Because let's encrypt has switched to a new root cert which is not supported in older version of Electron,
+// use this temporary way to disable SSL check
+const insecureAgent = new https.Agent({
+  rejectUnauthorized: false,
+})
 
 const packageMeta = require('../package.json')
 const { SERVER_HOSTNAME, POI_VERSION } = window
@@ -13,10 +20,11 @@ export default class BaseReporter {
 
   getJson = async path => {
     try {
-      const resp = await fetch(url.resolve(`http://${this.SERVER_HOSTNAME}`, path), {
+      const resp = await fetch(url.resolve(`https://${this.SERVER_HOSTNAME}`, path), {
         'User-Agent': this.USERAGENT,
         'X-Reporter': this.USERAGENT,
         redirect: 'follow',
+        agent: insecureAgent,
       })
       const result = await resp.json()
       return result
@@ -32,6 +40,7 @@ export default class BaseReporter {
         })
         Sentry.captureException(err)
       })
+      console.error(err)
 
       return {}
     }
@@ -48,6 +57,7 @@ export default class BaseReporter {
         },
         redirect: 'follow',
         body: JSON.stringify({ data: info }),
+        agent: insecureAgent,
       })
 
       if (!resp.ok) {
@@ -67,7 +77,7 @@ export default class BaseReporter {
         Sentry.setContext('data', info)
         Sentry.captureException(err)
       })
-      console.error(err.stack)
+      console.error(err)
     }
   }
 }
