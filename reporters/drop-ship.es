@@ -1,5 +1,5 @@
 import BaseReporter from './base'
-import { getOwnedShipIds, countOwnedShipForms, getTeitokuHash, getFirstPlaneCounts } from './utils'
+import { getOwnedShipSnapshot, getTeitokuHash, getFirstPlaneCounts } from './utils'
 
 /**
  * Make enemy_info report record from API data.
@@ -29,7 +29,7 @@ export default class DropShipReporter extends BaseReporter {
 
     this.mapLv = []
     this.drop = null
-    this.ownedShipIds = null
+    this.ownedShipSnapshot = null
   }
   handle(method, path, body, postBody) {
     const { mapLv } = this
@@ -84,7 +84,7 @@ export default class DropShipReporter extends BaseReporter {
           drop.isBoss = body.api_event_id == 5
           drop.mapLv = mapLv[drop.mapId]
           this.drop = drop
-          this.ownedShipIds = getOwnedShipIds()
+          this.ownedShipSnapshot = getOwnedShipSnapshot()
           if (body.api_destruction_battle) {
             // Report enemy fleet info for air raids
             this.report('/api/report/v2/enemy_info', makeEnemyReport(body.api_destruction_battle))
@@ -126,8 +126,7 @@ export default class DropShipReporter extends BaseReporter {
           drop.baseExp = body.api_get_base_exp
           drop.shipId = (body.api_get_ship || {}).api_ship_id || -1
           drop.itemId = (body.api_get_useitem || {}).api_useitem_id || -1
-          drop.shipCounts =
-            drop.shipId !== -1 ? countOwnedShipForms(this.ownedShipIds, drop.shipId) : []
+          drop.ownedShipSnapshot = this.ownedShipSnapshot
           drop.teitokuLv = _teitokuLv
           drop.teitokuId = teitokuId
           // Report enemy pattern and drops

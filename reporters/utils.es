@@ -161,29 +161,19 @@ export const getTeitokuHash = () => {
   return teitokuHash
 }
 
-export const getOwnedShipIds = () => _.map(window._ships, e => e.api_ship_id)
+export const getOwnedShipSnapshot = () => {
+  const ships = JSON.parse(JSON.stringify(window._ships))
+  const $ships = JSON.parse(JSON.stringify(window.$ships))
+  const yomiMap = _($ships)
+    .groupBy('api_yomi')
+    .mapValues(group => _.minBy(group, 'api_id').api_id)
+    .value()
 
-/**
- * Count all owned remodels of a given ship.
- *
- * E.g., having 2 Taigei and 1 Ryuuhou Kai will return [2, 0, 1].
- *
- * Returns [] if none of the forms are owned.
- */
-export const countOwnedShipForms = (ownedShipsIds, baseId) => {
-  const $ships = window.$ships
-  let current = $ships[baseId]
-  let nextId = +(current.api_aftershipid || 0)
-  let ids = [baseId]
-  let cutoff = 10
-  while (!ids.includes(nextId) && nextId > 0 && cutoff > 0) {
-    ids = [...ids, nextId]
-    current = $ships[nextId] || {}
-    nextId = +(current.api_aftershipid || 0)
-    --cutoff
-  }
-  const counts = ids.map(api_ship_id => ownedShipsIds.filter(id => id === api_ship_id).length)
-  return _.dropRightWhile(counts, e => !e)
+  return _(ships)
+    .groupBy(s => $ships[s.api_ship_id].api_yomi)
+    .mapKeys((__, yomi) => yomiMap[yomi])
+    .mapValues(group => _.map(group, 'api_ship_id'))
+    .value()
 }
 
 /**
