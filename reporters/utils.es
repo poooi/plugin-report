@@ -164,14 +164,9 @@ export const getTeitokuHash = () => {
 export const getOwnedShipSnapshot = () => {
   const ships = JSON.parse(JSON.stringify(window._ships))
   const $ships = JSON.parse(JSON.stringify(window.$ships))
-  const yomiMap = _($ships)
-    .groupBy('api_yomi')
-    .mapValues(group => _.minBy(group, 'api_id').api_id)
-    .value()
 
   return _(ships)
     .groupBy(s => $ships[s.api_ship_id].api_yomi)
-    .mapKeys((__, yomi) => yomiMap[yomi])
     .mapValues(group => _.map(group, 'api_ship_id'))
     .value()
 }
