@@ -3,6 +3,10 @@ import semver from 'semver'
 
 import { init } from './sentry'
 
+import * as remote from '@electron/remote'
+
+const gameAPIBroadcaster = remote.require('./lib/game-api-broadcaster')
+
 if (
   process.env.NODE_ENV === 'production' &&
   semver.lte(window.POI_VERSION, '10.6.0') &&
@@ -28,6 +32,9 @@ import {
 
 let reporters = []
 const handleResponse = e => {
+  if (!(gameAPIBroadcaster.serverInfo.num >= 1)) {
+    return
+  }
   const { method, path, body, postBody, time = Date.now() } = e.detail
   for (const reporter of reporters) {
     try {
