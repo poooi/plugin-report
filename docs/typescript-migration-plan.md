@@ -20,7 +20,7 @@ Important constraints:
 
 - Do not introduce local machine paths in docs, commits, PR bodies, generated source maps, or build metadata.
 - Keep the migration behavior-safe: reporters send production data, so runtime parity matters more than type elegance.
-- Keep the existing npm workflow unless a later explicit decision changes package manager. The reference repos use pnpm/yarn, but this repo already has `package-lock.json`.
+- Migrate the project to pnpm as part of the TypeScript migration, matching the modern reference plugin direction.
 - Do not mix this migration with feature changes such as item improvement v3 reporting. TypeScript migration should be a prerequisite or parallel infrastructure track, not a behavior rewrite.
 
 ## Current codebase inventory
@@ -33,7 +33,31 @@ Source files to migrate:
 | Reporter base      | `reporters/base.es`                                                          | Defines `getJson` and `report`; wraps `node-fetch`; reads `window.SERVER_HOSTNAME` and `window.POI_VERSION`. |
 | Reporters          | `reporters/*.es`                                                             | Mostly data extractors around `window` game state and Kancolle API payloads.                                 |
 | Reporter utilities | `reporters/utils.es`                                                         | Contains pure helpers and global state snapshots; good first test target.                                    |
-| Config             | `.eslintrc.js`, `lint-staged.config.js`, `package.json`, `package-lock.json` | Old Babel/ESLint/transpile setup.                                                                            |
+| Config             | `.eslintrc.js`, `lint-staged.config.js`, `package.json`, `package-lock.json` | Old npm/Babel/ESLint/transpile setup.                                                                        |
+
+### Planning-stage source scan results
+
+The `.es` source scan was performed during planning so implementation is not blocked on discovering avoidable mechanical-conversion issues later.
+
+Scanned source files:
+
+- `index.es`
+- `sentry.es`
+- `reporters/*.es`
+
+Findings:
+
+| Check                                          | Result                                                                                    | Required migration action                                                                                               |
+| ---------------------------------------------- | ----------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| JSX syntax                                     | No JSX found in `.es` files.                                                              | Rename source files to `.ts`; no `.tsx` files are currently needed.                                                     |
+| Decorators                                     | No decorators found.                                                                      | No decorator TypeScript config needed.                                                                                  |
+| Extensionful `.es` imports                     | None found.                                                                               | Keep imports extensionless.                                                                                             |
+| Non-code imports (`json`, css, images, stylus) | None found.                                                                               | No `resolveJsonModule` or asset module shims needed for current source.                                                 |
+| Babel `export X from` proposal syntax          | Found in `reporters/index.es`.                                                            | Convert to standard `export { default as X } from './x'`. Preserve exported names, including `NightContactReportor`.    |
+| Runtime aliases                                | `views/utils/selectors` imports and `views/utils/aaci` require found in battle reporters. | Keep `views/*` external in `tsdown`, add ambient shims, and stub these aliases in smoke tests.                          |
+| Relative package metadata require              | `reporters/base.es` uses `require('../package.json')`.                                    | After moving to `src/reporters/base.ts`, change to `require('../../package.json')`.                                     |
+| Dynamic require                                | No variable dynamic require found; `require` calls use string literals.                   | Stub string-literal runtime requires in smoke tests.                                                                    |
+| Class fields / optional chaining               | Present.                                                                                  | TypeScript target/config must parse class fields and optional chaining; `target: "es2018"` with `tsdown` is acceptable. |
 
 Notable runtime dependencies currently used but not declared as runtime dependencies:
 
@@ -82,7 +106,7 @@ export default defineConfig({
 })
 ```
 
-Keep `main: "index.js"` and generate root `index.js` from `src/index.ts`. Follow the reference plugin packaging model: do not commit generated output, do not add `prepare`, and rely on `prepack` for npm packaging. Direct install from a git checkout is not a supported release path for this migration unless a later requirement says otherwise. Validate `npm pack --dry-run --json` before merging the build-switch PR.
+Keep `main: "index.js"` and generate root `index.js` from `src/index.ts`. Follow the reference plugin packaging model: do not commit generated output, do not add `prepare`, and rely on `prepack` for package tarball generation. Direct install from a git checkout is not a supported release path for this migration unless a later requirement says otherwise. Validate `pnpm pack --dry-run` before merging the build-switch PR.
 
 Do not publish source maps in the initial migration. They can be re-enabled later only after an explicit map audit proves they do not contain local absolute paths, usernames, local repository paths, or sensitive `sourcesContent`.
 
@@ -139,7 +163,7 @@ Goal: add TypeScript tooling without changing runtime output.
 Files:
 
 - `package.json`
-- `package-lock.json`
+- `pnpm-lock.yaml`
 - `tsconfig.json`
 - `src/types/poi-globals.d.ts`
 - optionally `src/types/vendor.d.ts`
@@ -147,22 +171,28 @@ Files:
 
 Changes:
 
-1. Add dev dependencies:
+1. Migrate package manager metadata:
+   - add `"packageManager": "pnpm@10.28.0"`
+   - remove `package-lock.json`
+   - add `pnpm-lock.yaml`
+   - optionally add `pnpm-workspace.yaml` if needed by pnpm tooling, matching `plugin-anchorage-repair`
+   - document Corepack/pnpm usage in the PR body
+2. Add dev dependencies:
    - `typescript`
    - `@types/lodash`
    - `@types/node`
    - `@types/semver`
    - `@types/node-fetch@2` if staying on `node-fetch@2` typings
-2. Add `typecheck` script: `tsc --noEmit`.
-3. Do not add `@typescript-eslint/*` in this PR; lint integration is handled in PR 6 with a compatible ESLint/version set.
-4. Keep `prepack: "poi-util-transpile --sm"` unchanged in this PR.
-5. Add `src/types/vendor.d.ts` for runtime modules that are provided by Poi or current runtime but may not have project-local typings:
+3. Add `typecheck` script: `tsc --noEmit`.
+4. Do not add `@typescript-eslint/*` in this PR; lint integration is handled in PR 6 with a compatible ESLint/version set.
+5. Keep `prepack: "poi-util-transpile --sm"` unchanged in this PR.
+6. Add `src/types/vendor.d.ts` for runtime modules that are provided by Poi or current runtime but may not have project-local typings:
    - `@electron/remote`
    - `@sentry/electron`
    - `electron`
    - `views/utils/selectors`
    - `views/utils/aaci`
-6. Add `tsconfig.json` with a permissive first target:
+7. Add `tsconfig.json` with a permissive first target:
 
 ```json
 {
@@ -182,7 +212,7 @@ Changes:
 }
 ```
 
-7. Add Poi/global declarations with minimal, explicitly unsafe boundaries:
+8. Add Poi/global declarations with minimal, explicitly unsafe boundaries:
    - `window.POI_VERSION`
    - `window.LATEST_COMMIT`
    - `window.ROOT`
@@ -193,24 +223,26 @@ Changes:
 
 Validation:
 
-- `npm install`
-- `npm run typecheck`
-- existing `npm run prepack`
+- `corepack enable` if pnpm is not already available
+- one non-frozen `pnpm install` to generate `pnpm-lock.yaml`
+- `pnpm install --frozen-lockfile`
+- `pnpm run typecheck`
+- existing `pnpm run prepack`
 
 Acceptance criteria:
 
 - Runtime source and generated output are unchanged.
 - TypeScript can run against declarations only; this PR is not expected to type-check existing `.es` source yet.
-- No package manager migration.
+- The repo uses pnpm lockfile and `packageManager`; npm lockfile is removed.
 - No ESLint dependency changes.
 
 Risks:
 
 - Type package versions may still reveal missing runtime module declarations. Prefer local ambient declarations over adding runtime packages that should remain external.
 
-### PR 2: Source preflight and runtime smoke harness
+### PR 2: Verify source preflight findings and add runtime smoke harness
 
-Goal: de-risk the mechanical rename and transpiler switch before changing runtime output.
+Goal: verify the planning-stage source scan against the latest branch state and add the smoke harness before changing runtime output.
 
 Files:
 
@@ -219,13 +251,11 @@ Files:
 
 Changes:
 
-1. Scan all `.es` files for:
-   - JSX
-   - decorator or Babel-only syntax
-   - non-code imports
-   - extensionful `.es` imports
-   - dynamic `require` patterns
-2. Document any non-mechanical conversions needed before PR 3.
+1. Re-run the planning-stage source scan and update the findings table only if source changed since this plan.
+2. Confirm these known non-mechanical conversion actions are still required and remain covered by PR 3:
+   - standardize `reporters/index` exports
+   - preserve `views/*` aliases as externals/shims/stubs
+   - update the moved `package.json` require path
 3. Add a smoke-load script that can load the built plugin in a mocked Poi/Electron environment after the build switch:
    - defines required `window` and `global` fields
    - stubs `window.addEventListener` / `removeEventListener`
@@ -238,11 +268,12 @@ Changes:
 
 Validation:
 
-- `npm run typecheck`
+- `pnpm run typecheck`
 - preflight search results reviewed
 
 Acceptance criteria:
 
+- Planning-stage scan findings are verified against current source.
 - No unknown syntax/import blockers remain for the rename.
 - Runtime smoke requirements are explicit before switching transpilers.
 
@@ -261,7 +292,7 @@ Files:
 - `reporters/*.es` -> `src/reporters/*.ts`
 - `tsdown.config.ts`
 - `package.json`
-- `package-lock.json`
+- `pnpm-lock.yaml`
 - `.gitignore`
 - `.gitattributes`
 - `.npmignore` or `files` in `package.json`
@@ -295,9 +326,9 @@ Keep existing exported names, including the misspelled `NightContactReportor`, t
 
 Validation:
 
-- `npm run build`
-- `npm run typecheck`
-- `npm pack --dry-run --json`
+- `pnpm run build`
+- `pnpm run typecheck`
+- `pnpm pack --dry-run`
 - runtime smoke-load script from PR 2
 - Compare packed files to current package expectations.
 
@@ -359,8 +390,8 @@ export interface Reporter {
 
 Validation:
 
-- `npm run typecheck`
-- `npm run build`
+- `pnpm run typecheck`
+- `pnpm run build`
 
 Acceptance criteria:
 
@@ -404,8 +435,8 @@ Changes:
 
 Validation:
 
-- `npm run typecheck`
-- `npm run build`
+- `pnpm run typecheck`
+- `pnpm run build`
 - targeted `vitest` tests when test tooling exists
 
 Acceptance criteria:
@@ -425,7 +456,7 @@ Goal: bring validation closer to the reference plugins without blocking the mech
 Files:
 
 - `package.json`
-- `package-lock.json`
+- `pnpm-lock.yaml`
 - ESLint config
 - `vitest.config.ts` if needed
 - `src/**/*.test.ts`
@@ -443,10 +474,10 @@ Changes:
 
 Validation:
 
-- `npm run lint`
-- `npm run typecheck`
-- `npm test`
-- `npm run build`
+- `pnpm run lint`
+- `pnpm run typecheck`
+- `pnpm test`
+- `pnpm run build`
 
 Acceptance criteria:
 
@@ -466,7 +497,7 @@ Files:
 
 - `tsconfig.json`
 - `package.json`
-- `package-lock.json`
+- `pnpm-lock.yaml`
 - old config files if obsolete
 - source files with stricter types
 
@@ -481,11 +512,11 @@ Changes:
 
 Validation:
 
-- `npm run lint`
-- `npm run typecheck`
-- `npm test`
-- `npm run build`
-- `npm pack --dry-run`
+- `pnpm run lint`
+- `pnpm run typecheck`
+- `pnpm test`
+- `pnpm run build`
+- `pnpm pack --dry-run`
 
 Acceptance criteria:
 
@@ -511,14 +542,15 @@ Risks:
 
 ## Validation matrix
 
-| Command                     | Introduced by | Purpose                                                                                               |
-| --------------------------- | ------------- | ----------------------------------------------------------------------------------------------------- |
-| `npm run typecheck`         | PR 1          | TypeScript correctness.                                                                               |
-| `npm run build`             | PR 3          | Generates plugin runtime output through `tsdown`.                                                     |
-| smoke-load script           | PR 3          | Verifies generated `index.js` can load and register/unregister listeners in a mocked Poi environment. |
-| `npm pack --dry-run --json` | PR 3          | Verifies package contents.                                                                            |
-| `npm test`                  | PR 6          | Runs pure helper/reporter tests.                                                                      |
-| `npm run lint`              | PR 6          | Lints TS source.                                                                                      |
+| Command                          | Introduced by | Purpose                                                                                               |
+| -------------------------------- | ------------- | ----------------------------------------------------------------------------------------------------- |
+| `pnpm install --frozen-lockfile` | PR 1          | Verifies pnpm lockfile integrity.                                                                     |
+| `pnpm run typecheck`             | PR 1          | TypeScript correctness.                                                                               |
+| `pnpm run build`                 | PR 3          | Generates plugin runtime output through `tsdown`.                                                     |
+| smoke-load script                | PR 3          | Verifies generated `index.js` can load and register/unregister listeners in a mocked Poi environment. |
+| `pnpm pack --dry-run`            | PR 3          | Verifies package contents.                                                                            |
+| `pnpm test`                      | PR 6          | Runs pure helper/reporter tests.                                                                      |
+| `pnpm run lint`                  | PR 6          | Lints TS source.                                                                                      |
 
 ## Rollback strategy
 
@@ -530,8 +562,8 @@ Risks:
 
 ## Open decisions before implementation
 
-1. Package manager: stay on npm for this migration.
-2. Generated output: do not commit generated `index.js`; validate npm packaging through `prepack`.
+1. Package manager: migrate to pnpm in PR 1 and keep pnpm for the rest of the migration.
+2. Generated output: do not commit generated `index.js`; validate package tarball generation through `prepack`.
 3. Source maps: do not publish maps in the initial migration; add a later audited PR if maps are needed.
 4. ESLint modernization: keep it separate from source migration unless dependency compatibility forces it.
 5. Kancolle API typing: use local minimal interfaces first, then introduce `kcsapi` types where they are stable and reduce maintenance.
