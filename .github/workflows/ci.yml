@@ -41,5 +41,8 @@ jobs:
       - name: Typecheck declarations
         run: pnpm run typecheck
 
-      - name: Verify legacy package build
-        run: pnpm run prepack
+      - name: Run unit tests
+        run: pnpm test
+
+      - name: Smoke load built plugin
+        run: pnpm run smoke

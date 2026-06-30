@@ -7,8 +7,10 @@
   "scripts": {
     "prepack": "poi-util-transpile --sm",
     "postpublish": "git clean -f && git checkout .",
+    "smoke": "node scripts/smoke-load.cjs",
+    "test": "poi-util-transpile --sm && vitest run",
     "typecheck": "tsc --noEmit",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test:unit": "vitest run"
   },
   "repository": {
     "type": "git",
@@ -49,7 +51,8 @@
     "lint-staged": "^9.4.2",
     "poi-util-transpile": "^10.3.4",
     "prettier": "^1.18.2",
-    "typescript": "^5.9.0"
+    "typescript": "^5.9.0",
+    "vitest": "^4.0.0"
   },
   "husky": {
     "hooks": {
