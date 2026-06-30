@@ -74,6 +74,75 @@ const sentryStub = {
   },
 }
 
+const lodashStub = {
+  compact(values) {
+    return values.filter(Boolean)
+  },
+  each(collection, iteratee) {
+    for (const item of Object.values(collection || {})) {
+      if (iteratee(item) === false) {
+        break
+      }
+    }
+    return collection
+  },
+  filter(values, iteratee) {
+    return values.filter(iteratee)
+  },
+  find(values, iteratee) {
+    return values.find(iteratee)
+  },
+  get(value, keyPath, defaultValue) {
+    const keys = Array.isArray(keyPath) ? keyPath : String(keyPath).split('.')
+    let current = value
+    for (const key of keys) {
+      current = current?.[key]
+      if (current === undefined) {
+        return defaultValue
+      }
+    }
+    return current
+  },
+  includes(value, search) {
+    return value?.includes?.(search) || false
+  },
+  isArray: Array.isArray,
+  keyBy(values, key) {
+    return Object.fromEntries((values || []).map(value => [value[key], value]))
+  },
+  map(values, iteratee) {
+    return values.map(iteratee)
+  },
+  memoize(fn) {
+    const cache = new Map()
+    return value => {
+      if (!cache.has(value)) {
+        cache.set(value, fn(value))
+      }
+      return cache.get(value)
+    }
+  },
+  range(start, end) {
+    return Array.from({ length: end - start }, (_, index) => start + index)
+  },
+  some(values, iteratee) {
+    return values.some(iteratee)
+  },
+  split(value, separator) {
+    return String(value).split(separator)
+  },
+  sum(values) {
+    return values.reduce((total, value) => total + value, 0)
+  },
+  takeRight(values, count) {
+    return values.slice(-count)
+  },
+  zip(...arrays) {
+    const length = Math.max(...arrays.map(array => array.length))
+    return Array.from({ length }, (_, index) => arrays.map(array => array[index]))
+  },
+}
+
 const fetchStub = async (requestUrl, options = {}) => {
   fetchCalls.push({ requestUrl, options })
   return {
@@ -115,8 +184,14 @@ Module._load = function smokeLoad(request, parent, isMain) {
       return sentryStub
     case 'node-fetch':
       return fetchStub
+    case 'lodash':
+      return lodashStub
     case 'moment-timezone':
       return momentStub
+    case 'semver':
+      return {
+        lte: () => false,
+      }
     case 'views/utils/selectors':
       return selectorStubs
     case 'views/utils/aaci':
