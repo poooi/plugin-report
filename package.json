@@ -3,9 +3,11 @@
   "version": "8.1.0",
   "description": "Report ship creating info and drop info, and so on.",
   "main": "index.js",
+  "packageManager": "pnpm@10.28.0",
   "scripts": {
     "prepack": "poi-util-transpile --sm",
     "postpublish": "git clean -f && git checkout .",
+    "typecheck": "tsc --noEmit",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -33,6 +35,10 @@
   "devDependencies": {
     "@commitlint/cli": "^8.2.0",
     "@commitlint/config-conventional": "^8.2.0",
+    "@types/lodash": "^4.17.21",
+    "@types/node": "^24.0.0",
+    "@types/node-fetch": "^2.6.13",
+    "@types/semver": "^7.7.1",
     "babel-eslint": "^10.0.3",
     "eslint": "^6.5.1",
     "eslint-config-poi-plugin": "^3.0.1",
@@ -42,7 +48,8 @@
     "husky": "^3.0.8",
     "lint-staged": "^9.4.2",
     "poi-util-transpile": "^10.3.4",
-    "prettier": "^1.18.2"
+    "prettier": "^1.18.2",
+    "typescript": "^5.9.0"
   },
   "husky": {
     "hooks": {
