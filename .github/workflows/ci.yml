@@ -41,8 +41,8 @@ jobs:
       - name: Typecheck declarations
         run: pnpm run typecheck
 
-      - name: Run unit tests
-        run: pnpm test
+      - name: Run unit tests with coverage
+        run: pnpm run test:coverage
 
       - name: Smoke load built plugin
         run: pnpm run smoke
