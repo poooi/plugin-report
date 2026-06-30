@@ -9,6 +9,7 @@
     "postpublish": "git clean -f && git checkout .",
     "smoke": "node scripts/smoke-load.cjs",
     "test": "poi-util-transpile --sm && vitest run",
+    "test:coverage": "poi-util-transpile --sm && vitest run --coverage",
     "typecheck": "tsc --noEmit",
     "test:unit": "vitest run"
   },
@@ -37,6 +38,7 @@
   "devDependencies": {
     "@commitlint/cli": "^8.2.0",
     "@commitlint/config-conventional": "^8.2.0",
+    "@vitest/coverage-v8": "^4.0.0",
     "@types/lodash": "^4.17.21",
     "@types/node": "^24.0.0",
     "@types/node-fetch": "^2.6.13",
