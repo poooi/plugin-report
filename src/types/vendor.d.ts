@@ -15,6 +15,11 @@ declare module 'electron' {
   export = electron
 }
 
+declare module 'moment-timezone' {
+  const moment: any
+  export default moment
+}
+
 declare module 'views/utils/selectors' {
   export function shipDataSelectorFactory(shipId: unknown): (state: unknown) => any
   export function shipEquipDataSelectorFactory(shipId: unknown): (state: unknown) => any

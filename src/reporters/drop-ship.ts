@@ -4,7 +4,7 @@ import { getOwnedShipSnapshot, getTeitokuHash, getFirstPlaneCounts } from './uti
 /**
  * Make enemy_info report record from API data.
  */
-const makeEnemyReport = (data = {}) => {
+const makeEnemyReport = (data: any = {}) => {
   const { planes, bombersMin, bombersMax } = getFirstPlaneCounts(data) || {}
   return {
     ships1: data.api_ship_ke || [],
@@ -24,6 +24,10 @@ const makeEnemyReport = (data = {}) => {
 }
 
 export default class DropShipReporter extends BaseReporter {
+  mapLv: any
+  drop: any
+  ownedShipSnapshot: any
+
   constructor() {
     super()
 

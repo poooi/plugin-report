@@ -4,6 +4,23 @@ import BaseReporter from './base'
 
 // Collecting remodel recipes
 export default class RemodelRecipeReporter extends BaseReporter {
+  id: any
+  itemId: any
+  recipeId: any
+  recipes: any
+  day: any
+  stage: any
+  fuel: any
+  ammo: any
+  steel: any
+  bauxite: any
+  reqItemId: any
+  reqItemCount: any
+  buildkit: any
+  remodelkit: any
+  certainBuildkit: any
+  certainRemodelkit: any
+
   // a recipe =
   //   id -> /kcsapi/api_req_kousyou/remodel_slotlist_detail postBody.api_id,
   //   itemId -> /kcsapi/api_req_kousyou/remodel_slotlist_detail postBody.api_slot_id, _slotitems

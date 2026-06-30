@@ -1,6 +1,10 @@
 import BaseReporter from './base'
 
 export default class CreateShipReporter extends BaseReporter {
+  creating: any
+  kdockId: any
+  info: any
+
   constructor() {
     super()
 

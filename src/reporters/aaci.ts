@@ -4,6 +4,8 @@ import { shipDataSelectorFactory, shipEquipDataSelectorFactory } from 'views/uti
 import BaseReporter from './base'
 
 export default class AACIReporter extends BaseReporter {
+  getShipAACIs: any
+
   constructor() {
     super()
     try {

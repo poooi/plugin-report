@@ -12,6 +12,10 @@ const createHash = _.memoize(text =>
 const createQuestHash = (title, detail) => createHash(`${title}${detail}`)
 
 export default class QuestReporter extends BaseReporter {
+  knownQuests: any[]
+  enabled: boolean
+  quests: any[]
+
   constructor() {
     super()
 

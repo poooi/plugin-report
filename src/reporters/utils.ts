@@ -179,7 +179,7 @@ export const getOwnedShipSnapshot = () => {
 /**
  * Get total plane and bomber counts from stage1 and stage2.
  */
-const getPlaneCounts = (data = {}) => {
+const getPlaneCounts = (data: any = {}) => {
   const planes = data.api_stage1?.api_e_count || 0
   const lost = data.api_stage1?.api_e_lostcount || 0
   const bombers = data.api_stage2?.api_e_count || 0
@@ -195,7 +195,7 @@ const getPlaneCounts = (data = {}) => {
 /**
  * Get plane counts for first air battle, if any.
  */
-export const getFirstPlaneCounts = (data = {}) =>
+export const getFirstPlaneCounts = (data: any = {}) =>
   getPlaneCounts(data.api_air_base_injection) ||
   getPlaneCounts(data.api_injection_kouku) ||
   getPlaneCounts(data.api_air_base_attack?.[0]) ||
