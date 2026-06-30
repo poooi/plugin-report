@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
   attachReportSpy,
@@ -87,5 +87,44 @@ describe('RemodelRecipeReporter', () => {
     })
 
     expect(report).not.toHaveBeenCalled()
+  })
+
+  it('does not cache detail state before recipe list or when upgrade responses mismatch', () => {
+    window._slotitems[501] = { api_slotitem_id: 700, api_level: 6 }
+    const reporter = new RemodelRecipeReporter()
+    const report = attachReportSpy(reporter)
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    reporter.handle('POST', '/kcsapi/api_req_kousyou/remodel_slotlist_detail', {}, {
+      api_id: '33',
+      api_slot_id: 501,
+    })
+    reporter.handle('POST', '/kcsapi/api_req_kousyou/remodel_slot', {
+      api_remodel_flag: true,
+      api_remodel_id: [700, 701],
+    }, {
+      api_id: '33',
+    })
+    reporter.handle('GET', '/kcsapi/api_req_kousyou/remodel_slotlist', [{ api_id: 33 }])
+    reporter.handle('POST', '/kcsapi/api_req_kousyou/remodel_slotlist_detail', {}, {
+      api_id: '33',
+      api_slot_id: 501,
+    })
+    reporter.handle('POST', '/kcsapi/api_req_kousyou/remodel_slot', {
+      api_remodel_flag: true,
+      api_remodel_id: [999, 701],
+    }, {
+      api_id: '33',
+    })
+    reporter.handle('POST', '/kcsapi/api_req_kousyou/remodel_slot', {
+      api_remodel_flag: true,
+      api_remodel_id: [700, 701],
+    }, {
+      api_id: '34',
+    })
+
+    expect(report).not.toHaveBeenCalled()
+    expect(consoleError).toHaveBeenCalledTimes(2)
+    consoleError.mockRestore()
   })
 })

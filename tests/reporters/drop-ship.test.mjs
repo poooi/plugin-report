@@ -102,4 +102,44 @@ describe('DropShipReporter', () => {
       rewards: [{ rewardType: 1, rewardId: 2, rewardCount: 3, rewardLevel: 4 }],
     })
   })
+
+  it('reports air raid enemy info and handles absent event rewards', async () => {
+    const reporter = new DropShipReporter()
+    const report = attachReportSpy(reporter)
+
+    reporter.handle('POST', '/kcsapi/api_req_map/start', {
+      api_maparea_id: 2,
+      api_mapinfo_no: 3,
+      api_no: 4,
+      api_event_id: 1,
+      api_destruction_battle: {
+        api_ship_ke: [0, 800],
+        api_kouku: {
+          api_stage1: { api_e_count: 3, api_e_lostcount: 1 },
+          api_stage2: { api_e_count: 2 },
+        },
+      },
+    })
+    reporter.handle('POST', '/kcsapi/api_req_sortie/battleresult', {
+      api_enemy_info: { api_deck_name: 'No Drop' },
+      api_quest_name: '',
+      api_win_rank: 'A',
+      api_get_base_exp: 50,
+    })
+    await Promise.resolve()
+
+    expect(report).toHaveBeenNthCalledWith(1, '/api/report/v2/enemy_info', expect.objectContaining({
+      ships1: [0, 800],
+      planes: 3,
+      bombersMin: 2,
+      bombersMax: 3,
+    }))
+    expect(report).toHaveBeenCalledWith('/api/report/v2/drop_ship', expect.objectContaining({
+      mapId: 23,
+      isBoss: false,
+      shipId: -1,
+      itemId: -1,
+    }))
+    expect(report).toHaveBeenCalledTimes(2)
+  })
 })

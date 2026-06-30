@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
   attachReportSpy,
@@ -38,5 +38,26 @@ describe('RemodelItemReporter', () => {
       teitokuLv: 120,
       certain: 1,
     })
+  })
+
+  it('does not report when remodel slot response mismatches cached detail state', () => {
+    window._slotitems[501] = { api_slotitem_id: 700, api_level: 6 }
+    const reporter = new RemodelItemReporter()
+    const report = attachReportSpy(reporter)
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    reporter.handle('POST', '/kcsapi/api_req_kousyou/remodel_slotlist_detail', {}, {
+      api_slot_id: 501,
+    })
+    reporter.handle('POST', '/kcsapi/api_req_kousyou/remodel_slot', {
+      api_remodel_flag: 1,
+      api_remodel_id: [700],
+    }, {
+      api_slot_id: 999,
+    })
+
+    expect(report).not.toHaveBeenCalled()
+    expect(consoleError).toHaveBeenCalled()
+    consoleError.mockRestore()
   })
 })

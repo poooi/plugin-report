@@ -21,6 +21,23 @@ export const momentState = {
   day: 2,
 }
 
+export const fetchState = {
+  calls: [],
+  implementation: async () => ({
+    ok: true,
+    status: 200,
+    statusText: 'OK',
+    json: async () => ({}),
+    text: async () => '',
+  }),
+}
+
+export const sentryState = {
+  captured: [],
+  contexts: [],
+  tags: [],
+}
+
 export const ship = overrides => ({
   api_ship_id: 100,
   api_lv: 50,
@@ -60,10 +77,18 @@ const createWindow = () => ({
 globalThis.window = createWindow()
 
 const sentryStub = {
-  captureException() {},
-  setContext() {},
+  captureException(error) {
+    sentryState.captured.push(error)
+  },
+  setContext(name, context) {
+    sentryState.contexts.push({ name, context })
+  },
   withScope(callback) {
-    callback({ setTags() {} })
+    callback({
+      setTags(tags) {
+        sentryState.tags.push(tags)
+      },
+    })
   },
 }
 
@@ -73,11 +98,10 @@ if (!globalThis.__reporterTestHarnessPatched) {
       case '@sentry/electron':
         return sentryStub
       case 'node-fetch':
-        return async () => ({
-          ok: true,
-          json: async () => ({}),
-          text: async () => '',
-        })
+        return async (...args) => {
+          fetchState.calls.push(args)
+          return fetchState.implementation(...args)
+        }
       case 'moment-timezone':
         return {
           utc: () => ({
@@ -102,6 +126,7 @@ if (!globalThis.__reporterTestHarnessPatched) {
 const loadDefault = mod => mod.default || mod
 
 export const AACIReporter = loadDefault(require('../../reporters/aaci.js'))
+export const BaseReporter = loadDefault(require('../../reporters/base.js'))
 export const CreateItemReporter = loadDefault(require('../../reporters/create-item.js'))
 export const CreateShipReporter = loadDefault(require('../../reporters/create-ship.js'))
 export const DropShipReporter = loadDefault(require('../../reporters/drop-ship.js'))
@@ -124,6 +149,17 @@ export const resetReporterTestState = () => {
   aaciState.getShipAACIs = vi.fn(() => [])
   momentState.hour = 16
   momentState.day = 2
+  fetchState.calls = []
+  fetchState.implementation = async () => ({
+    ok: true,
+    status: 200,
+    statusText: 'OK',
+    json: async () => ({}),
+    text: async () => '',
+  })
+  sentryState.captured = []
+  sentryState.contexts = []
+  sentryState.tags = []
 }
 
 export const attachReportSpy = reporter => {
