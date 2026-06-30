@@ -8,6 +8,9 @@ import BaseReporter from './base'
 // 3. Plane level must be equal or larger than 0.
 // 4. Plane count must larger than 0.
 export default class NightContactReportor extends BaseReporter {
+  VALID_PLANE_ID: any
+  isValid: any
+
   constructor() {
     super()
     this.VALID_PLANE_ID = 102
@@ -43,7 +46,7 @@ export default class NightContactReportor extends BaseReporter {
             const ship = _ships[sid] || {}
             const items = ship.api_slot || []
             const count = ship.api_onslot || []
-            for (const [iid, cnt] of _.zip(items, count)) {
+            for (const [iid, cnt] of _.zip(items, count) as any[]) {
               const item = _slotitems[iid] || {}
               // Condition * & 4
               if (item.api_slotitem_id === this.VALID_PLANE_ID && cnt > 0)

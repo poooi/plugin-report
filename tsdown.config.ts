@@ -1,0 +1,47 @@
+const { defineConfig } = require('tsdown')
+
+module.exports = defineConfig({
+  entry: {
+    index: 'src/index.ts',
+    'reporters/aaci': 'src/reporters/aaci.ts',
+    'reporters/base': 'src/reporters/base.ts',
+    'reporters/create-item': 'src/reporters/create-item.ts',
+    'reporters/create-ship': 'src/reporters/create-ship.ts',
+    'reporters/drop-ship': 'src/reporters/drop-ship.ts',
+    'reporters/index': 'src/reporters/index.ts',
+    'reporters/night-battle-ci': 'src/reporters/night-battle-ci.ts',
+    'reporters/night-contact': 'src/reporters/night-contact.ts',
+    'reporters/quest': 'src/reporters/quest.ts',
+    'reporters/remodel-item': 'src/reporters/remodel-item.ts',
+    'reporters/remodel-recipe': 'src/reporters/remodel-recipe.ts',
+    'reporters/ship-stat': 'src/reporters/ship-stat.ts',
+    'reporters/utils': 'src/reporters/utils.ts',
+    sentry: 'src/sentry.ts',
+  },
+  outDir: '.',
+  outExtensions: () => ({ js: '.js' }),
+  format: ['cjs'],
+  deps: {
+    neverBundle: [
+      '@electron/remote',
+      '@sentry/electron',
+      'electron',
+      'lodash',
+      'moment-timezone',
+      'node-fetch',
+      'semver',
+      /^views\//,
+    ],
+  },
+  dts: false,
+  clean: ['index.js', 'sentry.js', 'reporters', 'chunks'],
+  sourcemap: false,
+  hash: false,
+  outputOptions: {
+    chunkFileNames: 'chunks/[name].js',
+  },
+  treeshake: false,
+  minify: false,
+  shims: false,
+  target: 'es2018',
+})

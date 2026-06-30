@@ -2,6 +2,9 @@ import BaseReporter from './base'
 
 // Stopped at 2016.11.28. We have collected 800k records.
 export default class RemodelItemReporter extends BaseReporter {
+  itemId: any
+  itemLv: any
+
   constructor() {
     super()
     this.itemId = -1

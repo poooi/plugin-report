@@ -9,10 +9,13 @@ const insecureAgent = new https.Agent({
   rejectUnauthorized: false,
 })
 
-const packageMeta = require('../package.json')
+const packageMeta = require('../../package.json')
 const { SERVER_HOSTNAME, POI_VERSION } = window
 
 export default class BaseReporter {
+  SERVER_HOSTNAME: any
+  USERAGENT: any
+
   constructor() {
     this.SERVER_HOSTNAME = SERVER_HOSTNAME
     this.USERAGENT = `Reporter/${packageMeta.version} poi/${POI_VERSION}`
@@ -20,7 +23,7 @@ export default class BaseReporter {
 
   getJson = async path => {
     try {
-      const resp = await fetch(url.resolve(`https://${this.SERVER_HOSTNAME}`, path), {
+      const resp = await (fetch as any)(url.resolve(`https://${this.SERVER_HOSTNAME}`, path), {
         'User-Agent': this.USERAGENT,
         'X-Reporter': this.USERAGENT,
         redirect: 'follow',
@@ -48,7 +51,7 @@ export default class BaseReporter {
 
   report = async (path, info) => {
     try {
-      const resp = await fetch(url.resolve(`https://${this.SERVER_HOSTNAME}`, path), {
+      const resp = await (fetch as any)(url.resolve(`https://${this.SERVER_HOSTNAME}`, path), {
         method: 'POST',
         headers: {
           'User-Agent': this.USERAGENT,
