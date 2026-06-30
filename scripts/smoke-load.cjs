@@ -15,6 +15,7 @@ if (!fs.existsSync(entryPath)) {
 const packageMeta = require(path.join(projectRoot, 'package.json'))
 const listeners = new Map()
 const fetchCalls = []
+const startupFetchCalls = []
 
 global.window = {
   POI_VERSION: '10.7.0',
@@ -74,7 +75,7 @@ const sentryStub = {
   },
 }
 
-const lodashStub = {
+const lodashImplementations = {
   compact(values) {
     return values.filter(Boolean)
   },
@@ -107,6 +108,9 @@ const lodashStub = {
     return value?.includes?.(search) || false
   },
   isArray: Array.isArray,
+  isString(value) {
+    return typeof value === 'string'
+  },
   keyBy(values, key) {
     return Object.fromEntries((values || []).map(value => [value[key], value]))
   },
@@ -143,8 +147,25 @@ const lodashStub = {
   },
 }
 
+const lodashStub = new Proxy(lodashImplementations, {
+  get(target, property) {
+    if (property in target) {
+      return target[property]
+    }
+    if (property === '__esModule') {
+      return false
+    }
+    return () => {
+      throw new Error(`Missing lodash smoke stub: ${String(property)}`)
+    }
+  },
+})
+
 const fetchStub = async (requestUrl, options = {}) => {
-  fetchCalls.push({ requestUrl, options })
+  const calls = requestUrl.endsWith('/api/report/v3/known_quests')
+    ? startupFetchCalls
+    : fetchCalls
+  calls.push({ requestUrl, options })
   return {
     ok: true,
     status: 200,
@@ -219,7 +240,9 @@ async function main() {
     plugin.pluginWillUnload({})
     assert.strictEqual(listeners.has('game.response'), false)
 
-    fetchCalls.length = 0
+    await Promise.resolve()
+    assert.strictEqual(startupFetchCalls.length, 1)
+    assert.strictEqual(startupFetchCalls[0].requestUrl, 'https://example.invalid/api/report/v3/known_quests')
 
     const BaseReporter = loadExport(require(baseReporterPath))
     const reporter = new BaseReporter()
