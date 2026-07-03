@@ -1,4 +1,5 @@
 import BaseReporter from './base'
+import { GameApiMethod, GameApiPath, GameApiPostBody } from '../types/game-api'
 
 // Stopped at 2016.11.28. We have collected 800k records.
 export default class RemodelItemReporter extends BaseReporter {
@@ -10,7 +11,7 @@ export default class RemodelItemReporter extends BaseReporter {
     this.itemId = -1
     this.itemLv = -1
   }
-  handle(method, path, body, postBody) {
+  handle(method: GameApiMethod, path: GameApiPath, body: any, postBody: GameApiPostBody) {
     const { _decks, _ships, _slotitems, _teitokuLv } = window
     switch (path) {
       case '/kcsapi/api_req_kousyou/remodel_slotlist_detail':

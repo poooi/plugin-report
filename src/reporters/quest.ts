@@ -1,6 +1,7 @@
 import BaseReporter from './base'
 import _ from 'lodash'
 import crypto from 'crypto'
+import { GameApiMethod, GameApiPath, GameApiPostBody } from '../types/game-api'
 
 const createHash = _.memoize(text =>
   crypto
@@ -27,7 +28,7 @@ export default class QuestReporter extends BaseReporter {
   }
 
   initialize = async () => {
-    const { quests } = await this.getJson('/api/report/v3/known_quests')
+    const { quests } = await this.getJson<{ quests?: string[] }>('/api/report/v3/known_quests')
 
     if (quests) {
       this.knownQuests = quests
@@ -35,7 +36,7 @@ export default class QuestReporter extends BaseReporter {
     }
   }
 
-  handle(method, path, body, postBody) {
+  handle(method: GameApiMethod, path: GameApiPath, body: any, postBody: GameApiPostBody) {
     if (!this.enabled) {
       return
     }

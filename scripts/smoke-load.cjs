@@ -252,6 +252,8 @@ async function main() {
     const json = await reporter.getJson('/api/smoke')
     assert.deepStrictEqual(json, { ok: true })
     assert.strictEqual(fetchCalls[0].requestUrl, 'https://example.invalid/api/smoke')
+    assert.strictEqual(fetchCalls[0].options.headers['User-Agent'], reporter.USERAGENT)
+    assert.strictEqual(fetchCalls[0].options.headers['X-Reporter'], reporter.USERAGENT)
 
     await reporter.report('/api/report/smoke', { ok: true })
     assert.strictEqual(fetchCalls[1].requestUrl, 'https://example.invalid/api/report/smoke')

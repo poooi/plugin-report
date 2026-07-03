@@ -8,9 +8,10 @@ import {
   getNightBattleDDCIType,
   getNightBattleCVCIType,
 } from './utils'
+import { GameApiMethod, GameApiPath, GameApiPostBody } from '../types/game-api'
 
 export default class NightBattleCIReporter extends BaseReporter {
-  processData = (body, time) => {
+  processData = (body: any, time: number) => {
     const state = window.getStore()
 
     // normal map only
@@ -133,7 +134,13 @@ export default class NightBattleCIReporter extends BaseReporter {
     })
   }
 
-  handle(method, path, body, postBody, time) {
+  handle(
+    method: GameApiMethod,
+    path: GameApiPath,
+    body: any,
+    postBody: GameApiPostBody,
+    time: number,
+  ) {
     switch (path) {
       case '/kcsapi/api_req_battle_midnight/battle':
         {

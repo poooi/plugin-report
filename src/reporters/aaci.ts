@@ -2,6 +2,7 @@ import _ from 'lodash'
 import { shipDataSelectorFactory, shipEquipDataSelectorFactory } from 'views/utils/selectors'
 
 import BaseReporter from './base'
+import { GameApiMethod, GameApiPath, GameApiPostBody } from '../types/game-api'
 
 export default class AACIReporter extends BaseReporter {
   getShipAACIs: any
@@ -15,7 +16,7 @@ export default class AACIReporter extends BaseReporter {
       // console.log(`AACI reporter is disabled.`)
     }
   }
-  handle(method, path, body, postBody) {
+  handle(method: GameApiMethod, path: GameApiPath, body: any, postBody: GameApiPostBody) {
     if (this.getShipAACIs == null) {
       return
     }

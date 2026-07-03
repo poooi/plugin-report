@@ -1,6 +1,7 @@
 import moment from 'moment-timezone'
 import _ from 'lodash'
 import BaseReporter from './base'
+import { GameApiMethod, GameApiPath, GameApiPostBody } from '../types/game-api'
 
 // Collecting remodel recipes
 export default class RemodelRecipeReporter extends BaseReporter {
@@ -60,7 +61,7 @@ export default class RemodelRecipeReporter extends BaseReporter {
         return -1
     }
   }
-  handle(method, path, body, postBody) {
+  handle(method: GameApiMethod, path: GameApiPath, body: any, postBody: GameApiPostBody) {
     switch (path) {
       case '/kcsapi/api_req_kousyou/remodel_slotlist':
         {

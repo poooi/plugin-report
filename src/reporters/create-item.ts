@@ -1,7 +1,8 @@
 import BaseReporter from './base'
+import { GameApiMethod, GameApiPath, GameApiPostBody } from '../types/game-api'
 
 export default class CreateItemReporter extends BaseReporter {
-  handle(method, path, body, postBody) {
+  handle(method: GameApiMethod, path: GameApiPath, body: any, postBody: GameApiPostBody) {
     const { _decks, _ships, _teitokuLv } = window
     if (path === '/kcsapi/api_req_kousyou/createitem') {
       const secretaryIdx = _decks[0].api_ship[0]

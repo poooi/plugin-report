@@ -1,3 +1,11 @@
+import {
+  PoiWindowStoreState,
+  WindowDeck,
+  WindowMasterShip,
+  WindowShip,
+  WindowSlotItem,
+} from './window-state'
+
 declare global {
   interface Window {
     POI_VERSION: string
@@ -5,19 +13,19 @@ declare global {
     ROOT: string
     APPDATA_PATH: string
     SERVER_HOSTNAME: string
-    _decks: Record<string | number, any>
-    _ships: Record<string | number, any>
-    $ships: Record<string | number, any>
-    _slotitems: Record<string | number, any>
+    _decks: Record<string | number, WindowDeck | undefined>
+    _ships: Record<string | number, WindowShip | undefined>
+    $ships: Record<string | number, WindowMasterShip | undefined>
+    _slotitems: Record<string | number, WindowSlotItem | undefined>
     _teitokuId: number
     _teitokuLv: number
     _nickName: string
     _nickNameId: string | number
-    getStore(): any
+    getStore(): PoiWindowStoreState
   }
 
   const config: {
-    get(key: string): any
+    get<T = unknown>(key: string): T
   }
 }
 
