@@ -8,10 +8,47 @@ import {
   getNightBattleDDCIType,
   getNightBattleCVCIType,
 } from './utils'
-import type { GameApiMethod, GameApiPath, GameApiPostBody } from '../types/game-api'
+import type { NightBattleEquip } from './utils'
+import type {
+  GameApiMethod,
+  GameApiPath,
+  GameApiPostBody,
+  GameApiResponseBody,
+} from '../types/game-api'
+
+interface NightBattleShip {
+  api_kyouka: number[]
+  api_luck: number[]
+  api_lv: number
+  api_ship_id: number
+  api_stype: number
+}
+
+interface NightBattleHougeki {
+  api_at_eflag: number[]
+  api_at_list: number[]
+  api_cl_list: Array<number | number[]>
+  api_damage: number[][]
+  api_df_list: number[][]
+  api_si_list: Array<number | number[]>
+  api_sp_list: number[]
+}
+
+interface NightBattleCIBody {
+  api_deck_id?: number
+  api_dock_id?: number
+  api_f_maxhps: number[]
+  api_f_nowhps: number[]
+  api_flare_pos: number[]
+  api_hougeki: NightBattleHougeki
+  api_ship_ke: number[]
+}
+
+type ShipSelectorResult = [Partial<NightBattleShip>?, Partial<NightBattleShip>?]
+type EquipSelectorResult = Array<[Partial<NightBattleEquip>?, Partial<NightBattleEquip>?, unknown?]>
 
 export default class NightBattleCIReporter extends BaseReporter {
-  processData = (body: any, time: number) => {
+  processData = (body: NightBattleCIBody, time: number) => {
     const state = window.getStore()
 
     // normal map only
@@ -26,14 +63,17 @@ export default class NightBattleCIReporter extends BaseReporter {
 
     const deckData = _(deck.api_ship)
       .map((shipId) => {
-        const [_ship = {}, $ship = {}] = shipDataSelectorFactory(shipId)(state) || []
-        const equips = _(shipEquipDataSelectorFactory(shipId)(state))
+        const [_ship = {}, $ship = {}] =
+          (shipDataSelectorFactory(shipId)(state) as ShipSelectorResult | undefined) || []
+        const equips = _(
+          (shipEquipDataSelectorFactory(shipId)(state) as EquipSelectorResult | undefined) || [],
+        )
           .filter(([_equip, $equip, onslot] = []) => !!_equip && !!$equip)
           .map(([_equip, $equip, onslot]) => ({ ...$equip, ..._equip }))
-          .value()
-        return [{ ...$ship, ..._ship }, equips]
+          .value() as NightBattleEquip[]
+        return [{ ...$ship, ..._ship } as NightBattleShip, equips]
       })
-      .value()
+      .value() as Array<[NightBattleShip, NightBattleEquip[]]>
 
     const ReportIndex = _(deckData)
       .map(([ship], index) => ([2, 7, 11, 13, 14, 18].includes(ship.api_stype) ? index : -1))
@@ -54,7 +94,7 @@ export default class NightBattleCIReporter extends BaseReporter {
     } = api_hougeki
 
     // api from lib battle counts from array index 0
-    const endHps = _.get(state, 'battle._status.result.deckHp', [])
+    const endHps = _.get(state, 'battle._status.result.deckHp', []) as number[]
 
     const searchLight = deckData.some(
       ([__, equips], index) =>
@@ -137,7 +177,7 @@ export default class NightBattleCIReporter extends BaseReporter {
   handle(
     method: GameApiMethod,
     path: GameApiPath,
-    body: any,
+    body: GameApiResponseBody,
     postBody: GameApiPostBody,
     time: number,
   ) {
@@ -145,7 +185,7 @@ export default class NightBattleCIReporter extends BaseReporter {
       case '/kcsapi/api_req_battle_midnight/battle':
         {
           // delay to wait for updated battle store
-          setTimeout(() => this.processData(body, time), 1000)
+          setTimeout(() => this.processData(body as NightBattleCIBody, time), 1000)
         }
         break
     }

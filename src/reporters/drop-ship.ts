@@ -1,11 +1,98 @@
 import BaseReporter from './base'
 import { getOwnedShipSnapshot, getTeitokuHash, getFirstPlaneCounts } from './utils'
-import type { GameApiMethod, GameApiPath, GameApiPostBody } from '../types/game-api'
+import type { PlaneCountData } from './utils'
+import type {
+  GameApiMethod,
+  GameApiPath,
+  GameApiPostBody,
+  GameApiResponseBody,
+} from '../types/game-api'
+
+interface EnemyReportSource extends PlaneCountData {
+  api_eParam?: number[][]
+  api_eParam_combined?: number[][]
+  api_eSlot?: number[][]
+  api_eSlot_combined?: number[][]
+  api_e_maxhps?: number[]
+  api_e_maxhps_combined?: number[]
+  api_ship_ke?: number[]
+  api_ship_ke_combined?: number[]
+  api_ship_lv?: number[]
+  api_ship_lv_combined?: number[]
+}
+
+interface MapInfoBody {
+  api_map_info: Array<{
+    api_eventmap?: {
+      api_selected_rank: number
+    } | null
+    api_id: number
+  }>
+}
+
+type SelectRankPostBody = GameApiPostBody & {
+  api_map_no: string
+  api_maparea_id: string
+  api_rank: string
+}
+
+interface MapStartBody {
+  api_destruction_battle?: EnemyReportSource
+  api_event_id: number
+  api_maparea_id: number
+  api_mapinfo_no: number
+  api_no: number
+}
+
+interface BattleBody extends EnemyReportSource {
+  api_formation: number[]
+}
+
+interface BattleResultBody {
+  api_enemy_info: {
+    api_deck_name: string
+  }
+  api_get_base_exp: number
+  api_get_eventitem?: Array<{
+    api_id: number
+    api_slot_level?: number
+    api_type: number
+    api_value: number
+  }> | null
+  api_get_ship?: {
+    api_ship_id?: number
+  }
+  api_get_useitem?: {
+    api_useitem_id?: number
+  }
+  api_quest_name: string
+  api_win_rank: string
+}
+
+interface DropReport {
+  baseExp: number | null
+  cellId: number | null
+  enemy: string | null
+  enemyFormation: number | null
+  enemyShips1: number[] | null | undefined
+  enemyShips2: number[] | null | undefined
+  isBoss: boolean | null
+  itemId: number | null
+  mapId: number | null
+  mapLv: number | null
+  ownedShipSnapshot?: Record<string, number[]>
+  quest: string | null
+  rank: string | null
+  shipCounts: number | null
+  shipId: number | null
+  teitokuId: string | null
+  teitokuLv: number | null
+}
 
 /**
  * Make enemy_info report record from API data.
  */
-const makeEnemyReport = (data: any = {}) => {
+const makeEnemyReport = (data: EnemyReportSource = {}) => {
   const { planes, bombersMin, bombersMax } = getFirstPlaneCounts(data) || {}
   return {
     ships1: data.api_ship_ke || [],
@@ -25,9 +112,9 @@ const makeEnemyReport = (data: any = {}) => {
 }
 
 export default class DropShipReporter extends BaseReporter {
-  mapLv: any
-  drop: any
-  ownedShipSnapshot: any
+  mapLv: number[]
+  drop: DropReport | null
+  ownedShipSnapshot: Record<string, number[]> | null
 
   constructor() {
     super()
@@ -36,14 +123,20 @@ export default class DropShipReporter extends BaseReporter {
     this.drop = null
     this.ownedShipSnapshot = null
   }
-  handle(method: GameApiMethod, path: GameApiPath, body: any, postBody: GameApiPostBody) {
+  handle(
+    method: GameApiMethod,
+    path: GameApiPath,
+    body: GameApiResponseBody,
+    postBody: GameApiPostBody,
+  ) {
     const { mapLv } = this
     const { _teitokuLv } = window
     const teitokuId = getTeitokuHash()
     switch (path) {
       case '/kcsapi/api_get_member/mapinfo':
         {
-          for (const map of body.api_map_info) {
+          const response = body as MapInfoBody
+          for (const map of response.api_map_info) {
             mapLv[map.api_id] = 0
             if (map.api_eventmap != null) mapLv[map.api_id] = map.api_eventmap.api_selected_rank
           }
@@ -51,9 +144,10 @@ export default class DropShipReporter extends BaseReporter {
         break
       case '/kcsapi/api_req_map/select_eventmap_rank':
         {
-          const mapareaId = parseInt(postBody.api_maparea_id) * 10 + parseInt(postBody.api_map_no)
-          const rank = parseInt(postBody.api_rank)
-          mapLv[mapareaId] = parseInt(postBody.api_rank)
+          const request = postBody as SelectRankPostBody
+          const mapareaId = parseInt(request.api_maparea_id) * 10 + parseInt(request.api_map_no)
+          const rank = parseInt(request.api_rank)
+          mapLv[mapareaId] = parseInt(request.api_rank)
           // Report select map difficulty
           this.report('/api/report/v2/select_rank', {
             teitokuId,
@@ -66,7 +160,8 @@ export default class DropShipReporter extends BaseReporter {
       case '/kcsapi/api_req_map/start':
       case '/kcsapi/api_req_map/next':
         {
-          const drop = {
+          const response = body as MapStartBody
+          const drop: DropReport = {
             mapId: null,
             cellId: null,
             isBoss: null,
@@ -84,15 +179,18 @@ export default class DropShipReporter extends BaseReporter {
             teitokuLv: null,
             teitokuId: null,
           }
-          drop.mapId = body.api_maparea_id * 10 + body.api_mapinfo_no
-          drop.cellId = body.api_no
-          drop.isBoss = body.api_event_id == 5
+          drop.mapId = response.api_maparea_id * 10 + response.api_mapinfo_no
+          drop.cellId = response.api_no
+          drop.isBoss = response.api_event_id == 5
           drop.mapLv = mapLv[drop.mapId]
           this.drop = drop
           this.ownedShipSnapshot = getOwnedShipSnapshot()
-          if (body.api_destruction_battle) {
+          if (response.api_destruction_battle) {
             // Report enemy fleet info for air raids
-            this.report('/api/report/v2/enemy_info', makeEnemyReport(body.api_destruction_battle))
+            this.report(
+              '/api/report/v2/enemy_info',
+              makeEnemyReport(response.api_destruction_battle),
+            )
           }
         }
         break
@@ -113,24 +211,26 @@ export default class DropShipReporter extends BaseReporter {
       case '/kcsapi/api_req_combined_battle/sp_midnight':
       case '/kcsapi/api_req_combined_battle/ec_night_to_day':
         {
-          const { drop } = this
-          drop.enemyShips1 = body.api_ship_ke
-          drop.enemyShips2 = body.api_ship_ke_combined
-          drop.enemyFormation = body.api_formation[1]
+          const response = body as BattleBody
+          const drop = this.drop as DropReport
+          drop.enemyShips1 = response.api_ship_ke
+          drop.enemyShips2 = response.api_ship_ke_combined
+          drop.enemyFormation = response.api_formation[1]
           // Report enemy fleet info
-          this.report('/api/report/v2/enemy_info', makeEnemyReport(body))
+          this.report('/api/report/v2/enemy_info', makeEnemyReport(response))
         }
         break
       case '/kcsapi/api_req_sortie/battleresult':
       case '/kcsapi/api_req_combined_battle/battleresult':
         {
-          const { drop } = this
-          drop.enemy = body.api_enemy_info.api_deck_name
-          drop.quest = body.api_quest_name
-          drop.rank = body.api_win_rank
-          drop.baseExp = body.api_get_base_exp
-          drop.shipId = (body.api_get_ship || {}).api_ship_id || -1
-          drop.itemId = (body.api_get_useitem || {}).api_useitem_id || -1
+          const response = body as BattleResultBody
+          const drop = this.drop as DropReport
+          drop.enemy = response.api_enemy_info.api_deck_name
+          drop.quest = response.api_quest_name
+          drop.rank = response.api_win_rank
+          drop.baseExp = response.api_get_base_exp
+          drop.shipId = (response.api_get_ship || {}).api_ship_id || -1
+          drop.itemId = (response.api_get_useitem || {}).api_useitem_id || -1
           drop.ownedShipSnapshot = this.ownedShipSnapshot
           drop.teitokuLv = _teitokuLv
           drop.teitokuId = teitokuId
@@ -139,15 +239,15 @@ export default class DropShipReporter extends BaseReporter {
             this.drop = null
           })
           // Report pass event
-          if (body.api_get_eventitem != null) {
+          if (response.api_get_eventitem != null) {
             this.report('/api/report/v2/pass_event', {
               teitokuId,
               teitokuLv: _teitokuLv,
               mapId: drop.mapId,
               mapLv: drop.mapLv,
-              rewards: !Array.isArray(body.api_get_eventitem)
+              rewards: !Array.isArray(response.api_get_eventitem)
                 ? null
-                : body.api_get_eventitem.map((e) => ({
+                : response.api_get_eventitem.map((e) => ({
                     rewardType: e.api_type,
                     rewardId: e.api_id,
                     rewardCount: e.api_value,
