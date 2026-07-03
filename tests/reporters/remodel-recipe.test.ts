@@ -4,7 +4,7 @@ import {
   attachReportSpy,
   RemodelRecipeReporter,
   resetReporterTestState,
-} from '../helpers/reporter-test-harness.mjs'
+} from '../helpers/reporter-test-harness'
 
 beforeEach(resetReporterTestState)
 

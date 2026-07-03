@@ -5,9 +5,9 @@ globalThis.window = {
   _teitokuId: 1,
   _ships: {},
   $ships: {},
-}
+} as unknown as Window & typeof globalThis
 
-const require = createRequire(import.meta.url)
+const require = createRequire(__filename)
 const {
   getFirstPlaneCounts,
   getHpStyle,
