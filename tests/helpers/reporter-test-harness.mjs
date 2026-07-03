@@ -1,6 +1,5 @@
 import { createHash } from 'node:crypto'
-import { createRequire } from 'node:module'
-import Module from 'node:module'
+import Module, { createRequire } from 'node:module'
 import { vi } from 'vitest'
 
 const require = createRequire(import.meta.url)
@@ -38,7 +37,7 @@ export const sentryState = {
   tags: [],
 }
 
-export const ship = overrides => ({
+export const ship = (overrides) => ({
   api_ship_id: 100,
   api_lv: 50,
   api_cond: 49,
@@ -111,8 +110,8 @@ if (!globalThis.__reporterTestHarnessPatched) {
         }
       case 'views/utils/selectors':
         return {
-          shipDataSelectorFactory: shipId => () => selectorState.ships.get(shipId),
-          shipEquipDataSelectorFactory: shipId => () => selectorState.equips.get(shipId),
+          shipDataSelectorFactory: (shipId) => () => selectorState.ships.get(shipId),
+          shipEquipDataSelectorFactory: (shipId) => () => selectorState.equips.get(shipId),
         }
       case 'views/utils/aaci':
         return aaciState
@@ -123,7 +122,7 @@ if (!globalThis.__reporterTestHarnessPatched) {
   globalThis.__reporterTestHarnessPatched = true
 }
 
-const loadDefault = mod => mod.default || mod
+const loadDefault = (mod) => mod.default || mod
 
 export const AACIReporter = loadDefault(require('../../reporters/aaci.js'))
 export const BaseReporter = loadDefault(require('../../reporters/base.js'))
@@ -162,7 +161,7 @@ export const resetReporterTestState = () => {
   sentryState.tags = []
 }
 
-export const attachReportSpy = reporter => {
+export const attachReportSpy = (reporter) => {
   reporter.report = vi.fn(() => Promise.resolve())
   return reporter.report
 }

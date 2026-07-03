@@ -14,32 +14,44 @@ describe('RemodelRecipeReporter', () => {
     const reporter = new RemodelRecipeReporter()
     const report = attachReportSpy(reporter)
 
-    reporter.handle('GET', '/kcsapi/api_req_kousyou/remodel_slotlist', [{
-      api_id: 33,
-      api_req_fuel: 10,
-      api_req_bull: 20,
-      api_req_steel: 30,
-      api_req_bauxite: 40,
-    }])
-    reporter.handle('POST', '/kcsapi/api_req_kousyou/remodel_slotlist_detail', {
-      api_req_slot_id: 90,
-      api_req_slot_num: 2,
-      api_req_buildkit: 3,
-      api_req_remodelkit: 4,
-      api_certain_buildkit: 5,
-      api_certain_remodelkit: 6,
-    }, {
-      api_id: '33',
-      api_slot_id: 501,
-    })
-    reporter.handle('POST', '/kcsapi/api_req_kousyou/remodel_slot', {
-      api_remodel_flag: true,
-      api_remodel_id: [700, 701],
-      api_after_slot: { api_level: 0 },
-      api_voice_ship_id: 99,
-    }, {
-      api_id: '33',
-    })
+    reporter.handle('GET', '/kcsapi/api_req_kousyou/remodel_slotlist', [
+      {
+        api_id: 33,
+        api_req_fuel: 10,
+        api_req_bull: 20,
+        api_req_steel: 30,
+        api_req_bauxite: 40,
+      },
+    ])
+    reporter.handle(
+      'POST',
+      '/kcsapi/api_req_kousyou/remodel_slotlist_detail',
+      {
+        api_req_slot_id: 90,
+        api_req_slot_num: 2,
+        api_req_buildkit: 3,
+        api_req_remodelkit: 4,
+        api_certain_buildkit: 5,
+        api_certain_remodelkit: 6,
+      },
+      {
+        api_id: '33',
+        api_slot_id: 501,
+      },
+    )
+    reporter.handle(
+      'POST',
+      '/kcsapi/api_req_kousyou/remodel_slot',
+      {
+        api_remodel_flag: true,
+        api_remodel_id: [700, 701],
+        api_after_slot: { api_level: 0 },
+        api_voice_ship_id: 99,
+      },
+      {
+        api_id: '33',
+      },
+    )
 
     expect(report).toHaveBeenCalledWith('/api/report/v2/remodel_recipe', {
       recipeId: 33,
@@ -69,22 +81,37 @@ describe('RemodelRecipeReporter', () => {
     const report = attachReportSpy(reporter)
 
     reporter.handle('GET', '/kcsapi/api_req_kousyou/remodel_slotlist', [{ api_id: 33 }])
-    reporter.handle('POST', '/kcsapi/api_req_kousyou/remodel_slotlist_detail', {}, {
-      api_id: '33',
-      api_slot_id: 501,
-    })
-    reporter.handle('POST', '/kcsapi/api_req_kousyou/remodel_slot', {
-      api_remodel_flag: false,
-      api_remodel_id: [700, 700],
-    }, {
-      api_id: '33',
-    })
-    reporter.handle('POST', '/kcsapi/api_req_kousyou/remodel_slot', {
-      api_remodel_flag: true,
-      api_remodel_id: [700, 700],
-    }, {
-      api_id: '33',
-    })
+    reporter.handle(
+      'POST',
+      '/kcsapi/api_req_kousyou/remodel_slotlist_detail',
+      {},
+      {
+        api_id: '33',
+        api_slot_id: 501,
+      },
+    )
+    reporter.handle(
+      'POST',
+      '/kcsapi/api_req_kousyou/remodel_slot',
+      {
+        api_remodel_flag: false,
+        api_remodel_id: [700, 700],
+      },
+      {
+        api_id: '33',
+      },
+    )
+    reporter.handle(
+      'POST',
+      '/kcsapi/api_req_kousyou/remodel_slot',
+      {
+        api_remodel_flag: true,
+        api_remodel_id: [700, 700],
+      },
+      {
+        api_id: '33',
+      },
+    )
 
     expect(report).not.toHaveBeenCalled()
   })
@@ -95,33 +122,58 @@ describe('RemodelRecipeReporter', () => {
     const report = attachReportSpy(reporter)
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
 
-    reporter.handle('POST', '/kcsapi/api_req_kousyou/remodel_slotlist_detail', {}, {
-      api_id: '33',
-      api_slot_id: 501,
-    })
-    reporter.handle('POST', '/kcsapi/api_req_kousyou/remodel_slot', {
-      api_remodel_flag: true,
-      api_remodel_id: [700, 701],
-    }, {
-      api_id: '33',
-    })
+    reporter.handle(
+      'POST',
+      '/kcsapi/api_req_kousyou/remodel_slotlist_detail',
+      {},
+      {
+        api_id: '33',
+        api_slot_id: 501,
+      },
+    )
+    reporter.handle(
+      'POST',
+      '/kcsapi/api_req_kousyou/remodel_slot',
+      {
+        api_remodel_flag: true,
+        api_remodel_id: [700, 701],
+      },
+      {
+        api_id: '33',
+      },
+    )
     reporter.handle('GET', '/kcsapi/api_req_kousyou/remodel_slotlist', [{ api_id: 33 }])
-    reporter.handle('POST', '/kcsapi/api_req_kousyou/remodel_slotlist_detail', {}, {
-      api_id: '33',
-      api_slot_id: 501,
-    })
-    reporter.handle('POST', '/kcsapi/api_req_kousyou/remodel_slot', {
-      api_remodel_flag: true,
-      api_remodel_id: [999, 701],
-    }, {
-      api_id: '33',
-    })
-    reporter.handle('POST', '/kcsapi/api_req_kousyou/remodel_slot', {
-      api_remodel_flag: true,
-      api_remodel_id: [700, 701],
-    }, {
-      api_id: '34',
-    })
+    reporter.handle(
+      'POST',
+      '/kcsapi/api_req_kousyou/remodel_slotlist_detail',
+      {},
+      {
+        api_id: '33',
+        api_slot_id: 501,
+      },
+    )
+    reporter.handle(
+      'POST',
+      '/kcsapi/api_req_kousyou/remodel_slot',
+      {
+        api_remodel_flag: true,
+        api_remodel_id: [999, 701],
+      },
+      {
+        api_id: '33',
+      },
+    )
+    reporter.handle(
+      'POST',
+      '/kcsapi/api_req_kousyou/remodel_slot',
+      {
+        api_remodel_flag: true,
+        api_remodel_id: [700, 701],
+      },
+      {
+        api_id: '34',
+      },
+    )
 
     expect(report).not.toHaveBeenCalled()
     expect(consoleError).toHaveBeenCalledTimes(2)

@@ -14,16 +14,18 @@ describe('ShipStatReporter', () => {
     const report = attachReportSpy(reporter)
 
     reporter.handle('GET', '/kcsapi/api_get_member/ship3', {
-      api_ship_data: [{
-        api_ship_id: 600,
-        api_lv: 77,
-        api_slot: [-1, -1, -1, -1],
-        api_slot_ex: -1,
-        api_kyouka: [0, 0, 0, 0, 0, 0, 9],
-        api_sakuteki: [50, 80],
-        api_taisen: [70, 100],
-        api_kaihi: [60, 90],
-      }],
+      api_ship_data: [
+        {
+          api_ship_id: 600,
+          api_lv: 77,
+          api_slot: [-1, -1, -1, -1],
+          api_slot_ex: -1,
+          api_kyouka: [0, 0, 0, 0, 0, 0, 9],
+          api_sakuteki: [50, 80],
+          api_taisen: [70, 100],
+          api_kaihi: [60, 90],
+        },
+      ],
     })
     expect(report).toHaveBeenCalledWith('/api/report/v2/ship_stat', {
       id: 600,
@@ -38,11 +40,13 @@ describe('ShipStatReporter', () => {
 
     report.mockClear()
     reporter.handle('GET', '/kcsapi/api_get_member/ship3', {
-      api_ship_data: [{
-        api_slot: [10, -1, -1, -1],
-        api_slot_ex: -1,
-        api_kyouka: [],
-      }],
+      api_ship_data: [
+        {
+          api_slot: [10, -1, -1, -1],
+          api_slot_ex: -1,
+          api_kyouka: [],
+        },
+      ],
     })
     expect(report).not.toHaveBeenCalled()
   })

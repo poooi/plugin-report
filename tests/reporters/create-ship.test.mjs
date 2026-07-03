@@ -22,16 +22,21 @@ describe('CreateShipReporter', () => {
     const reporter = new CreateShipReporter()
     const report = attachReportSpy(reporter)
 
-    reporter.handle('POST', '/kcsapi/api_req_kousyou/createship', {}, {
-      api_kdock_id: '2',
-      api_item1: '30',
-      api_item2: '31',
-      api_item3: '32',
-      api_item4: '33',
-      api_item5: '1',
-      api_large_flag: '1',
-      api_highspeed: '0',
-    })
+    reporter.handle(
+      'POST',
+      '/kcsapi/api_req_kousyou/createship',
+      {},
+      {
+        api_kdock_id: '2',
+        api_item1: '30',
+        api_item2: '31',
+        api_item3: '32',
+        api_item4: '33',
+        api_item5: '1',
+        api_large_flag: '1',
+        api_highspeed: '0',
+      },
+    )
     reporter.handle('GET', '/kcsapi/api_get_member/kdock', [{}, { api_item1: 999 }], {})
     expect(report).not.toHaveBeenCalled()
 

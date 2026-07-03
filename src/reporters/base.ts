@@ -1,6 +1,6 @@
 import url from 'url'
 import * as Sentry from '@sentry/electron'
-import fetch, { RequestInit } from 'node-fetch'
+import fetch, { type RequestInit } from 'node-fetch'
 import https from 'https'
 import type { ReportPayload } from '../types/reporter'
 

@@ -81,7 +81,7 @@ export default class RemodelRecipeReporter extends BaseReporter {
 
           this.recipeId = parseInt(postBody.api_id)
 
-          let itemSlotId = postBody.api_slot_id
+          const itemSlotId = postBody.api_slot_id
           this.itemId = (window._slotitems[itemSlotId] || {}).api_slotitem_id || -1
           const itemLevel = (window._slotitems[itemSlotId] || {}).api_level || -1
           this.stage = this.getStage(itemLevel)
