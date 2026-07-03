@@ -1,4 +1,4 @@
-import _, { get } from 'lodash'
+import _ from 'lodash'
 import BaseReporter from './base'
 import type { APIShipData } from 'kcsapi/api_get_member/ship3/response'
 import type {
@@ -37,7 +37,10 @@ export default class ShipStatReporter extends BaseReporter {
     }
 
     const response = body as ShipStatResponseBody
-    const ship = get(response, ['api_ship_data', 0])
+    const ship = response.api_ship_data[0]
+    if (!ship) {
+      return
+    }
 
     // check if all slots are empty
     // api_slot_ex could be 0 (not enabled) or -1 (no item)
