@@ -24,12 +24,10 @@ type RemodelItemSlotBody = Pick<APIReqKousyouRemodelSlotResponse, 'api_remodel_i
 // Stopped at 2016.11.28. We have collected 800k records.
 export default class RemodelItemReporter extends BaseReporter {
   itemId: string | number
-  itemLv: number
 
   constructor() {
     super()
     this.itemId = -1
-    this.itemLv = -1
   }
   handle(
     method: GameApiMethod,
@@ -37,13 +35,12 @@ export default class RemodelItemReporter extends BaseReporter {
     body: GameApiResponseBody,
     postBody: GameApiPostBody,
   ) {
-    const { _decks, _ships, _slotitems, _teitokuLv } = window
+    const { _decks, _ships, _teitokuLv } = window
     switch (path) {
       case '/kcsapi/api_req_kousyou/remodel_slotlist_detail':
         {
           const request = postBody as RemodelItemDetailPostBody
           this.itemId = request.api_slot_id
-          this.itemLv = _slotitems[this.itemId].api_level
         }
         break
       case '/kcsapi/api_req_kousyou/remodel_slot':
@@ -51,7 +48,7 @@ export default class RemodelItemReporter extends BaseReporter {
           const response = body as RemodelItemSlotBody
           const request = postBody as RemodelItemSlotPostBody
           if (this.itemId != request.api_slot_id) {
-            console.error(`Inconsistent remodel item data: #{this.itemId}, #{request.api_slot_id}`)
+            console.error(`Inconsistent remodel item data: ${this.itemId}, ${request.api_slot_id}`)
             return
           }
           const flagship = _ships[_decks[0].api_ship[0]]

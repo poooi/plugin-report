@@ -35,6 +35,20 @@ interface CreateShipReportPayload {
   shipId: number
 }
 
+const createShipPostBodyKeys: Array<keyof CreateShipPostBody> = [
+  'api_highspeed',
+  'api_item1',
+  'api_item2',
+  'api_item3',
+  'api_item4',
+  'api_item5',
+  'api_kdock_id',
+  'api_large_flag',
+]
+
+const isCreateShipPostBody = (postBody: GameApiPostBody): postBody is CreateShipPostBody =>
+  createShipPostBodyKeys.every((key) => typeof postBody[key] === 'string')
+
 export default class CreateShipReporter extends BaseReporter {
   creating: boolean
   kdockId: number
@@ -55,21 +69,24 @@ export default class CreateShipReporter extends BaseReporter {
   ) {
     const { _decks, _ships, _teitokuLv } = window
     if (path === '/kcsapi/api_req_kousyou/createship') {
-      const request = postBody as CreateShipPostBody
+      if (!isCreateShipPostBody(postBody)) {
+        console.error('Invalid create ship report data')
+        return
+      }
       this.creating = true
-      this.kdockId = parseInt(request.api_kdock_id) - 1
+      this.kdockId = parseInt(postBody.api_kdock_id) - 1
       const secretaryIdx = _decks[0].api_ship[0]
       this.info = {
         items: [
-          parseInt(request.api_item1),
-          parseInt(request.api_item2),
-          parseInt(request.api_item3),
-          parseInt(request.api_item4),
-          parseInt(request.api_item5),
+          parseInt(postBody.api_item1),
+          parseInt(postBody.api_item2),
+          parseInt(postBody.api_item3),
+          parseInt(postBody.api_item4),
+          parseInt(postBody.api_item5),
         ],
         kdockId: this.kdockId,
-        largeFlag: parseInt(request.api_large_flag) != 0,
-        highspeed: parseInt(request.api_highspeed),
+        largeFlag: parseInt(postBody.api_large_flag) != 0,
+        highspeed: parseInt(postBody.api_highspeed),
         secretary: _ships[secretaryIdx].api_ship_id,
         teitokuLv: _teitokuLv,
         shipId: -1,
@@ -80,6 +97,10 @@ export default class CreateShipReporter extends BaseReporter {
       const { info } = this
       const docks = body as CreateShipKdock[]
       const dock = docks[this.kdockId]
+      if (!info || !dock) {
+        console.error('Invalid kdock create ship report data')
+        return
+      }
       if (
         dock.api_item1 != info.items[0] ||
         dock.api_item2 != info.items[1] ||

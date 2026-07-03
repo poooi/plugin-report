@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
   attachReportSpy,
@@ -44,5 +44,24 @@ describe('CreateItemReporter', () => {
       secretary: 101,
       successful: false,
     })
+  })
+
+  it('reports invalid development payloads instead of throwing or sending NaN data', () => {
+    const reporter = new CreateItemReporter()
+    const report = attachReportSpy(reporter)
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    expect(() =>
+      reporter.handle(
+        'POST',
+        '/kcsapi/api_req_kousyou/createitem',
+        { api_get_items: [{ api_slotitem_id: 25 }] },
+        { api_item1: '10', api_item2: '20', api_item3: '30' },
+      ),
+    ).not.toThrow()
+
+    expect(report).not.toHaveBeenCalled()
+    expect(consoleError).toHaveBeenCalledWith('Invalid create item report data')
+    consoleError.mockRestore()
   })
 })

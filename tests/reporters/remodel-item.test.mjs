@@ -77,7 +77,7 @@ describe('RemodelItemReporter', () => {
     )
 
     expect(report).not.toHaveBeenCalled()
-    expect(consoleError).toHaveBeenCalled()
+    expect(consoleError).toHaveBeenCalledWith('Inconsistent remodel item data: 501, 999')
     consoleError.mockRestore()
   })
 })
