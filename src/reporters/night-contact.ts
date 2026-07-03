@@ -55,8 +55,9 @@ export default class NightContactReportor extends BaseReporter {
             for (const [iid, cnt] of _.zip(items, count) as any[]) {
               const item = getWindowSlotItem(iid)
               // Condition * & 4
-              if (item?.api_slotitem_id === this.VALID_PLANE_ID && cnt > 0)
+              if (item && item.api_slotitem_id === this.VALID_PLANE_ID && cnt > 0) {
                 entries.push([ship, item])
+              }
             }
           }
           if (!(entries.length === 1))
