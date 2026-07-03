@@ -50,13 +50,13 @@ Initially verified on 2026-06-30 using the local proxy `127.0.0.1:1080` where ne
 | [`KagamiChan/kcsapi.ts` - `api_req_kousyou/remodel_slot/response.ts`](https://github.com/KagamiChan/kcsapi.ts/blob/master/api_req_kousyou/remodel_slot/response.ts)                                | Directly fetched from GitHub; blob SHA observed as `f80849758783bdcc6699c70c5213a847dcdb25ce`.                                                                                                               | Current typed fields for `remodel_slot`, including update-result fields.                                                                                         |
 | [`KC3Kai/KC3Kai` - `src/library/modules/Kcsapi.js`](https://github.com/KC3Kai/KC3Kai/blob/master/src/library/modules/Kcsapi.js)                                                                    | Directly inspected from GitHub at commit `27208e9b0f22fa6e3d98bd61c1873e97a85a5faa`.                                                                                                                         | Cross-check that actively used clients handle optional detail fields such as `api_req_useitem_id2` and optional secondary required equipment fields defensively. |
 
-Implementation rule: if the Japanese wiki pages or API definition files have changed since the verification above, re-validate the payload fields and canonical database dimensions before writing code. If the actively maintained English wiki cannot be verified due access restrictions, document that limitation and do not block ingestion design on unverified English content.
+Implementation rule: if the Japanese wiki pages or API definition files have changed since the verification above, re-validate the payload fields and canonical database dimensions before writing code. If the actively maintained English wiki cannot be verified due to access restrictions, document that limitation and do not block ingestion design on unverified English content.
 
 ## Repositories involved
 
 | Repository       | Role                                                                                                                 |
 | ---------------- | -------------------------------------------------------------------------------------------------------------------- |
-| `plugin-report`  | Observe Kancolle API responses in the client and report normalized recipe observations.                              |
+| `plugin-report`  | Observe KanColle API responses in the client and report normalized recipe observations.                              |
 | `poi-server`     | Receive reports, lightly normalize/deduplicate, store raw/fact data, and expose export endpoints.                    |
 | External builder | Pull exported data from `poi-server`, resolve conflicts, merge star ranges, and build the canonical recipe database. |
 | UI/API service   | Serve user-facing recipe lookup from the canonical database. This does not need to be `poi-server`.                  |
@@ -81,7 +81,7 @@ Current limitations:
 - Update targets are only known after successful execution.
 - The backend `RecipeRecord` stores the old coarse shape and is not enough for a future UI-grade recipe database.
 
-## Kancolle API surface
+## KanColle API surface
 
 There is no global API that returns all possible item improvement recipes. The client can only observe the current menu and selected recipe details.
 
@@ -864,7 +864,7 @@ The builder consumes exported facts and produces a UI-oriented canonical databas
 
 - v3 fact export from `poi-server`
 - optional raw observations
-- Kancolle master data for item/ship names
+- KanColle master data for item/ship names
 - optional manual overrides for known wiki-confirmed recipes
 
 ### Canonical record shape
@@ -907,7 +907,7 @@ Before publishing the reporter, validate that each canonical field is either col
 | Canonical field                          | Primary source                                                                                                                              | Pre-release validation                                                                                                                          |
 | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
 | `itemId`                                 | `remodel_slotlist.api_slot_id`; detail confirms from `window._slotitems[postBody.api_slot_id]`                                              | Synthetic list/detail fixtures produce the same item ID.                                                                                        |
-| `itemName`                               | Kancolle master item data                                                                                                                   | External builder joins master data; reporter does not send names.                                                                               |
+| `itemName`                               | KanColle master item data                                                                                                                   | External builder joins master data; reporter does not send names.                                                                               |
 | `helperRequirement` / `requiredHelperId` | No-helper proof from confirmed `observedSecondShipId: 0`; ship-helper proof from manual/wiki or future controlled negative-observation data | Fixtures cover no-second-ship, unknown-helper, manually confirmed helper, and nonzero co-occurrence that must stay unknown.                     |
 | `observedSecondShipIds`                  | Fleet context captured by list/detail/execution observers                                                                                   | Fixtures cover known ship, confirmed no ship `0`, and unknown context rejection/quarantine.                                                     |
 | `days`                                   | JST day computed from event timestamp                                                                                                       | Fixtures cover normal day and near-JST-midnight events.                                                                                         |
@@ -1115,11 +1115,11 @@ Do not publish a reporter that only "seems to collect useful data". Before relea
 
 Required artifacts:
 
-1. Reporter fixture tests that feed representative Kancolle API events and assert exact v3 payloads.
+1. Reporter fixture tests that feed representative KanColle API events and assert exact v3 payloads.
 2. Backend ingestion tests or manual requests that prove duplicate facts increment counts without overwriting candidate-defining fields.
 3. A minimal external-builder fixture that consumes exported availability, cost, and update facts and emits canonical rows matching expected JSON.
 4. A coverage report fixture that shows missing detail, missing exact star levels, missing update facts, conflicts, and stale rows.
-5. A local end-to-end debug run with fake data that exercises the full path: synthetic Kancolle API events -> real reporter payloads -> local `poi-server` v3 ingestion -> fact export -> external builder -> canonical database output.
+5. A local end-to-end debug run with fake data that exercises the full path: synthetic KanColle API events -> real reporter payloads -> local `poi-server` v3 ingestion -> fact export -> external builder -> canonical database output.
 
 Minimum fixture scenarios:
 
@@ -1154,7 +1154,7 @@ Before publishing the reporter, run a local dry run with deterministic fake obse
 Recommended flow:
 
 1. Start a local `poi-server` with a disposable local database.
-2. Feed synthetic Kancolle API events through the real reporter test harness:
+2. Feed synthetic KanColle API events through the real reporter test harness:
    - `remodel_slotlist` list availability events
    - `remodel_slotlist_detail` cost/material events
    - `remodel_slot` conversion and non-conversion execution events
@@ -1187,10 +1187,10 @@ This run should be repeatable from documented commands in the implementation PR.
 
 ### `plugin-report`
 
-Existing `package.json` has no real test script. For implementation, either:
+Use the existing package scripts for implementation validation:
 
-1. Add a focused test setup for reporter normalization/state logic, or
-2. At minimum run lint/prepack-compatible checks already present in the repo.
+1. Add focused reporter tests for normalization/state logic.
+2. Run `pnpm run lint`, `pnpm run typecheck`, `pnpm run build`, `pnpm run smoke`, and `pnpm run test:coverage`.
 
 Regression cases to cover:
 
