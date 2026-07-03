@@ -153,7 +153,7 @@ export default class NightBattleCIReporter extends BaseReporter {
       const si = api_si_list[order]
       const cl = api_cl_list[order]
 
-      this.report('/api/report/v2/night_battle_ci', {
+      void this.report('/api/report/v2/night_battle_ci', {
         shipId: ship.api_ship_id,
         type,
         CI,

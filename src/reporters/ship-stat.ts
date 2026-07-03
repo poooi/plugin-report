@@ -1,4 +1,4 @@
-import _, { get } from 'lodash'
+import _ from 'lodash'
 import BaseReporter from './base'
 import type { APIShipData } from 'kcsapi/api_get_member/ship3/response'
 import type {
@@ -21,7 +21,7 @@ type ShipStatShip = Pick<
 >
 
 interface ShipStatResponseBody {
-  api_ship_data: ShipStatShip[]
+  api_ship_data?: ShipStatShip[]
 }
 
 export default class ShipStatReporter extends BaseReporter {
@@ -37,7 +37,10 @@ export default class ShipStatReporter extends BaseReporter {
     }
 
     const response = body as ShipStatResponseBody
-    const ship = get(response, ['api_ship_data', 0]) as ShipStatShip
+    const ship = response.api_ship_data?.[0]
+    if (!ship) {
+      return
+    }
 
     // check if all slots are empty
     // api_slot_ex could be 0 (not enabled) or -1 (no item)
@@ -51,7 +54,7 @@ export default class ShipStatReporter extends BaseReporter {
 
     const taisenKyouka = ship.api_kyouka[6]
 
-    this.report('/api/report/v2/ship_stat', {
+    void this.report('/api/report/v2/ship_stat', {
       id: ship.api_ship_id,
       lv: ship.api_lv,
       los: ship.api_sakuteki[0],

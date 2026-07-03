@@ -50,4 +50,16 @@ describe('ShipStatReporter', () => {
     })
     expect(report).not.toHaveBeenCalled()
   })
+
+  it('ignores ship stat responses without ship data', () => {
+    const reporter = new ShipStatReporter()
+    const report = attachReportSpy(reporter)
+
+    reporter.handle('GET', '/kcsapi/api_get_member/ship3', {})
+    reporter.handle('GET', '/kcsapi/api_get_member/ship3', {
+      api_ship_data: [],
+    })
+
+    expect(report).not.toHaveBeenCalled()
+  })
 })

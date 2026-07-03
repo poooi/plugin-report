@@ -13,7 +13,7 @@ interface GameAPIBroadcaster {
   }
 }
 
-const gameAPIBroadcaster = remote.require('./lib/game-api-broadcaster') as GameAPIBroadcaster
+const gameAPIBroadcaster = remote.require<GameAPIBroadcaster>('./lib/game-api-broadcaster')
 
 if (
   process.env.NODE_ENV === 'production' &&

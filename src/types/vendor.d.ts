@@ -1,13 +1,18 @@
 declare module '@electron/remote' {
-  export function require(id: string): any
+  export function require<T = unknown>(id: string): T
 }
 
 declare module '@sentry/electron' {
-  export function captureException(error: unknown, context?: Record<string, any>): void
-  export function configureScope(callback: (scope: any) => void): void
-  export function init(options: Record<string, any>): void
-  export function setContext(name: string, context: any): void
-  export function withScope(callback: (scope: any) => void): void
+  export interface Scope {
+    setTag(key: string, value: string): void
+    setTags(tags: Record<string, string>): void
+  }
+
+  export function captureException(error: unknown, context?: Record<string, unknown>): void
+  export function configureScope(callback: (scope: Scope) => void): void
+  export function init(options: Record<string, unknown>): void
+  export function setContext(name: string, context: unknown): void
+  export function withScope(callback: (scope: Scope) => void): void
 }
 
 declare module 'electron' {
@@ -16,15 +21,28 @@ declare module 'electron' {
 }
 
 declare module 'moment-timezone' {
-  const moment: any
+  interface Moment {
+    day(): number
+    format(format?: string): string
+    hour(): number
+    tz(timezone: string): Moment
+  }
+
+  interface MomentStatic {
+    (): Moment
+    tz(timezone: string): Moment
+    utc(): Moment
+  }
+
+  const moment: MomentStatic
   export default moment
 }
 
 declare module 'views/utils/selectors' {
-  export function shipDataSelectorFactory(shipId: unknown): (state: unknown) => any
-  export function shipEquipDataSelectorFactory(shipId: unknown): (state: unknown) => any
+  export function shipDataSelectorFactory(shipId: unknown): (state: unknown) => unknown
+  export function shipEquipDataSelectorFactory(shipId: unknown): (state: unknown) => unknown
 }
 
 declare module 'views/utils/aaci' {
-  export function getShipAACIs(ship: unknown, equips: unknown): any
+  export function getShipAACIs(ship: unknown, equips: unknown): number[]
 }

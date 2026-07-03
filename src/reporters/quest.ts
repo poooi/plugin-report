@@ -11,7 +11,7 @@ import type {
   GameApiResponseBody,
 } from '../types/game-api'
 
-const createHash = _.memoize((text) => crypto.createHash('md5').update(text).digest('hex'))
+const createHash = _.memoize((text: string) => crypto.createHash('md5').update(text).digest('hex'))
 
 const createQuestHash = (title: string, detail: string) => createHash(`${title}${detail}`)
 
@@ -46,7 +46,7 @@ export default class QuestReporter extends BaseReporter {
     this.enabled = false
     this.quests = []
 
-    this.initialize()
+    void this.initialize()
   }
 
   initialize = async () => {
@@ -84,7 +84,7 @@ export default class QuestReporter extends BaseReporter {
           ...this.knownQuests,
           ..._.map(quests, (quest) => createQuestHash(quest.api_title, quest.api_detail)),
         ]
-        this.report(`/api/report/v3/quest`, {
+        void this.report(`/api/report/v3/quest`, {
           quests: _.map(quests, (quest) => ({
             questId: quest.api_no,
             title: quest.api_title,
@@ -116,7 +116,7 @@ export default class QuestReporter extends BaseReporter {
         (num) => parseInt(num, 10),
       )
 
-      this.report(`/api/report/v3/quest_reward`, {
+      void this.report(`/api/report/v3/quest_reward`, {
         selections,
         material: response.api_material,
         bonus: response.api_bounus, // the typo here is by Tanaka

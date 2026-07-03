@@ -117,7 +117,7 @@ export default class CreateShipReporter extends BaseReporter {
         return
       info.shipId = dock.api_created_ship_id
       this.creating = false
-      this.report('/api/report/v2/create_ship', info)
+      void this.report('/api/report/v2/create_ship', info)
     }
   }
 }

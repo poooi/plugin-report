@@ -79,9 +79,7 @@ export default class NightContactReportor extends BaseReporter {
             }
             const items = ship.api_slot || []
             const count = ship.api_onslot || []
-            for (const [iid, cnt] of _.zip(items, count) as Array<
-              [number | undefined, number | undefined]
-            >) {
+            for (const [iid, cnt] of _.zip(items, count)) {
               if (iid == null) {
                 continue
               }
@@ -113,7 +111,7 @@ export default class NightContactReportor extends BaseReporter {
           if (Object.values(info).some((value) => value == null)) {
             break
           }
-          this.report('/api/report/v2/night_contcat', info)
+          void this.report('/api/report/v2/night_contcat', info)
         }
         break
     }
