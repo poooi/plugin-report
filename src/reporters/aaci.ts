@@ -1,5 +1,6 @@
 import _ from 'lodash'
 import { shipDataSelectorFactory, shipEquipDataSelectorFactory } from 'views/utils/selectors'
+import type { getShipAACIs as getShipAACIsHelper } from 'views/utils/aaci'
 
 import BaseReporter from './base'
 import type {
@@ -44,7 +45,7 @@ export default class AACIReporter extends BaseReporter {
   constructor() {
     super()
     try {
-      const aaci = require('views/utils/aaci')
+      const aaci = require('views/utils/aaci') as { getShipAACIs: typeof getShipAACIsHelper }
       this.getShipAACIs = aaci.getShipAACIs
     } catch (err) {
       // console.log(`AACI reporter is disabled.`)
@@ -109,7 +110,7 @@ export default class AACIReporter extends BaseReporter {
           if (!ship || !equips) break
 
           // Report
-          this.report('/api/report/v2/aaci', {
+          void this.report('/api/report/v2/aaci', {
             poiVersion: window.POI_VERSION,
             available: availKind,
             triggered: kind,

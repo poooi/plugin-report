@@ -149,7 +149,7 @@ export default class DropShipReporter extends BaseReporter {
           const rank = parseInt(request.api_rank)
           mapLv[mapareaId] = parseInt(request.api_rank)
           // Report select map difficulty
-          this.report('/api/report/v2/select_rank', {
+          void this.report('/api/report/v2/select_rank', {
             teitokuId,
             teitokuLv: _teitokuLv,
             mapareaId: mapareaId,
@@ -187,7 +187,7 @@ export default class DropShipReporter extends BaseReporter {
           this.ownedShipSnapshot = getOwnedShipSnapshot()
           if (response.api_destruction_battle) {
             // Report enemy fleet info for air raids
-            this.report(
+            void this.report(
               '/api/report/v2/enemy_info',
               makeEnemyReport(response.api_destruction_battle),
             )
@@ -221,7 +221,7 @@ export default class DropShipReporter extends BaseReporter {
           drop.enemyShips2 = response.api_ship_ke_combined
           drop.enemyFormation = response.api_formation[1]
           // Report enemy fleet info
-          this.report('/api/report/v2/enemy_info', makeEnemyReport(response))
+          void this.report('/api/report/v2/enemy_info', makeEnemyReport(response))
         }
         break
       case '/kcsapi/api_req_sortie/battleresult':
@@ -243,12 +243,12 @@ export default class DropShipReporter extends BaseReporter {
           drop.teitokuLv = _teitokuLv
           drop.teitokuId = teitokuId
           // Report enemy pattern and drops
-          this.report('/api/report/v2/drop_ship', drop).then(() => {
+          void this.report('/api/report/v2/drop_ship', drop).then(() => {
             this.drop = null
           })
           // Report pass event
           if (response.api_get_eventitem != null) {
-            this.report('/api/report/v2/pass_event', {
+            void this.report('/api/report/v2/pass_event', {
               teitokuId,
               teitokuLv: _teitokuLv,
               mapId: drop.mapId,

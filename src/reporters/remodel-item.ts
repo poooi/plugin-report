@@ -59,7 +59,7 @@ export default class RemodelItemReporter extends BaseReporter {
             console.error('Invalid remodel item secretary data')
             return
           }
-          this.report('/api/report/v2/remodel_item', {
+          void this.report('/api/report/v2/remodel_item', {
             successful: response.api_remodel_flag,
             itemId: response.api_remodel_id[0],
             itemLevel: this.itemId,

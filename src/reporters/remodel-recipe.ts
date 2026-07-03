@@ -238,7 +238,7 @@ export default class RemodelRecipeReporter extends BaseReporter {
             key: `r${this.recipeId}-i${this.itemId}-s${this.stage}-d${this.day}-s${secretary}`,
           }
 
-          this.report('/api/report/v2/remodel_recipe', info)
+          void this.report('/api/report/v2/remodel_recipe', info)
         }
         break
     }

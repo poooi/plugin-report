@@ -45,7 +45,7 @@ export default class CreateItemReporter extends BaseReporter {
         return
       }
       body.api_get_items.forEach((item) => {
-        this.report('/api/report/v2/create_item', {
+        void this.report('/api/report/v2/create_item', {
           items: [
             parseInt(postBody.api_item1),
             parseInt(postBody.api_item2),
