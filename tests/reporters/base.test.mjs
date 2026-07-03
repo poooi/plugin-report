@@ -21,8 +21,10 @@ describe('BaseReporter', () => {
 
     expect(fetchState.calls[0][0]).toBe('https://example.invalid/api/test')
     expect(fetchState.calls[0][1]).toMatchObject({
-      'User-Agent': 'Reporter/8.1.0 poi/10.7.0',
-      'X-Reporter': 'Reporter/8.1.0 poi/10.7.0',
+      headers: {
+        'User-Agent': 'Reporter/8.1.0 poi/10.7.0',
+        'X-Reporter': 'Reporter/8.1.0 poi/10.7.0',
+      },
       redirect: 'follow',
     })
   })
