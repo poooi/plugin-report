@@ -19,6 +19,7 @@ export default tseslint.config(
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,
+  importX.flatConfigs.recommended,
   {
     files: ['**/*.{js,cjs,mjs,ts}'],
     languageOptions: {

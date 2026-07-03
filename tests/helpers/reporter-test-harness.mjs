@@ -1,6 +1,5 @@
 import { createHash } from 'node:crypto'
-import { createRequire } from 'node:module'
-import Module from 'node:module'
+import Module, { createRequire } from 'node:module'
 import { vi } from 'vitest'
 
 const require = createRequire(import.meta.url)
