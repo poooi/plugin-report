@@ -36,7 +36,8 @@ export default class ShipStatReporter extends BaseReporter {
       return
     }
 
-    const ship = (body as ShipStatResponseBody | null | undefined)?.api_ship_data?.[0]
+    const response = body as ShipStatResponseBody
+    const ship = response.api_ship_data?.[0]
     if (!ship) {
       return
     }
