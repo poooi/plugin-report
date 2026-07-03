@@ -83,7 +83,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ['tests/**/*.mjs'],
+    files: ['tests/**/*.ts'],
     rules: {
       'import-x/extensions': 'off',
     },

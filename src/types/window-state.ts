@@ -3,9 +3,10 @@ import type { APISlotItem } from 'kcsapi/api_get_member/require_info/response'
 import type { APIMstShip, APIMstSlotitem } from 'kcsapi/api_start2/getData/response'
 
 export type WindowDeck = Pick<APIDeckPort, 'api_ship'> & Partial<APIDeckPort>
-export type WindowShip = APIShip
-export type WindowSlotItem = APISlotItem
-export type WindowMasterShip = APIMstShip
+export type WindowShip = Pick<APIShip, 'api_ship_id'> & Partial<APIShip>
+export type WindowSlotItem = Pick<APISlotItem, 'api_level' | 'api_slotitem_id'> &
+  Partial<APISlotItem>
+export type WindowMasterShip = Pick<APIMstShip, 'api_id' | 'api_yomi'> & Partial<APIMstShip>
 export type WindowMasterSlotItem = APIMstSlotitem
 
 export interface PoiWindowStoreState {

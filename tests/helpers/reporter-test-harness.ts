@@ -1,18 +1,27 @@
 import { createHash } from 'node:crypto'
 import Module, { createRequire } from 'node:module'
 import { vi } from 'vitest'
+import type { WindowSlotItem } from '../../src/types/window-state'
 
-const require = createRequire(import.meta.url)
-const originalLoad = Module._load
-
-export const selectorState = {
-  store: {},
-  ships: new Map(),
-  equips: new Map(),
+declare global {
+  var __reporterTestHarnessPatched: boolean | undefined
 }
 
-export const aaciState = {
-  getShipAACIs: vi.fn(() => []),
+const require = createRequire(__filename)
+type ModuleWithLoad = typeof Module & {
+  _load(request: string, parent: NodeJS.Module | null | undefined, isMain: boolean): unknown
+}
+const moduleWithLoad = Module as ModuleWithLoad
+const originalLoad = moduleWithLoad._load
+
+export const selectorState = {
+  store: {} as any,
+  ships: new Map<number, unknown>(),
+  equips: new Map<number, unknown>(),
+}
+
+export const aaciState: { getShipAACIs: any } = {
+  getShipAACIs: vi.fn(() => [] as number[]),
 }
 
 export const momentState = {
@@ -21,8 +30,8 @@ export const momentState = {
 }
 
 export const fetchState = {
-  calls: [],
-  implementation: async () => ({
+  calls: [] as any[][],
+  implementation: async (..._args: any[]): Promise<any> => ({
     ok: true,
     status: 200,
     statusText: 'OK',
@@ -32,12 +41,12 @@ export const fetchState = {
 }
 
 export const sentryState = {
-  captured: [],
-  contexts: [],
-  tags: [],
+  captured: [] as unknown[],
+  contexts: [] as Array<{ name: string; context: unknown }>,
+  tags: [] as unknown[],
 }
 
-export const ship = (overrides) => ({
+export const ship = (overrides: Record<string, unknown> = {}): any => ({
   api_ship_id: 100,
   api_lv: 50,
   api_cond: 49,
@@ -46,45 +55,52 @@ export const ship = (overrides) => ({
   ...overrides,
 })
 
-export const equip = ({ id = 0, type2 = 0, type3 = 0, level = 0, houm = 0 } = {}) => ({
+export const equip = ({
+  id = 0,
+  type2 = 0,
+  type3 = 0,
+  level = 0,
+  houm = 0,
+} = {}): WindowSlotItem & { api_houm: number; api_type: number[] } => ({
   api_slotitem_id: id,
   api_type: [0, 0, type2, type3],
   api_level: level,
   api_houm: houm,
 })
 
-const createWindow = () => ({
-  POI_VERSION: '10.7.0',
-  SERVER_HOSTNAME: 'example.invalid',
-  _decks: [{ api_ship: [1, 2] }],
-  _ships: {
-    1: ship({ api_ship_id: 101, api_lv: 80, api_cond: 53 }),
-    2: ship({ api_ship_id: 102, api_lv: 70, api_cond: 49 }),
-  },
-  $ships: {
-    101: { api_id: 101, api_yomi: 'alpha' },
-    102: { api_id: 102, api_yomi: 'bravo' },
-  },
-  _slotitems: {},
-  _teitokuId: 12345,
-  _teitokuLv: 120,
-  _nickName: 'Admiral',
-  _nickNameId: 99,
-  getStore: () => selectorState.store,
-})
+const createWindow = () =>
+  ({
+    POI_VERSION: '10.7.0',
+    SERVER_HOSTNAME: 'example.invalid',
+    _decks: [{ api_ship: [1, 2] }],
+    _ships: {
+      1: ship({ api_ship_id: 101, api_lv: 80, api_cond: 53 }),
+      2: ship({ api_ship_id: 102, api_lv: 70, api_cond: 49 }),
+    },
+    $ships: {
+      101: { api_id: 101, api_yomi: 'alpha' },
+      102: { api_id: 102, api_yomi: 'bravo' },
+    },
+    _slotitems: {},
+    _teitokuId: 12345,
+    _teitokuLv: 120,
+    _nickName: 'Admiral',
+    _nickNameId: 99,
+    getStore: () => selectorState.store,
+  }) as unknown as Window & typeof globalThis
 
 globalThis.window = createWindow()
 
 const sentryStub = {
-  captureException(error) {
+  captureException(error: unknown) {
     sentryState.captured.push(error)
   },
-  setContext(name, context) {
+  setContext(name: string, context: unknown) {
     sentryState.contexts.push({ name, context })
   },
-  withScope(callback) {
+  withScope(callback: (scope: { setTags(tags: unknown): void }) => void) {
     callback({
-      setTags(tags) {
+      setTags(tags: unknown) {
         sentryState.tags.push(tags)
       },
     })
@@ -92,12 +108,16 @@ const sentryStub = {
 }
 
 if (!globalThis.__reporterTestHarnessPatched) {
-  Module._load = function loadReporterTestStub(request, parent, isMain) {
+  moduleWithLoad._load = function loadReporterTestStub(
+    request: string,
+    parent: NodeJS.Module | null | undefined,
+    isMain: boolean,
+  ) {
     switch (request) {
       case '@sentry/electron':
         return sentryStub
       case 'node-fetch':
-        return async (...args) => {
+        return async (...args: any[]) => {
           fetchState.calls.push(args)
           return fetchState.implementation(...args)
         }
@@ -110,8 +130,8 @@ if (!globalThis.__reporterTestHarnessPatched) {
         }
       case 'views/utils/selectors':
         return {
-          shipDataSelectorFactory: (shipId) => () => selectorState.ships.get(shipId),
-          shipEquipDataSelectorFactory: (shipId) => () => selectorState.equips.get(shipId),
+          shipDataSelectorFactory: (shipId: number) => () => selectorState.ships.get(shipId),
+          shipEquipDataSelectorFactory: (shipId: number) => () => selectorState.equips.get(shipId),
         }
       case 'views/utils/aaci':
         return aaciState
@@ -122,7 +142,7 @@ if (!globalThis.__reporterTestHarnessPatched) {
   globalThis.__reporterTestHarnessPatched = true
 }
 
-const loadDefault = (mod) => mod.default || mod
+const loadDefault = (mod: any) => mod.default || mod
 
 export const AACIReporter = loadDefault(require('../../reporters/aaci.js'))
 export const BaseReporter = loadDefault(require('../../reporters/base.js'))
@@ -161,7 +181,7 @@ export const resetReporterTestState = () => {
   sentryState.tags = []
 }
 
-export const attachReportSpy = (reporter) => {
+export const attachReportSpy = (reporter: { report: (...args: any[]) => Promise<void> }): any => {
   reporter.report = vi.fn(() => Promise.resolve())
   return reporter.report
 }

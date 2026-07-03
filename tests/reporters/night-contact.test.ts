@@ -5,7 +5,7 @@ import {
   NightContactReportor,
   resetReporterTestState,
   ship,
-} from '../helpers/reporter-test-harness.mjs'
+} from '../helpers/reporter-test-harness'
 
 beforeEach(resetReporterTestState)
 

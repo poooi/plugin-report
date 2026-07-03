@@ -18,7 +18,7 @@ declare global {
     ROOT: string
     APPDATA_PATH: string
     SERVER_HOSTNAME: string
-    _decks: Record<string | number, WindowDeck | undefined>
+    _decks: Array<WindowDeck | undefined>
     _ships: Record<string | number, WindowShip | undefined>
     $ships: Record<string | number, WindowMasterShip | undefined>
     _slotitems: Record<string | number, WindowSlotItem | undefined>

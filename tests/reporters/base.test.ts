@@ -6,9 +6,9 @@ import {
   fetchState,
   resetReporterTestState,
   sentryState,
-} from '../helpers/reporter-test-harness.mjs'
+} from '../helpers/reporter-test-harness'
 
-const require = createRequire(import.meta.url)
+const require = createRequire(__filename)
 const packageMeta = require('../../package.json')
 const reporterUserAgent = `Reporter/${packageMeta.version} poi/10.7.0`
 
