@@ -1,5 +1,5 @@
 import BaseReporter from './base'
-import { GameApiMethod, GameApiPath, GameApiPostBody } from '../types/game-api'
+import type { GameApiMethod, GameApiPath, GameApiPostBody } from '../types/game-api'
 
 export default class CreateShipReporter extends BaseReporter {
   creating: any

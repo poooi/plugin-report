@@ -2,7 +2,7 @@ import _ from 'lodash'
 import { shipDataSelectorFactory, shipEquipDataSelectorFactory } from 'views/utils/selectors'
 
 import BaseReporter from './base'
-import { GameApiMethod, GameApiPath, GameApiPostBody } from '../types/game-api'
+import type { GameApiMethod, GameApiPath, GameApiPostBody } from '../types/game-api'
 
 export default class AACIReporter extends BaseReporter {
   getShipAACIs: any
@@ -30,7 +30,7 @@ export default class AACIReporter extends BaseReporter {
           if (deck == null) break
 
           // Available AACI
-          const deckData = (deck.api_ship || []).map(shipId => {
+          const deckData = (deck.api_ship || []).map((shipId) => {
             const [_ship = {}, $ship = {}] = shipDataSelectorFactory(shipId)(state) || []
             const equips = (shipEquipDataSelectorFactory(shipId)(state) || [])
               .filter(([_equip, $equip, onslot] = []) => !!_equip && !!$equip)
@@ -38,9 +38,9 @@ export default class AACIReporter extends BaseReporter {
             return [{ ...$ship, ..._ship }, equips]
           })
           const deckAACIs = deckData.map(([ship, equips]) => this.getShipAACIs(ship, equips))
-          const availIdx = deckAACIs.findIndex(aaci => aaci.length > 0)
+          const availIdx = deckAACIs.findIndex((aaci) => aaci.length > 0)
           const availKind = deckAACIs[availIdx]
-          if (deckAACIs.filter(aaci => aaci.length > 0).length !== 1) break // Report one available ship only.
+          if (deckAACIs.filter((aaci) => aaci.length > 0).length !== 1) break // Report one available ship only.
 
           // Triggered AACI
           if (_.get(body, 'api_kouku.api_stage2.api_e_count', 0) <= 0) break
@@ -56,8 +56,8 @@ export default class AACIReporter extends BaseReporter {
             poiVersion: window.POI_VERSION,
             available: availKind,
             triggered: kind,
-            items: equips.map(equip => equip.api_slotitem_id),
-            improvement: equips.map(equip => equip.api_level || 0),
+            items: equips.map((equip) => equip.api_slotitem_id),
+            improvement: equips.map((equip) => equip.api_level || 0),
             rawLuck: ship.api_luck[0] + ship.api_kyouka[4],
             rawTaiku: ship.api_tyku[0] + ship.api_kyouka[2],
             lv: ship.api_lv,

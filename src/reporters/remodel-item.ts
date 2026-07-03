@@ -1,5 +1,5 @@
 import BaseReporter from './base'
-import { GameApiMethod, GameApiPath, GameApiPostBody } from '../types/game-api'
+import type { GameApiMethod, GameApiPath, GameApiPostBody } from '../types/game-api'
 
 // Stopped at 2016.11.28. We have collected 800k records.
 export default class RemodelItemReporter extends BaseReporter {

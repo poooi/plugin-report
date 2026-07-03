@@ -1,4 +1,4 @@
-import { GameApiMethod, GameApiPath, GameApiPostBody, GameApiResponseBody } from './game-api'
+import type { GameApiMethod, GameApiPath, GameApiPostBody, GameApiResponseBody } from './game-api'
 
 export interface Reporter {
   handle(

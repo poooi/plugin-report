@@ -1,9 +1,9 @@
 import _ from 'lodash'
 
 import BaseReporter from './base'
-import { GameApiMethod, GameApiPath, GameApiPostBody } from '../types/game-api'
+import type { GameApiMethod, GameApiPath, GameApiPostBody } from '../types/game-api'
 import { getWindowShip, getWindowSlotItem } from '../types/window-state'
-import { WindowShip, WindowSlotItem } from '../types/window-state'
+import type { WindowShip, WindowSlotItem } from '../types/window-state'
 
 // Collect night contact data with followed conditions:
 // 1. Non-combined fleet

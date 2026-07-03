@@ -1,6 +1,6 @@
-import { APIDeckPort, APIShip } from 'kcsapi/api_port/port/response'
-import { APISlotItem } from 'kcsapi/api_get_member/require_info/response'
-import { APIMstShip, APIMstSlotitem } from 'kcsapi/api_start2/getData/response'
+import type { APIDeckPort, APIShip } from 'kcsapi/api_port/port/response'
+import type { APISlotItem } from 'kcsapi/api_get_member/require_info/response'
+import type { APIMstShip, APIMstSlotitem } from 'kcsapi/api_start2/getData/response'
 
 export type WindowDeck = Pick<APIDeckPort, 'api_ship'> & Partial<APIDeckPort>
 export type WindowShip = APIShip

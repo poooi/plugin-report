@@ -8,7 +8,7 @@ import {
   getNightBattleDDCIType,
   getNightBattleCVCIType,
 } from './utils'
-import { GameApiMethod, GameApiPath, GameApiPostBody } from '../types/game-api'
+import type { GameApiMethod, GameApiPath, GameApiPostBody } from '../types/game-api'
 
 export default class NightBattleCIReporter extends BaseReporter {
   processData = (body: any, time: number) => {
@@ -25,7 +25,7 @@ export default class NightBattleCIReporter extends BaseReporter {
     if (deck == null) return
 
     const deckData = _(deck.api_ship)
-      .map(shipId => {
+      .map((shipId) => {
         const [_ship = {}, $ship = {}] = shipDataSelectorFactory(shipId)(state) || []
         const equips = _(shipEquipDataSelectorFactory(shipId)(state))
           .filter(([_equip, $equip, onslot] = []) => !!_equip && !!$equip)
@@ -37,7 +37,7 @@ export default class NightBattleCIReporter extends BaseReporter {
 
     const ReportIndex = _(deckData)
       .map(([ship], index) => ([2, 7, 11, 13, 14, 18].includes(ship.api_stype) ? index : -1))
-      .filter(i => i >= 0)
+      .filter((i) => i >= 0)
       .value()
 
     // api from body counts from array index 1
@@ -58,10 +58,10 @@ export default class NightBattleCIReporter extends BaseReporter {
 
     const searchLight = deckData.some(
       ([__, equips], index) =>
-        equips.some(equip => equip.api_type[3] === 24) && api_f_nowhps[index] > 0,
+        equips.some((equip) => equip.api_type[3] === 24) && api_f_nowhps[index] > 0,
     )
 
-    ReportIndex.forEach(i => {
+    ReportIndex.forEach((i) => {
       const [ship, equips] = deckData[i]
 
       const type = ship.api_stype === 2 ? 'DD' : [13, 14].includes(ship.api_stype) ? 'SS' : 'CV'
@@ -70,7 +70,7 @@ export default class NightBattleCIReporter extends BaseReporter {
       if (type === 'CV') {
         if (
           ship.api_ship_id !== 545 &&
-          !equips.some(equip => [258, 259].includes(equip.api_slotitem_id))
+          !equips.some((equip) => [258, 259].includes(equip.api_slotitem_id))
         ) {
           return
         }
@@ -118,8 +118,8 @@ export default class NightBattleCIReporter extends BaseReporter {
         rawLuck: ship.api_luck[0] + ship.api_kyouka[4],
         pos: i,
         status: startStatus,
-        items: equips.map(equip => equip.api_slotitem_id),
-        improvement: equips.map(equip => equip.api_level || 0),
+        items: equips.map((equip) => equip.api_slotitem_id),
+        improvement: equips.map((equip) => equip.api_level || 0),
         searchLight,
         flare: api_flare_pos[0],
         defenseId,
@@ -128,7 +128,7 @@ export default class NightBattleCIReporter extends BaseReporter {
         display: _.isArray(si) ? si.map(Number) : [Number(si)], // could this be -1?
         hitType: cl,
         damage,
-        damageTotal: _.sum(damage.filter(v => v > 0)),
+        damageTotal: _.sum(damage.filter((v) => v > 0)),
         time,
       })
     })

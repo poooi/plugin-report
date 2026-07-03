@@ -2,8 +2,8 @@ import * as Sentry from '@sentry/electron'
 import semver from 'semver'
 
 import { init } from './sentry'
-import { GameResponseEvent } from './types/game-api'
-import { Reporter } from './types/reporter'
+import type { GameResponseEvent } from './types/game-api'
+import type { Reporter } from './types/reporter'
 
 import * as remote from '@electron/remote'
 

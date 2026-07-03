@@ -1,7 +1,7 @@
 import moment from 'moment-timezone'
 import _ from 'lodash'
 import BaseReporter from './base'
-import { GameApiMethod, GameApiPath, GameApiPostBody } from '../types/game-api'
+import type { GameApiMethod, GameApiPath, GameApiPostBody } from '../types/game-api'
 
 // Collecting remodel recipes
 export default class RemodelRecipeReporter extends BaseReporter {

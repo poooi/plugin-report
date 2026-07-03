@@ -1,14 +1,9 @@
 import BaseReporter from './base'
 import _ from 'lodash'
 import crypto from 'crypto'
-import { GameApiMethod, GameApiPath, GameApiPostBody } from '../types/game-api'
+import type { GameApiMethod, GameApiPath, GameApiPostBody } from '../types/game-api'
 
-const createHash = _.memoize(text =>
-  crypto
-    .createHash('md5')
-    .update(text)
-    .digest('hex'),
-)
+const createHash = _.memoize((text) => crypto.createHash('md5').update(text).digest('hex'))
 
 const createQuestHash = (title, detail) => createHash(`${title}${detail}`)
 
@@ -41,23 +36,23 @@ export default class QuestReporter extends BaseReporter {
       return
     }
     if (path === '/kcsapi/api_get_member/questlist') {
-      this.quests = _.map(body.api_list, quest => ({
+      this.quests = _.map(body.api_list, (quest) => ({
         ...quest,
         key: createQuestHash(quest.api_title, quest.api_detail),
       }))
 
       const quests = _.filter(
         this.quests,
-        ({ key }) => !_.some(this.knownQuests, partial => key.startsWith(partial)),
+        ({ key }) => !_.some(this.knownQuests, (partial) => key.startsWith(partial)),
       )
 
       if (quests.length) {
         this.knownQuests = [
           ...this.knownQuests,
-          ..._.map(quests, quest => createQuestHash(quest.api_title, quest.api_detail)),
+          ..._.map(quests, (quest) => createQuestHash(quest.api_title, quest.api_detail)),
         ]
         this.report(`/api/report/v3/quest`, {
-          quests: _.map(quests, quest => ({
+          quests: _.map(quests, (quest) => ({
             questId: quest.api_no,
             title: quest.api_title,
             detail: quest.api_detail,
@@ -81,9 +76,9 @@ export default class QuestReporter extends BaseReporter {
       const selections = _.map(
         _.compact([
           api_select_no,
-          ..._.map(_.range(2, 10), num => postBody[`api_select_no${num}`]),
+          ..._.map(_.range(2, 10), (num) => postBody[`api_select_no${num}`]),
         ]),
-        num => parseInt(num, 10),
+        (num) => parseInt(num, 10),
       )
 
       this.report(`/api/report/v3/quest_reward`, {

@@ -2,7 +2,7 @@ import url from 'url'
 import * as Sentry from '@sentry/electron'
 import fetch, { RequestInit } from 'node-fetch'
 import https from 'https'
-import { ReportPayload } from '../types/reporter'
+import type { ReportPayload } from '../types/reporter'
 
 // Because let's encrypt has switched to a new root cert which is not supported in older version of Electron,
 // use this temporary way to disable SSL check
@@ -36,7 +36,7 @@ export default class BaseReporter {
       const result = (await resp.json()) as T
       return result
     } catch (err) {
-      Sentry.withScope(scope => {
+      Sentry.withScope((scope) => {
         scope.setTags({
           area: 'poi-plugin-report/getJson',
           path,
@@ -73,7 +73,7 @@ export default class BaseReporter {
         throw new Error(`report failed ${resp.status} ${resp.statusText}: ${text}`)
       }
     } catch (err) {
-      Sentry.withScope(scope => {
+      Sentry.withScope((scope) => {
         scope.setTags({
           area: 'poi-plugin-report/report',
           path,
