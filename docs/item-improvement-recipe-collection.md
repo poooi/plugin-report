@@ -184,6 +184,8 @@ Do not treat the first fleet second ship observed in the client as the recipe's 
 
 The ingestion layer must store `observedSecondShipId`, not `requiredHelperId`. A default Akashi recipe can appear while an unrelated second ship is present, so writing that ship as the required helper would poison UI lookup data. The canonical builder derives `requiredHelperId` only after comparing observations across second-ship contexts or applying trusted/manual source data.
 
+Positive observations alone are not enough to infer a required helper. Seeing a recipe with second ship X proves only that the recipe appeared while X was present; it does not prove X was required. Since this plan does not collect controlled negative observations, public `helperRequirement: "ship"` rows must come from manual/wiki-confirmed data or a future controlled-probe dataset. Without that evidence, nonzero second-ship observations must remain `helperRequirement: "unknown"` or be merged into a proven no-helper row.
+
 The client must only send `observedSecondShipId: 0` after it successfully reads first-fleet context and confirms slot 2 is empty. If fleet context cannot be read, skip or quarantine the observation instead of falling back to `0`.
 
 `observedFlagshipId` is provenance/diagnostic data, not a recipe key dimension for this plan. The UI assumes Akashi or Akashi Kai is required to enter the arsenal. Since recipe availability differences by Akashi form are not part of the verified recipe dimensions, the backend should preserve observed flagship IDs as an array for audit but must not use last-write-wins storage for a single flagship ID. If future verified sources show Akashi-form-specific recipes, introduce a new schema version and key dimension.
@@ -209,7 +211,7 @@ Use the existing reporter API: `handle(method, path, body, postBody, time)`.
 
 1. Cache rows by `api_id`.
 2. Capture current context:
-   - `observedAt`: `time`
+   - `clientObservedAt`: `time`
    - `day`: JST weekday based on Akashi menu refresh, using the event timestamp
    - `observedSecondShipId`: first fleet second ship master ID, or `0` if no second ship is present
    - `observedFlagshipId`: first fleet flagship master ID
@@ -222,6 +224,7 @@ List observations should be availability-only facts:
 {
   "schemaVersion": 1,
   "source": "list",
+  "clientObservedAt": 1710000000000,
   "recipeId": 123,
   "itemId": 456,
   "day": 1,
@@ -246,7 +249,7 @@ List observations should be availability-only facts:
 
 Only one Akashi detail confirmation can be active at a time, and there is no API call for cancel/close. Do not use an unbounded dictionary keyed by slot ID; overwrite `this.currentDetail` on every new detail event and clear it after a matching execution or on mismatched execution.
 
-Evaluate `day`, `observedSecondShipId`, and `observedFlagshipId` at the time of the detail event. Do not blindly reuse context from the list event, because the user may leave the menu open across JST midnight or change fleet state before selecting a detail. The external builder can treat near-midnight day mismatches as uncertain if server receive time disagrees with client-computed JST day.
+Evaluate `clientObservedAt`, `day`, `observedSecondShipId`, and `observedFlagshipId` at the time of the detail event. Do not blindly reuse context from the list event, because the user may leave the menu open across JST midnight or change fleet state before selecting a detail. `poi-server` should set `serverReceivedAt` before validation and quarantine or lower confidence for records whose client-computed JST day disagrees with the server-receive JST day outside a small near-midnight tolerance.
 
 Detail observation shape:
 
@@ -254,6 +257,7 @@ Detail observation shape:
 {
   "schemaVersion": 1,
   "source": "detail",
+  "clientObservedAt": 1710000000000,
   "recipeId": 123,
   "itemId": 456,
   "itemLevel": 6,
@@ -344,7 +348,7 @@ const getJstDay = (time = Date.now()) => {
 }
 ```
 
-Client-computed `day` can be wrong if the local clock is wrong or if a report is delayed around JST midnight. `poi-server` should store server receive time separately, and the external builder should compare client day against server-receive JST day. If they differ outside an expected near-midnight window, quarantine or lower confidence for that observation.
+Client-computed `day` can be wrong if the local clock is wrong or if a report is delayed around JST midnight. Every v3 source record must include `clientObservedAt`; `poi-server` must add `serverReceivedAt` before validation. If the client day and server-receive JST day differ outside an expected near-midnight window, quarantine or lower confidence for that observation before it is aggregated into facts.
 
 ### Payload batching
 
@@ -436,6 +440,8 @@ export interface ItemImprovementRecipeAvailabilityFactPayload {
   recipeId: number
   itemId: number
   day: number
+  firstClientObservedAt: number
+  lastClientObservedAt: number
   observedSecondShipId: number
   observedFlagshipIds: number[]
   sources: string[]
@@ -461,6 +467,8 @@ const ItemImprovementRecipeAvailabilityFactSchema = new mongoose.Schema({
   recipeId: Number,
   itemId: Number,
   day: Number,
+  firstClientObservedAt: Number,
+  lastClientObservedAt: Number,
   observedSecondShipId: Number,
   observedFlagshipIds: [Number],
   sources: [String],
@@ -500,6 +508,8 @@ export interface ItemImprovementRecipeCostFactPayload {
   itemLevel: number
   stage: number
   day: number
+  firstClientObservedAt: number
+  lastClientObservedAt: number
   observedSecondShipId: number
   observedFlagshipIds: number[]
   fuel: number
@@ -540,6 +550,8 @@ const ItemImprovementRecipeCostFactSchema = new mongoose.Schema({
   itemLevel: Number,
   stage: Number,
   day: Number,
+  firstClientObservedAt: Number,
+  lastClientObservedAt: Number,
   observedSecondShipId: Number,
   observedFlagshipIds: [Number],
   fuel: Number,
@@ -606,6 +618,8 @@ export interface ItemImprovementRecipeUpdateFactPayload {
   itemId: number
   itemLevel: number
   day: number
+  firstClientObservedAt: number
+  lastClientObservedAt: number
   observedSecondShipId: number
   observedFlagshipIds: number[]
   upgradeToItemId: number
@@ -659,6 +673,8 @@ export interface ItemImprovementAttemptFactPayload {
   itemLevel: number
   stage: number
   day: number
+  firstClientObservedAt: number
+  lastClientObservedAt: number
   observedSecondShipId: number
   observedFlagshipIds: number[]
   guaranteed: boolean
@@ -724,11 +740,14 @@ Behavior:
    - absent/unknown second-ship context is rejected or quarantined
    - absent/zero API required-item fields become `[]`
    - malformed non-empty required-item entries are rejected or quarantined, not dropped
-   - `origin` defaults to `X-Reporter` or `User-Agent`
+   - `clientObservedAt` is required and must be a plausible Unix millisecond timestamp
+   - `serverReceivedAt` is set by `poi-server` before validation
+   - compare client-computed `day` against `serverReceivedAt` JST day and reject/quarantine impossible mismatches outside the near-midnight tolerance
+   - `origin` may come only from an allowlisted reporter name/version header such as `X-Reporter`; do not store raw `User-Agent` by default
 4. Validate source-specific required fields:
-   - `list`: `schemaVersion`, `source`, `recipeId`, `itemId`, `day`, and known `observedSecondShipId`
+   - `list`: `schemaVersion`, `source`, `clientObservedAt`, `recipeId`, `itemId`, `day`, and known `observedSecondShipId`
    - `detail`: all `list` fields plus `itemLevel`, `stage`, exact cost fields, and present `reqSlotItems`/`reqUseItems` arrays
-   - `execution`: `schemaVersion`, `source`, `recipeId`, `itemId`, `itemLevel`, `day`, known `observedSecondShipId`, `upgradeObserved: true`, `upgradeToItemId`, and `upgradeToItemLevel`
+   - `execution`: `schemaVersion`, `source`, `clientObservedAt`, `recipeId`, `itemId`, `itemLevel`, `day`, known `observedSecondShipId`, `upgradeObserved: true`, `upgradeToItemId`, and `upgradeToItemLevel`
 5. Build the deterministic key for the target fact type.
 6. Upsert the corresponding fact collection:
    - `list` -> `ItemImprovementRecipeAvailabilityFact`
@@ -748,10 +767,12 @@ await Model.updateOne(
     },
     $setOnInsert: {
       firstReported: lastReported,
+      firstClientObservedAt: record.clientObservedAt,
       count: 0,
     },
     $max: {
       lastReported,
+      lastClientObservedAt: record.clientObservedAt,
     },
     $addToSet: {
       sources: record.source,
@@ -766,7 +787,7 @@ await Model.updateOne(
 )
 ```
 
-Never use `$set` to overwrite candidate-defining values such as costs, required items, or update targets. Those values belong in the fact key or in a separate fact collection so the external builder can see conflicts.
+Never use `$set` to overwrite candidate-defining values such as costs, required items, or update targets. Those values belong in the fact key or in a separate fact collection so the external builder can see conflicts. Treat `count` as duplicate/volume telemetry unless the backend later adds a privacy-safe independence signal; a single client can inflate count by repeatedly opening the same detail screen.
 
 ### Export endpoints
 
@@ -819,7 +840,7 @@ Sort by:
 Access control:
 
 - If the endpoint is internal only, protect it by network policy or an admin token.
-- If it is public, only expose normalized fact records, omit raw fields, and omit or coarsen `origins` because reporter/user-agent data can fingerprint client versions.
+- If it is public, only expose normalized fact records, omit raw fields, and omit or coarsen `origins` because reporter/version data can fingerprint client versions.
 
 ### Backfill old v2 data
 
@@ -883,21 +904,21 @@ interface CanonicalItemImprovementRecipe {
 
 Before publishing the reporter, validate that each canonical field is either collected directly or intentionally supplied by another source:
 
-| Canonical field                          | Primary source                                                                                 | Pre-release validation                                                                                            |
-| ---------------------------------------- | ---------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| `itemId`                                 | `remodel_slotlist.api_slot_id`; detail confirms from `window._slotitems[postBody.api_slot_id]` | Synthetic list/detail fixtures produce the same item ID.                                                          |
-| `itemName`                               | Kancolle master item data                                                                      | External builder joins master data; reporter does not send names.                                                 |
-| `helperRequirement` / `requiredHelperId` | Builder inference from `observedSecondShipId` plus optional manual/wiki overrides              | Fixtures cover no-second-ship, unknown-helper, and manually confirmed helper cases.                               |
-| `observedSecondShipIds`                  | Fleet context captured by list/detail/execution observers                                      | Fixtures cover known ship, confirmed no ship `0`, and unknown context rejection/quarantine.                       |
-| `days`                                   | JST day computed from event timestamp                                                          | Fixtures cover normal day and near-JST-midnight events.                                                           |
-| `starMin` / `starMax`                    | Detail `itemLevel`, then builder range merge                                                   | Fixtures cover exact levels `0`, `5`, `6`, `9`, and `10`, with merge and non-merge cases.                         |
-| `fuel` / `ammo` / `steel` / `bauxite`    | `remodel_slotlist` row matched by `recipeId`                                                   | Detail fixtures must fail or quarantine if the matching list row is unavailable.                                  |
-| `buildkit` / `remodelkit`                | `remodel_slotlist_detail`                                                                      | Fixture output uses detail values, not list fallbacks.                                                            |
-| `certainBuildkit` / `certainRemodelkit`  | `remodel_slotlist_detail`                                                                      | Fixtures cover normal values and guaranteed values.                                                               |
-| `reqSlotItems`                           | `api_req_slot_id*` / `api_req_slot_num*` fields from detail                                    | Fixtures cover none, one required equipment, secondary equipment, duplicate IDs, and malformed pairs.             |
-| `reqUseItems`                            | `api_req_useitem_id*` / `api_req_useitem_num*` fields from detail                              | Fixtures cover none, one special item, secondary special item, duplicate IDs, and malformed pairs.                |
-| `upgradeToItemId` / `upgradeToItemLevel` | Successful conversion execution, or manual/wiki override when no execution has been observed   | Fixtures cover update, non-update star increment, failed attempt, and missing update target.                      |
-| `confidence` / counts / timestamps       | Backend fact counters plus builder conflict policy                                             | Fixtures cover single sample, repeated matching samples, conflicting samples, stale samples, and manual override. |
+| Canonical field                          | Primary source                                                                                                                              | Pre-release validation                                                                                                                          |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `itemId`                                 | `remodel_slotlist.api_slot_id`; detail confirms from `window._slotitems[postBody.api_slot_id]`                                              | Synthetic list/detail fixtures produce the same item ID.                                                                                        |
+| `itemName`                               | Kancolle master item data                                                                                                                   | External builder joins master data; reporter does not send names.                                                                               |
+| `helperRequirement` / `requiredHelperId` | No-helper proof from confirmed `observedSecondShipId: 0`; ship-helper proof from manual/wiki or future controlled negative-observation data | Fixtures cover no-second-ship, unknown-helper, manually confirmed helper, and nonzero co-occurrence that must stay unknown.                     |
+| `observedSecondShipIds`                  | Fleet context captured by list/detail/execution observers                                                                                   | Fixtures cover known ship, confirmed no ship `0`, and unknown context rejection/quarantine.                                                     |
+| `days`                                   | JST day computed from event timestamp                                                                                                       | Fixtures cover normal day and near-JST-midnight events.                                                                                         |
+| `starMin` / `starMax`                    | Detail `itemLevel`, then builder range merge only across directly observed or manually bracket-confirmed levels                             | Fixtures cover exact levels, interior missing levels, bracket-confirmed ranges, and non-merge cases.                                            |
+| `fuel` / `ammo` / `steel` / `bauxite`    | `remodel_slotlist` row matched by `recipeId`                                                                                                | Detail fixtures must fail or quarantine if the matching list row is unavailable.                                                                |
+| `buildkit` / `remodelkit`                | `remodel_slotlist_detail`                                                                                                                   | Fixture output uses detail values, not list fallbacks.                                                                                          |
+| `certainBuildkit` / `certainRemodelkit`  | `remodel_slotlist_detail`                                                                                                                   | Fixtures cover normal values and guaranteed values.                                                                                             |
+| `reqSlotItems`                           | `api_req_slot_id*` / `api_req_slot_num*` fields from detail                                                                                 | Fixtures cover none, one required equipment, secondary equipment, duplicate IDs, and malformed pairs.                                           |
+| `reqUseItems`                            | `api_req_useitem_id*` / `api_req_useitem_num*` fields from detail                                                                           | Fixtures cover none, one special item, secondary special item, duplicate IDs, and malformed pairs.                                              |
+| `upgradeToItemId` / `upgradeToItemLevel` | Successful conversion execution, or manual/wiki override when no execution has been observed                                                | Fixtures cover update, non-update star increment, failed attempt, and missing update target.                                                    |
+| `confidence` / counts / timestamps       | Builder conflict policy plus manual/trusted confirmation; `count` is volume telemetry only unless a privacy-safe independence signal exists | Fixtures cover single sample, repeated duplicate samples that do not raise confidence, conflicting samples, stale samples, and manual override. |
 
 Fields outside this table, such as recommendation rank, improvement-effect formulas, fit bonuses, and equipment category presentation, are intentionally out of scope for this reporter.
 
@@ -925,9 +946,9 @@ Fields outside this table, such as recommendation rank, improvement-effect formu
 9. Pick a winning candidate:
    - manual override first
    - trusted source confirmation
-   - highest total count
+   - highest independent/trusted sample count only if a privacy-safe independence signal exists
    - newest sample only as a tie-breaker
-10. Merge adjacent star levels into display ranges only when all display fields match:
+10. Merge adjacent star levels into display ranges only when all display fields match and the range does not overclaim unobserved interior levels. A range may span a level only if that level was directly observed or a manual/wiki-confirmed bracket says the whole bracket shares the same recipe shape:
 
 - costs
 - required equipment/items
@@ -940,7 +961,7 @@ Fields outside this table, such as recommendation rank, improvement-effect formu
 - observations with `observedSecondShipId: 0` prove the recipe can appear without a second ship for that day/item/star/cost shape; emit `helperRequirement: "none"`
 - observations with a nonzero second ship prove availability in that second-ship context, but not by themselves that the ship is required
 - when a `helperRequirement: "none"` row has the same recipe/cost/day/star/update shape as nonzero `observedSecondShipId` rows, merge the nonzero observations into `observedSecondShipIds` for the no-helper canonical row instead of emitting duplicate unknown-helper UI rows
-- infer `helperRequirement: "ship"` and `requiredHelperId` only when cross-context observations and/or manual/wiki data support it
+- infer `helperRequirement: "ship"` and `requiredHelperId` only from manual/wiki-confirmed data or a future controlled negative-observation dataset that can prove absence without that helper; positive co-occurrence alone is never enough
 - otherwise emit `helperRequirement: "unknown"` and hide or mark the row as unresolved in public UI
 
 12. Merge weekdays only when all non-day display fields match, including inferred `helperRequirement` and `requiredHelperId`.
@@ -950,14 +971,14 @@ Fields outside this table, such as recommendation rank, improvement-effect formu
 
 Initial suggested thresholds:
 
-| Confidence | Rule                                                                               |
-| ---------- | ---------------------------------------------------------------------------------- |
-| `manual`   | Curated override exists.                                                           |
-| `high`     | Manual/wiki-confirmed or confirmed by trusted ingestion channels and no conflicts. |
-| `medium`   | Multiple matching v3 detail samples and no conflicts.                              |
-| `low`      | Single sample or conflict unresolved.                                              |
+| Confidence | Rule                                                                                                     |
+| ---------- | -------------------------------------------------------------------------------------------------------- |
+| `manual`   | Curated override exists.                                                                                 |
+| `high`     | Manual/wiki-confirmed or confirmed by trusted ingestion channels and no conflicts.                       |
+| `medium`   | Direct v3 detail evidence with no conflicts, but without manual/trusted confirmation.                    |
+| `low`      | Availability-only, single unconfirmed execution/update evidence, stale evidence, or conflict unresolved. |
 
-`origin`/`User-Agent` is useful for debugging reporter versions, but it is spoofable and must not be treated as an independent-user identity. Legacy v2 counts should not satisfy `high` confidence without v3 detail confirmation or manual review. These thresholds can be tuned once real data volume is known.
+`origin` is useful for debugging reporter versions, but it is spoofable and must not be treated as an independent-user identity. Raw `User-Agent` should not be stored by default. Duplicate `count` values are volume diagnostics and must not raise confidence unless a later design adds a privacy-safe independence signal. Legacy v2 counts should not satisfy `high` confidence without v3 detail confirmation or manual review. These thresholds can be tuned once real data volume is known.
 
 ### Coverage tracking
 
@@ -1098,7 +1119,7 @@ Required artifacts:
 2. Backend ingestion tests or manual requests that prove duplicate facts increment counts without overwriting candidate-defining fields.
 3. A minimal external-builder fixture that consumes exported availability, cost, and update facts and emits canonical rows matching expected JSON.
 4. A coverage report fixture that shows missing detail, missing exact star levels, missing update facts, conflicts, and stale rows.
-5. A local end-to-end debug run with fake data that exercises the full path: reporter-shaped payloads -> local `poi-server` v3 ingestion -> fact export -> external builder -> canonical database output.
+5. A local end-to-end debug run with fake data that exercises the full path: synthetic Kancolle API events -> real reporter payloads -> local `poi-server` v3 ingestion -> fact export -> external builder -> canonical database output.
 
 Minimum fixture scenarios:
 
@@ -1128,34 +1149,39 @@ Release criteria:
 
 ### Local end-to-end debug run
 
-Before publishing the reporter, run a local dry run with deterministic fake observations. The goal is to prove the server and database pipeline work before waiting for real user data.
+Before publishing the reporter, run a local dry run with deterministic fake observations. The goal is to prove the reporter, server, and database pipeline work before waiting for real user data.
 
 Recommended flow:
 
 1. Start a local `poi-server` with a disposable local database.
-2. POST fake v3 payloads shaped exactly like the reporter output:
-   - list availability records
-   - detail cost/material records
-   - conversion update records
-   - malformed records that should be rejected or quarantined
-   - duplicate records that should increment `count`
-3. Call the export endpoints for availability, cost, and update facts.
-4. Run the external builder against the exported fake facts.
-5. Compare the generated canonical database JSON against checked-in expected fixtures.
-6. Inspect the coverage report and conflict report generated from the same fake dataset.
+2. Feed synthetic Kancolle API events through the real reporter test harness:
+   - `remodel_slotlist` list availability events
+   - `remodel_slotlist_detail` cost/material events
+   - `remodel_slot` conversion and non-conversion execution events
+   - malformed events that should not produce valid payloads
+   - duplicate events that should produce duplicate valid payloads for backend deduplication
+3. Capture the reporter's actual outgoing v3 payloads and assert that they omit roster slot IDs and user identifiers.
+4. POST those captured payloads to local `poi-server`.
+5. Call the export endpoints for availability, cost, and update facts.
+6. Run the external builder against the exported fake facts.
+7. Compare the generated canonical database JSON against checked-in expected fixtures.
+8. Inspect the coverage report and conflict report generated from the same fake dataset.
 
 The fake dataset should be small but representative:
 
-| Fake case                | Expected result                                                                          |
-| ------------------------ | ---------------------------------------------------------------------------------------- |
-| Complete recipe          | Canonical row includes day, helper state, exact star range, costs, and materials.        |
-| Detail without execution | Canonical row exists without update target.                                              |
-| Conversion update        | Canonical row includes `upgradeToItemId` and `upgradeToItemLevel`.                       |
-| List-only observation    | Coverage report shows missing detail; no public cost row is emitted.                     |
-| Conflicting detail facts | Conflict report preserves both candidates; canonical output does not silently overwrite. |
-| Duplicate detail fact    | Backend increments `count` and exports one deduplicated fact.                            |
-| Unknown fleet context    | Backend rejects or quarantines the record; it is not converted to no-helper.             |
-| Malformed required item  | Backend rejects or quarantines the record; malformed pairs are not dropped.              |
+| Fake case                | Expected result                                                                                                 |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------- |
+| Complete recipe          | Canonical row includes day, helper state, exact star range, costs, and materials.                               |
+| Detail without execution | Canonical row exists without update target.                                                                     |
+| Conversion update        | Canonical row includes `upgradeToItemId` and `upgradeToItemLevel`.                                              |
+| List-only observation    | Coverage report shows missing detail; no public cost row is emitted.                                            |
+| Conflicting detail facts | Conflict report preserves both candidates; canonical output does not silently overwrite.                        |
+| Duplicate detail fact    | Backend increments `count` and exports one deduplicated fact.                                                   |
+| Unknown fleet context    | Backend rejects or quarantines the record; it is not converted to no-helper.                                    |
+| Malformed required item  | Backend rejects or quarantines the record; malformed pairs are not dropped.                                     |
+| Interior star gap        | Builder does not emit a continuous star range unless missing levels are observed or manually bracket-confirmed. |
+| Nonzero helper only      | Builder keeps helper requirement unknown unless manual/wiki or controlled negative evidence proves the helper.  |
+| Near-midnight timestamp  | Server validates `clientObservedAt` against receive time and quarantines impossible day mismatches.             |
 
 This run should be repeatable from documented commands in the implementation PR. It does not need production data or live game traffic.
 
