@@ -1,12 +1,34 @@
 import _, { get } from 'lodash'
 import BaseReporter from './base'
-import type { GameApiMethod, GameApiPath, GameApiPostBody } from '../types/game-api'
+import type { APIShipData } from 'kcsapi/api_get_member/ship3/response'
+import type {
+  GameApiMethod,
+  GameApiPath,
+  GameApiPostBody,
+  GameApiResponseBody,
+} from '../types/game-api'
+
+type ShipStatShip = Pick<
+  APIShipData,
+  | 'api_kaihi'
+  | 'api_kyouka'
+  | 'api_lv'
+  | 'api_sakuteki'
+  | 'api_ship_id'
+  | 'api_slot'
+  | 'api_slot_ex'
+  | 'api_taisen'
+>
+
+interface ShipStatResponseBody {
+  api_ship_data: ShipStatShip[]
+}
 
 export default class ShipStatReporter extends BaseReporter {
   handle = (
     method: GameApiMethod,
     path: GameApiPath,
-    body: any,
+    body: GameApiResponseBody,
     postBody: GameApiPostBody,
     time: number,
   ) => {
@@ -14,7 +36,8 @@ export default class ShipStatReporter extends BaseReporter {
       return
     }
 
-    const ship = get(body, ['api_ship_data', 0])
+    const response = body as ShipStatResponseBody
+    const ship = get(response, ['api_ship_data', 0]) as ShipStatShip
 
     // check if all slots are empty
     // api_slot_ex could be 0 (not enabled) or -1 (no item)

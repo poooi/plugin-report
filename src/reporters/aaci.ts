@@ -2,10 +2,44 @@ import _ from 'lodash'
 import { shipDataSelectorFactory, shipEquipDataSelectorFactory } from 'views/utils/selectors'
 
 import BaseReporter from './base'
-import type { GameApiMethod, GameApiPath, GameApiPostBody } from '../types/game-api'
+import type {
+  GameApiMethod,
+  GameApiPath,
+  GameApiPostBody,
+  GameApiResponseBody,
+} from '../types/game-api'
+import type { NightBattleEquip } from './utils'
+
+interface AACIShip {
+  api_kyouka: number[]
+  api_luck: number[]
+  api_lv: number
+  api_maxhp: number
+  api_nowhp: number
+  api_ship_id: number
+  api_tyku: number[]
+}
+
+interface AACIBattleBody {
+  api_deck_id?: number
+  api_dock_id?: number
+  api_kouku?: {
+    api_stage2?: {
+      api_air_fire?: {
+        api_idx?: number
+        api_kind?: number
+      }
+      api_e_count?: number
+    }
+  }
+}
+
+type ShipSelectorResult = [Partial<AACIShip>?, Partial<AACIShip>?]
+type EquipSelectorResult = Array<[Partial<NightBattleEquip>?, Partial<NightBattleEquip>?, unknown?]>
+type GetShipAACIs = (ship: AACIShip, equips: NightBattleEquip[]) => number[]
 
 export default class AACIReporter extends BaseReporter {
-  getShipAACIs: any
+  getShipAACIs: GetShipAACIs | null
 
   constructor() {
     super()
@@ -16,7 +50,12 @@ export default class AACIReporter extends BaseReporter {
       // console.log(`AACI reporter is disabled.`)
     }
   }
-  handle(method: GameApiMethod, path: GameApiPath, body: any, postBody: GameApiPostBody) {
+  handle(
+    method: GameApiMethod,
+    path: GameApiPath,
+    body: GameApiResponseBody,
+    postBody: GameApiPostBody,
+  ) {
     if (this.getShipAACIs == null) {
       return
     }
@@ -24,28 +63,35 @@ export default class AACIReporter extends BaseReporter {
     switch (path) {
       case '/kcsapi/api_req_sortie/battle':
         {
-          const deckId = (body.api_deck_id || body.api_dock_id || 0) - 1
+          const response = body as AACIBattleBody
+          const deckId = (response.api_deck_id || response.api_dock_id || 0) - 1
           const deck = _decks[deckId]
           const state = window.getStore()
           if (deck == null) break
 
           // Available AACI
-          const deckData = (deck.api_ship || []).map((shipId) => {
-            const [_ship = {}, $ship = {}] = shipDataSelectorFactory(shipId)(state) || []
-            const equips = (shipEquipDataSelectorFactory(shipId)(state) || [])
-              .filter(([_equip, $equip, onslot] = []) => !!_equip && !!$equip)
-              .map(([_equip, $equip, onslot]) => ({ ...$equip, ..._equip }))
-            return [{ ...$ship, ..._ship }, equips]
-          })
+          const deckData: Array<[AACIShip, NightBattleEquip[]]> = (deck.api_ship || []).map(
+            (shipId) => {
+              const [_ship = {}, $ship = {}] =
+                (shipDataSelectorFactory(shipId)(state) as ShipSelectorResult | undefined) || []
+              const equips = (
+                (shipEquipDataSelectorFactory(shipId)(state) as EquipSelectorResult | undefined) ||
+                []
+              )
+                .filter(([_equip, $equip, onslot] = []) => !!_equip && !!$equip)
+                .map(([_equip, $equip, onslot]) => ({ ...$equip, ..._equip }))
+              return [{ ...$ship, ..._ship } as AACIShip, equips as NightBattleEquip[]]
+            },
+          )
           const deckAACIs = deckData.map(([ship, equips]) => this.getShipAACIs(ship, equips))
           const availIdx = deckAACIs.findIndex((aaci) => aaci.length > 0)
           const availKind = deckAACIs[availIdx]
           if (deckAACIs.filter((aaci) => aaci.length > 0).length !== 1) break // Report one available ship only.
 
           // Triggered AACI
-          if (_.get(body, 'api_kouku.api_stage2.api_e_count', 0) <= 0) break
-          const idx = _.get(body, 'api_kouku.api_stage2.api_air_fire.api_idx')
-          const kind = _.get(body, 'api_kouku.api_stage2.api_air_fire.api_kind')
+          if (_.get(response, 'api_kouku.api_stage2.api_e_count', 0) <= 0) break
+          const idx = _.get(response, 'api_kouku.api_stage2.api_air_fire.api_idx')
+          const kind = _.get(response, 'api_kouku.api_stage2.api_air_fire.api_kind')
           if (!((idx == null && kind == null) || (idx === availIdx && availKind.includes(kind))))
             break
 

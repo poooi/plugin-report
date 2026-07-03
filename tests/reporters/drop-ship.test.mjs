@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
   attachReportSpy,
@@ -157,5 +157,35 @@ describe('DropShipReporter', () => {
       }),
     )
     expect(report).toHaveBeenCalledTimes(2)
+  })
+
+  it('reports missing drop state instead of throwing on battle or result events', () => {
+    const reporter = new DropShipReporter()
+    const report = attachReportSpy(reporter)
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    expect(() =>
+      reporter.handle('POST', '/kcsapi/api_req_sortie/battle', {
+        api_formation: [1, 4],
+        api_ship_ke: [0, 900],
+      }),
+    ).not.toThrow()
+    expect(() =>
+      reporter.handle('POST', '/kcsapi/api_req_sortie/battleresult', {
+        api_enemy_info: { api_deck_name: 'Enemy Fleet' },
+        api_get_base_exp: 120,
+        api_quest_name: 'A Victory',
+        api_win_rank: 'S',
+      }),
+    ).not.toThrow()
+
+    expect(report).not.toHaveBeenCalled()
+    expect(consoleError).toHaveBeenCalledWith(
+      'Missing drop state for battle report: /kcsapi/api_req_sortie/battle',
+    )
+    expect(consoleError).toHaveBeenCalledWith(
+      'Missing drop state for battle result report: /kcsapi/api_req_sortie/battleresult',
+    )
+    consoleError.mockRestore()
   })
 })

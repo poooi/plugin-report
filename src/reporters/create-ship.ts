@@ -1,10 +1,58 @@
 import BaseReporter from './base'
-import type { GameApiMethod, GameApiPath, GameApiPostBody } from '../types/game-api'
+import type { APIGetMemberKdockResponse } from 'kcsapi/api_get_member/kdock/response'
+import type { APIReqKousyouCreateshipRequest } from 'kcsapi/api_req_kousyou/createship/request'
+import type {
+  GameApiMethod,
+  GameApiPath,
+  GameApiPostBody,
+  GameApiResponseBody,
+} from '../types/game-api'
+
+type CreateShipPostBody = Pick<
+  APIReqKousyouCreateshipRequest,
+  | 'api_highspeed'
+  | 'api_item1'
+  | 'api_item2'
+  | 'api_item3'
+  | 'api_item4'
+  | 'api_item5'
+  | 'api_kdock_id'
+  | 'api_large_flag'
+>
+
+type CreateShipKdock = Pick<
+  APIGetMemberKdockResponse,
+  'api_created_ship_id' | 'api_item1' | 'api_item2' | 'api_item3' | 'api_item4' | 'api_item5'
+>
+
+interface CreateShipReportPayload {
+  items: number[]
+  kdockId: number
+  largeFlag: boolean
+  highspeed: number
+  secretary: number
+  teitokuLv: number
+  shipId: number
+}
+
+const createShipPostBodyKeys: Array<keyof CreateShipPostBody> = [
+  'api_highspeed',
+  'api_item1',
+  'api_item2',
+  'api_item3',
+  'api_item4',
+  'api_item5',
+  'api_kdock_id',
+  'api_large_flag',
+]
+
+const isCreateShipPostBody = (postBody: GameApiPostBody): postBody is CreateShipPostBody =>
+  createShipPostBodyKeys.every((key) => typeof postBody[key] === 'string')
 
 export default class CreateShipReporter extends BaseReporter {
-  creating: any
-  kdockId: any
-  info: any
+  creating: boolean
+  kdockId: number
+  info: CreateShipReportPayload | null
 
   constructor() {
     super()
@@ -13,9 +61,18 @@ export default class CreateShipReporter extends BaseReporter {
     this.kdockId = -1
     this.info = null
   }
-  handle(method: GameApiMethod, path: GameApiPath, body: any, postBody: GameApiPostBody) {
+  handle(
+    method: GameApiMethod,
+    path: GameApiPath,
+    body: GameApiResponseBody,
+    postBody: GameApiPostBody,
+  ) {
     const { _decks, _ships, _teitokuLv } = window
     if (path === '/kcsapi/api_req_kousyou/createship') {
+      if (!isCreateShipPostBody(postBody)) {
+        console.error('Invalid create ship report data')
+        return
+      }
       this.creating = true
       this.kdockId = parseInt(postBody.api_kdock_id) - 1
       const secretaryIdx = _decks[0].api_ship[0]
@@ -38,7 +95,12 @@ export default class CreateShipReporter extends BaseReporter {
     if (path === '/kcsapi/api_get_member/kdock') {
       if (!this.creating) return
       const { info } = this
-      const dock = body[this.kdockId]
+      const docks = body as CreateShipKdock[]
+      const dock = docks[this.kdockId]
+      if (!info || !dock) {
+        console.error('Invalid kdock create ship report data')
+        return
+      }
       if (
         dock.api_item1 != info.items[0] ||
         dock.api_item2 != info.items[1] ||
