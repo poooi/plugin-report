@@ -37,22 +37,25 @@ describe('NightBattleCIReporter', () => {
     const reporter = new NightBattleCIReporter()
     const report = attachReportSpy(reporter)
 
-    reporter.processData({
-      api_deck_id: 1,
-      api_f_nowhps: [30],
-      api_f_maxhps: [40],
-      api_ship_ke: [0, 900],
-      api_flare_pos: [1],
-      api_hougeki: {
-        api_at_eflag: [0],
-        api_at_list: [0],
-        api_df_list: [[1]],
-        api_si_list: [[1, 2]],
-        api_sp_list: [7],
-        api_cl_list: [2],
-        api_damage: [[10, -1, 5]],
+    reporter.processData(
+      {
+        api_deck_id: 1,
+        api_f_nowhps: [30],
+        api_f_maxhps: [40],
+        api_ship_ke: [0, 900],
+        api_flare_pos: [1],
+        api_hougeki: {
+          api_at_eflag: [0],
+          api_at_list: [0],
+          api_df_list: [[1]],
+          api_si_list: [[1, 2]],
+          api_sp_list: [7],
+          api_cl_list: [2],
+          api_damage: [[10, -1, 5]],
+        },
       },
-    }, 123456)
+      123456,
+    )
 
     expect(report).toHaveBeenCalledWith('/api/report/v2/night_battle_ci', {
       shipId: 500,
@@ -115,29 +118,35 @@ describe('NightBattleCIReporter', () => {
     const reporter = new NightBattleCIReporter()
     const report = attachReportSpy(reporter)
 
-    reporter.processData({
-      api_deck_id: 1,
-      api_f_nowhps: [20],
-      api_f_maxhps: [40],
-      api_ship_ke: [0, 901],
-      api_flare_pos: [-1],
-      api_hougeki: {
-        api_at_eflag: [0],
-        api_at_list: [0],
-        api_df_list: [[1]],
-        api_si_list: [213],
-        api_sp_list: [9],
-        api_cl_list: [1],
-        api_damage: [[4]],
+    reporter.processData(
+      {
+        api_deck_id: 1,
+        api_f_nowhps: [20],
+        api_f_maxhps: [40],
+        api_ship_ke: [0, 901],
+        api_flare_pos: [-1],
+        api_hougeki: {
+          api_at_eflag: [0],
+          api_at_list: [0],
+          api_df_list: [[1]],
+          api_si_list: [213],
+          api_sp_list: [9],
+          api_cl_list: [1],
+          api_damage: [[4]],
+        },
       },
-    }, 789)
+      789,
+    )
 
-    expect(report).toHaveBeenCalledWith('/api/report/v2/night_battle_ci', expect.objectContaining({
-      type: 'SS',
-      CI: 'SS_LMT_LMT',
-      display: [213],
-      damageTotal: 4,
-    }))
+    expect(report).toHaveBeenCalledWith(
+      '/api/report/v2/night_battle_ci',
+      expect.objectContaining({
+        type: 'SS',
+        CI: 'SS_LMT_LMT',
+        display: [213],
+        damageTotal: 4,
+      }),
+    )
   })
 
   it('reports valid carrier cut-ins and skips invalid carrier night attacks', () => {
@@ -148,11 +157,23 @@ describe('NightBattleCIReporter', () => {
       const: { $ships: { 902: { api_stype: 2 } } },
     }
     selectorState.ships.set(1, [
-      ship({ api_ship_id: 545, api_stype: 7, api_luck: [15], api_kyouka: [0, 0, 0, 0, 0], api_lv: 90 }),
+      ship({
+        api_ship_id: 545,
+        api_stype: 7,
+        api_luck: [15],
+        api_kyouka: [0, 0, 0, 0, 0],
+        api_lv: 90,
+      }),
       {},
     ])
     selectorState.ships.set(2, [
-      ship({ api_ship_id: 600, api_stype: 7, api_luck: [15], api_kyouka: [0, 0, 0, 0, 0], api_lv: 90 }),
+      ship({
+        api_ship_id: 600,
+        api_stype: 7,
+        api_luck: [15],
+        api_kyouka: [0, 0, 0, 0, 0],
+        api_lv: 90,
+      }),
       {},
     ])
     selectorState.equips.set(1, [
@@ -166,29 +187,35 @@ describe('NightBattleCIReporter', () => {
     const reporter = new NightBattleCIReporter()
     const report = attachReportSpy(reporter)
 
-    reporter.processData({
-      api_deck_id: 1,
-      api_f_nowhps: [30, 30],
-      api_f_maxhps: [40, 40],
-      api_ship_ke: [0, 902],
-      api_flare_pos: [-1],
-      api_hougeki: {
-        api_at_eflag: [0, 0],
-        api_at_list: [0, 1],
-        api_df_list: [[1], [1]],
-        api_si_list: [[154], [154]],
-        api_sp_list: [1, 1],
-        api_cl_list: [1, 1],
-        api_damage: [[5], [6]],
+    reporter.processData(
+      {
+        api_deck_id: 1,
+        api_f_nowhps: [30, 30],
+        api_f_maxhps: [40, 40],
+        api_ship_ke: [0, 902],
+        api_flare_pos: [-1],
+        api_hougeki: {
+          api_at_eflag: [0, 0],
+          api_at_list: [0, 1],
+          api_df_list: [[1], [1]],
+          api_si_list: [[154], [154]],
+          api_sp_list: [1, 1],
+          api_cl_list: [1, 1],
+          api_damage: [[5], [6]],
+        },
       },
-    }, 456)
+      456,
+    )
 
     expect(report).toHaveBeenCalledTimes(1)
-    expect(report).toHaveBeenCalledWith('/api/report/v2/night_battle_ci', expect.objectContaining({
-      shipId: 545,
-      type: 'CV',
-      CI: 'CV_NF_B_S',
-    }))
+    expect(report).toHaveBeenCalledWith(
+      '/api/report/v2/night_battle_ci',
+      expect.objectContaining({
+        shipId: 545,
+        type: 'CV',
+        CI: 'CV_NF_B_S',
+      }),
+    )
   })
 
   it('skips cut-ins when HP status changes or no player attack order exists', () => {
@@ -228,10 +255,13 @@ describe('NightBattleCIReporter', () => {
 
     reporter.processData(body, 1)
     selectorState.store.battle._status.result.deckHp = [30]
-    reporter.processData({
-      ...body,
-      api_hougeki: { ...body.api_hougeki, api_at_eflag: [1] },
-    }, 1)
+    reporter.processData(
+      {
+        ...body,
+        api_hougeki: { ...body.api_hougeki, api_at_eflag: [1] },
+      },
+      1,
+    )
 
     expect(report).not.toHaveBeenCalled()
   })

@@ -22,11 +22,16 @@ describe('DropShipReporter', () => {
     reporter.handle('GET', '/kcsapi/api_get_member/mapinfo', {
       api_map_info: [{ api_id: 12, api_eventmap: { api_selected_rank: 3 } }],
     })
-    reporter.handle('POST', '/kcsapi/api_req_map/select_eventmap_rank', {}, {
-      api_maparea_id: '1',
-      api_map_no: '2',
-      api_rank: '4',
-    })
+    reporter.handle(
+      'POST',
+      '/kcsapi/api_req_map/select_eventmap_rank',
+      {},
+      {
+        api_maparea_id: '1',
+        api_map_no: '2',
+        api_rank: '4',
+      },
+    )
     reporter.handle('POST', '/kcsapi/api_req_map/start', {
       api_maparea_id: 1,
       api_mapinfo_no: 2,
@@ -77,23 +82,27 @@ describe('DropShipReporter', () => {
       bombersMin: 4,
       bombersMax: 6,
     })
-    expect(report).toHaveBeenNthCalledWith(3, '/api/report/v2/drop_ship', expect.objectContaining({
-      mapId: 12,
-      cellId: 5,
-      isBoss: true,
-      mapLv: 4,
-      enemy: 'Enemy Fleet',
-      enemyShips1: [0, 900],
-      enemyFormation: 4,
-      baseExp: 120,
-      quest: 'A Victory',
-      rank: 'S',
-      shipId: 201,
-      itemId: 301,
-      ownedShipSnapshot: { 101: [101], 102: [102] },
-      teitokuLv: 120,
-      teitokuId: teitokuHash(),
-    }))
+    expect(report).toHaveBeenNthCalledWith(
+      3,
+      '/api/report/v2/drop_ship',
+      expect.objectContaining({
+        mapId: 12,
+        cellId: 5,
+        isBoss: true,
+        mapLv: 4,
+        enemy: 'Enemy Fleet',
+        enemyShips1: [0, 900],
+        enemyFormation: 4,
+        baseExp: 120,
+        quest: 'A Victory',
+        rank: 'S',
+        shipId: 201,
+        itemId: 301,
+        ownedShipSnapshot: { 101: [101], 102: [102] },
+        teitokuLv: 120,
+        teitokuId: teitokuHash(),
+      }),
+    )
     expect(report).toHaveBeenNthCalledWith(4, '/api/report/v2/pass_event', {
       teitokuId: teitokuHash(),
       teitokuLv: 120,
@@ -128,18 +137,25 @@ describe('DropShipReporter', () => {
     })
     await Promise.resolve()
 
-    expect(report).toHaveBeenNthCalledWith(1, '/api/report/v2/enemy_info', expect.objectContaining({
-      ships1: [0, 800],
-      planes: 3,
-      bombersMin: 2,
-      bombersMax: 3,
-    }))
-    expect(report).toHaveBeenCalledWith('/api/report/v2/drop_ship', expect.objectContaining({
-      mapId: 23,
-      isBoss: false,
-      shipId: -1,
-      itemId: -1,
-    }))
+    expect(report).toHaveBeenNthCalledWith(
+      1,
+      '/api/report/v2/enemy_info',
+      expect.objectContaining({
+        ships1: [0, 800],
+        planes: 3,
+        bombersMin: 2,
+        bombersMax: 3,
+      }),
+    )
+    expect(report).toHaveBeenCalledWith(
+      '/api/report/v2/drop_ship',
+      expect.objectContaining({
+        mapId: 23,
+        isBoss: false,
+        shipId: -1,
+        itemId: -1,
+      }),
+    )
     expect(report).toHaveBeenCalledTimes(2)
   })
 })

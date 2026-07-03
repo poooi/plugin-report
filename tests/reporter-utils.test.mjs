@@ -34,12 +34,8 @@ describe('reporter utility helpers', () => {
 
   describe('getNightBattleSSCIType', () => {
     it('detects submarine cut-in equipment patterns by priority', () => {
-      expect(getNightBattleSSCIType([equip({ type2: 51 }), equip({ id: 213 })])).toBe(
-        'SS_LMT_R',
-      )
-      expect(getNightBattleSSCIType([equip({ id: 213 }), equip({ id: 214 })])).toBe(
-        'SS_LMT_LMT',
-      )
+      expect(getNightBattleSSCIType([equip({ type2: 51 }), equip({ id: 213 })])).toBe('SS_LMT_R')
+      expect(getNightBattleSSCIType([equip({ id: 213 }), equip({ id: 214 })])).toBe('SS_LMT_LMT')
       expect(getNightBattleSSCIType([equip({ type2: 51 })])).toBe('SS_T_T')
       expect(getNightBattleSSCIType([])).toBe('')
     })
@@ -49,12 +45,12 @@ describe('reporter utility helpers', () => {
     it('detects destroyer cut-in equipment patterns', () => {
       const radar = equip({ type2: 12, houm: 3 })
 
-      expect(
-        getNightBattleDDCIType([equip({ type2: 1 }), equip({ type2: 5 }), radar]),
-      ).toBe('DD_G_T_R')
-      expect(
-        getNightBattleDDCIType([equip({ type2: 5 }), equip({ id: 129 }), radar]),
-      ).toBe('DD_T_R_P')
+      expect(getNightBattleDDCIType([equip({ type2: 1 }), equip({ type2: 5 }), radar])).toBe(
+        'DD_G_T_R',
+      )
+      expect(getNightBattleDDCIType([equip({ type2: 5 }), equip({ id: 129 }), radar])).toBe(
+        'DD_T_R_P',
+      )
       expect(
         getNightBattleDDCIType([
           equip({ type2: 1 }),
@@ -72,24 +68,14 @@ describe('reporter utility helpers', () => {
       const swordfish = equip({ id: 154 })
       const suisei = equip({ id: 320 })
 
-      expect(getNightBattleCVCIType([nightFighter, nightFighter, nightBomber])).toBe(
-        'CV_NF_NF_NB',
-      )
-      expect(getNightBattleCVCIType([nightFighter, nightFighter, nightFighter])).toBe(
-        'CV_NF_NF_NF',
-      )
-      expect(getNightBattleCVCIType([nightFighter, nightBomber, swordfish])).toBe(
-        'CV_NF_NB_B',
-      )
-      expect(getNightBattleCVCIType([nightFighter, nightFighter, swordfish])).toBe(
-        'CV_NF_NF_B',
-      )
+      expect(getNightBattleCVCIType([nightFighter, nightFighter, nightBomber])).toBe('CV_NF_NF_NB')
+      expect(getNightBattleCVCIType([nightFighter, nightFighter, nightFighter])).toBe('CV_NF_NF_NF')
+      expect(getNightBattleCVCIType([nightFighter, nightBomber, swordfish])).toBe('CV_NF_NB_B')
+      expect(getNightBattleCVCIType([nightFighter, nightFighter, swordfish])).toBe('CV_NF_NF_B')
       expect(getNightBattleCVCIType([nightFighter, swordfish, equip({ id: 242 })])).toBe(
         'CV_NF_B_B',
       )
-      expect(getNightBattleCVCIType([nightFighter, swordfish, suisei])).toBe(
-        'CV_NF_B_S',
-      )
+      expect(getNightBattleCVCIType([nightFighter, swordfish, suisei])).toBe('CV_NF_B_S')
       expect(getNightBattleCVCIType([nightFighter, nightBomber])).toBe('CV_NF_NB')
       expect(getNightBattleCVCIType([nightBomber, suisei])).toBe('CV_NB_S')
       expect(getNightBattleCVCIType([nightFighter, suisei])).toBe('CV_NF_S')

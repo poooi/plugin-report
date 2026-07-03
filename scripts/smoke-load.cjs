@@ -112,14 +112,14 @@ const lodashImplementations = {
     return typeof value === 'string'
   },
   keyBy(values, key) {
-    return Object.fromEntries((values || []).map(value => [value[key], value]))
+    return Object.fromEntries((values || []).map((value) => [value[key], value]))
   },
   map(values, iteratee) {
     return values.map(iteratee)
   },
   memoize(fn) {
     const cache = new Map()
-    return value => {
+    return (value) => {
       if (!cache.has(value)) {
         cache.set(value, fn(value))
       }
@@ -142,8 +142,8 @@ const lodashImplementations = {
     return values.slice(-count)
   },
   zip(...arrays) {
-    const length = Math.max(...arrays.map(array => array.length))
-    return Array.from({ length }, (_, index) => arrays.map(array => array[index]))
+    const length = Math.max(...arrays.map((array) => array.length))
+    return Array.from({ length }, (_, index) => arrays.map((array) => array[index]))
   },
 }
 
@@ -162,9 +162,7 @@ const lodashStub = new Proxy(lodashImplementations, {
 })
 
 const fetchStub = async (requestUrl, options = {}) => {
-  const calls = requestUrl.endsWith('/api/report/v3/known_quests')
-    ? startupFetchCalls
-    : fetchCalls
+  const calls = requestUrl.endsWith('/api/report/v3/known_quests') ? startupFetchCalls : fetchCalls
   calls.push({ requestUrl, options })
   return {
     ok: true,
@@ -224,7 +222,7 @@ Module._load = function smokeLoad(request, parent, isMain) {
   }
 }
 
-const loadExport = mod => mod && (mod.default || mod)
+const loadExport = (mod) => mod && (mod.default || mod)
 
 async function main() {
   try {
@@ -242,7 +240,10 @@ async function main() {
 
     await Promise.resolve()
     assert.strictEqual(startupFetchCalls.length, 1)
-    assert.strictEqual(startupFetchCalls[0].requestUrl, 'https://example.invalid/api/report/v3/known_quests')
+    assert.strictEqual(
+      startupFetchCalls[0].requestUrl,
+      'https://example.invalid/api/report/v3/known_quests',
+    )
 
     const BaseReporter = loadExport(require(baseReporterPath))
     const reporter = new BaseReporter()
@@ -266,7 +267,7 @@ async function main() {
   }
 }
 
-main().catch(error => {
+main().catch((error) => {
   Module._load = originalLoad
   console.error(error)
   process.exitCode = 1

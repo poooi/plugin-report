@@ -80,8 +80,8 @@ export default class NightBattleCIReporter extends BaseReporter {
         ship.api_stype === 2
           ? getNightBattleDDCIType(equips)
           : [13, 14].includes(ship.api_stype)
-          ? getNightBattleSSCIType(equips)
-          : getNightBattleCVCIType(equips)
+            ? getNightBattleSSCIType(equips)
+            : getNightBattleCVCIType(equips)
       if (!CI) {
         return
       }

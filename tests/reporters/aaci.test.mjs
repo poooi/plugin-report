@@ -66,7 +66,7 @@ describe('AACIReporter', () => {
       [equip({ id: 11, level: 0 }), { api_name: 'radar' }],
     ])
     selectorState.equips.set(2, [])
-    aaciState.getShipAACIs = vi.fn(shipData => (shipData.api_ship_id === 400 ? [5] : []))
+    aaciState.getShipAACIs = vi.fn((shipData) => (shipData.api_ship_id === 400 ? [5] : []))
     const reporter = new AACIReporter()
     const report = attachReportSpy(reporter)
 
@@ -136,11 +136,14 @@ describe('AACIReporter', () => {
       api_kouku: { api_stage2: { api_e_count: 1 } },
     })
 
-    expect(report).toHaveBeenCalledWith('/api/report/v2/aaci', expect.objectContaining({
-      available: [7],
-      triggered: undefined,
-      hpPercent: 50,
-      pos: undefined,
-    }))
+    expect(report).toHaveBeenCalledWith(
+      '/api/report/v2/aaci',
+      expect.objectContaining({
+        available: [7],
+        triggered: undefined,
+        hpPercent: 50,
+        pos: undefined,
+      }),
+    )
   })
 })

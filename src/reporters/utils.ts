@@ -1,15 +1,21 @@
 import { createHash } from 'crypto'
 import _ from 'lodash'
 
-const hasAtLeast = num => f => xs => xs.filter(f).length >= num
-const validAll = (...func) => x => func.every(f => f(x))
-const validAny = (...func) => x => func.some(f => f(x))
+const hasAtLeast = (num) => (f) => (xs) => xs.filter(f).length >= num
+const validAll =
+  (...func) =>
+  (x) =>
+    func.every((f) => f(x))
+const validAny =
+  (...func) =>
+  (x) =>
+    func.some((f) => f(x))
 
-const equipType2Is = num => equip => _.get(equip, 'api_type.2') === num
-const equipType3Is = num => equip => _.get(equip, 'api_type.3') === num
-const equipIdIs = num => equip => equip.api_slotitem_id === num
+const equipType2Is = (num) => (equip) => _.get(equip, 'api_type.2') === num
+const equipType3Is = (num) => (equip) => _.get(equip, 'api_type.3') === num
+const equipIdIs = (num) => (equip) => equip.api_slotitem_id === num
 
-export const getHpStyle = percent => {
+export const getHpStyle = (percent) => {
   if (percent <= 25) {
     return 'red'
   } else if (percent <= 50) {
@@ -25,7 +31,7 @@ export const getHpStyle = percent => {
 // LMT = Late Model Torpedo
 // R = Radar
 
-export const getNightBattleSSCIType = equips => {
+export const getNightBattleSSCIType = (equips) => {
   if (
     validAll(
       hasAtLeast(1)(equipType2Is(51)),
@@ -49,11 +55,11 @@ export const getNightBattleSSCIType = equips => {
   return ''
 }
 
-const houmAboveOrEqual = num => equip => equip.api_houm >= num
+const houmAboveOrEqual = (num) => (equip) => equip.api_houm >= num
 
 // G_T_R = Gun Torpedo Radar
 // T_R_P = Torpedo Radar Personnel
-export const getNightBattleDDCIType = equips => {
+export const getNightBattleDDCIType = (equips) => {
   if (
     validAll(
       hasAtLeast(1)(equipType2Is(1)),
@@ -82,7 +88,7 @@ export const getNightBattleDDCIType = equips => {
 // B = Swordfish/Iwai Fighter-Bomber
 // S = Suisei Model 12 (Type 31 Photoelectric Fuze Bombs)
 
-export const getNightBattleCVCIType = equips => {
+export const getNightBattleCVCIType = (equips) => {
   if (validAll(hasAtLeast(2)(equipType3Is(45)), hasAtLeast(1)(equipType3Is(46)))(equips)) {
     return 'CV_NF_NF_NB'
   }
@@ -166,13 +172,13 @@ export const getOwnedShipSnapshot = () => {
   const $ships = JSON.parse(JSON.stringify(window.$ships))
   const yomiMap = _($ships)
     .groupBy('api_yomi')
-    .mapValues(group => _.minBy(group, 'api_id').api_id)
+    .mapValues((group) => _.minBy(group, 'api_id').api_id)
     .value()
 
   return _(ships)
-    .groupBy(s => $ships[s.api_ship_id].api_yomi)
+    .groupBy((s) => $ships[s.api_ship_id].api_yomi)
     .mapKeys((__, yomi) => yomiMap[yomi])
-    .mapValues(group => _.map(group, 'api_ship_id'))
+    .mapValues((group) => _.map(group, 'api_ship_id'))
     .value()
 }
 

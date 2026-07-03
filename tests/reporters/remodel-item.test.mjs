@@ -14,16 +14,26 @@ describe('RemodelItemReporter', () => {
     const reporter = new RemodelItemReporter()
     const report = attachReportSpy(reporter)
 
-    reporter.handle('POST', '/kcsapi/api_req_kousyou/remodel_slotlist_detail', {}, {
-      api_slot_id: 501,
-    })
-    reporter.handle('POST', '/kcsapi/api_req_kousyou/remodel_slot', {
-      api_remodel_flag: 1,
-      api_remodel_id: [700],
-    }, {
-      api_slot_id: 501,
-      api_certain_flag: 1,
-    })
+    reporter.handle(
+      'POST',
+      '/kcsapi/api_req_kousyou/remodel_slotlist_detail',
+      {},
+      {
+        api_slot_id: 501,
+      },
+    )
+    reporter.handle(
+      'POST',
+      '/kcsapi/api_req_kousyou/remodel_slot',
+      {
+        api_remodel_flag: 1,
+        api_remodel_id: [700],
+      },
+      {
+        api_slot_id: 501,
+        api_certain_flag: 1,
+      },
+    )
 
     expect(report).toHaveBeenCalledWith('/api/report/v2/remodel_item', {
       successful: 1,
@@ -46,15 +56,25 @@ describe('RemodelItemReporter', () => {
     const report = attachReportSpy(reporter)
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
 
-    reporter.handle('POST', '/kcsapi/api_req_kousyou/remodel_slotlist_detail', {}, {
-      api_slot_id: 501,
-    })
-    reporter.handle('POST', '/kcsapi/api_req_kousyou/remodel_slot', {
-      api_remodel_flag: 1,
-      api_remodel_id: [700],
-    }, {
-      api_slot_id: 999,
-    })
+    reporter.handle(
+      'POST',
+      '/kcsapi/api_req_kousyou/remodel_slotlist_detail',
+      {},
+      {
+        api_slot_id: 501,
+      },
+    )
+    reporter.handle(
+      'POST',
+      '/kcsapi/api_req_kousyou/remodel_slot',
+      {
+        api_remodel_flag: 1,
+        api_remodel_id: [700],
+      },
+      {
+        api_slot_id: 999,
+      },
+    )
 
     expect(report).not.toHaveBeenCalled()
     expect(consoleError).toHaveBeenCalled()
