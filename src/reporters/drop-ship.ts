@@ -212,7 +212,11 @@ export default class DropShipReporter extends BaseReporter {
       case '/kcsapi/api_req_combined_battle/ec_night_to_day':
         {
           const response = body as BattleBody
-          const drop = this.drop as DropReport
+          const drop = this.drop
+          if (!drop) {
+            console.error(`Missing drop state for battle report: ${path}`)
+            return
+          }
           drop.enemyShips1 = response.api_ship_ke
           drop.enemyShips2 = response.api_ship_ke_combined
           drop.enemyFormation = response.api_formation[1]
@@ -224,7 +228,11 @@ export default class DropShipReporter extends BaseReporter {
       case '/kcsapi/api_req_combined_battle/battleresult':
         {
           const response = body as BattleResultBody
-          const drop = this.drop as DropReport
+          const drop = this.drop
+          if (!drop) {
+            console.error(`Missing drop state for battle result report: ${path}`)
+            return
+          }
           drop.enemy = response.api_enemy_info.api_deck_name
           drop.quest = response.api_quest_name
           drop.rank = response.api_win_rank
