@@ -55,6 +55,7 @@ describe('ShipStatReporter', () => {
     const reporter = new ShipStatReporter()
     const report = attachReportSpy(reporter)
 
+    reporter.handle('GET', '/kcsapi/api_get_member/ship3', {})
     reporter.handle('GET', '/kcsapi/api_get_member/ship3', {
       api_ship_data: [],
     })

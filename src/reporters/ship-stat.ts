@@ -21,7 +21,7 @@ type ShipStatShip = Pick<
 >
 
 interface ShipStatResponseBody {
-  api_ship_data: ShipStatShip[]
+  api_ship_data?: ShipStatShip[]
 }
 
 export default class ShipStatReporter extends BaseReporter {
@@ -37,7 +37,7 @@ export default class ShipStatReporter extends BaseReporter {
     }
 
     const response = body as ShipStatResponseBody
-    const ship = response.api_ship_data[0]
+    const ship = response.api_ship_data?.[0]
     if (!ship) {
       return
     }

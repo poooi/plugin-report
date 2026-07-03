@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import { shipDataSelectorFactory, shipEquipDataSelectorFactory } from 'views/utils/selectors'
-import type { getShipAACIs as getShipAACIsHelper } from 'views/utils/aaci'
+import type * as aaciModule from 'views/utils/aaci'
 
 import BaseReporter from './base'
 import type {
@@ -38,6 +38,7 @@ interface AACIBattleBody {
 type ShipSelectorResult = [Partial<AACIShip>?, Partial<AACIShip>?]
 type EquipSelectorResult = Array<[Partial<NightBattleEquip>?, Partial<NightBattleEquip>?, unknown?]>
 type GetShipAACIs = (ship: AACIShip, equips: NightBattleEquip[]) => number[]
+type AACIModule = typeof aaciModule
 
 export default class AACIReporter extends BaseReporter {
   getShipAACIs: GetShipAACIs | null = null
@@ -47,7 +48,7 @@ export default class AACIReporter extends BaseReporter {
     try {
       // Runtime-provided optional Poi module; keep require guarded so reporter load still succeeds without it.
       // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const aaci = require('views/utils/aaci') as { getShipAACIs: typeof getShipAACIsHelper }
+      const aaci = require('views/utils/aaci') as AACIModule
       this.getShipAACIs = aaci.getShipAACIs
     } catch (err) {
       // console.log(`AACI reporter is disabled.`)
