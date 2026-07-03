@@ -59,4 +59,19 @@ describe('NightContactReportor', () => {
 
     expect(report).not.toHaveBeenCalled()
   })
+
+  it('does not throw when air battle stage data is absent', () => {
+    const reporter = new NightContactReportor()
+    const report = attachReportSpy(reporter)
+
+    expect(() =>
+      reporter.handle('POST', '/kcsapi/api_req_sortie/battle', {
+        api_midnight_flag: 1,
+        api_kouku: {},
+      }),
+    ).not.toThrow()
+
+    expect(reporter.isValid).toBe(false)
+    expect(report).not.toHaveBeenCalled()
+  })
 })

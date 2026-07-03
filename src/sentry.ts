@@ -4,8 +4,34 @@ import * as Sentry from '@sentry/electron'
 import { isString, includes, get, each, takeRight, split } from 'lodash'
 import path from 'path'
 
-export const init = ({ build, paths }) => {
-  const fromatRelative = (url) => {
+interface SentryInitOptions {
+  build: unknown
+  paths: string[]
+}
+
+interface SentryEvent {
+  exception?: {
+    mechanism?: {
+      data?: {
+        message?: string
+      }
+    }
+    values?: Array<{
+      stacktrace?: {
+        frames?: Array<{
+          filename?: string
+        }>
+      }
+    }>
+  }
+}
+
+interface SentryBreadcrumb {
+  category?: string
+}
+
+export const init = ({ build, paths }: SentryInitOptions) => {
+  const fromatRelative = (url: string) => {
     if (url.startsWith('app://')) {
       return url
     }
@@ -28,7 +54,7 @@ export const init = ({ build, paths }) => {
 
   Sentry.init({
     dsn: 'https://bc58c4a7f37a43e8aa89ba9097536c84@sentry.io/1250935',
-    beforeSend(event) {
+    beforeSend(event: SentryEvent) {
       if (
         includes(
           get(event, 'exception.mechanism.data.message'),
@@ -49,7 +75,7 @@ export const init = ({ build, paths }) => {
       // console.log(util.inspect(event, { depth: null }))
       return event
     },
-    beforeBreadcrumb(breadcrumb) {
+    beforeBreadcrumb(breadcrumb: SentryBreadcrumb) {
       if (breadcrumb.category === 'console') {
         return null
       }

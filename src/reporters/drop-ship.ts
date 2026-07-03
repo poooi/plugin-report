@@ -239,7 +239,7 @@ export default class DropShipReporter extends BaseReporter {
           drop.baseExp = response.api_get_base_exp
           drop.shipId = (response.api_get_ship || {}).api_ship_id || -1
           drop.itemId = (response.api_get_useitem || {}).api_useitem_id || -1
-          drop.ownedShipSnapshot = this.ownedShipSnapshot
+          drop.ownedShipSnapshot = this.ownedShipSnapshot || undefined
           drop.teitokuLv = _teitokuLv
           drop.teitokuId = teitokuId
           // Report enemy pattern and drops

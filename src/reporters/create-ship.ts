@@ -75,7 +75,13 @@ export default class CreateShipReporter extends BaseReporter {
       }
       this.creating = true
       this.kdockId = parseInt(postBody.api_kdock_id) - 1
-      const secretaryIdx = _decks[0].api_ship[0]
+      const secretaryIdx = _decks[0]?.api_ship[0]
+      const secretary = secretaryIdx == null ? undefined : _ships[secretaryIdx]
+      if (!secretary) {
+        console.error('Invalid create ship secretary data')
+        this.creating = false
+        return
+      }
       this.info = {
         items: [
           parseInt(postBody.api_item1),
@@ -87,7 +93,7 @@ export default class CreateShipReporter extends BaseReporter {
         kdockId: this.kdockId,
         largeFlag: parseInt(postBody.api_large_flag) != 0,
         highspeed: parseInt(postBody.api_highspeed),
-        secretary: _ships[secretaryIdx].api_ship_id,
+        secretary: secretary.api_ship_id,
         teitokuLv: _teitokuLv,
         shipId: -1,
       }

@@ -39,7 +39,7 @@ type EquipSelectorResult = Array<[Partial<NightBattleEquip>?, Partial<NightBattl
 type GetShipAACIs = (ship: AACIShip, equips: NightBattleEquip[]) => number[]
 
 export default class AACIReporter extends BaseReporter {
-  getShipAACIs: GetShipAACIs | null
+  getShipAACIs: GetShipAACIs | null = null
 
   constructor() {
     super()
@@ -59,6 +59,7 @@ export default class AACIReporter extends BaseReporter {
     if (this.getShipAACIs == null) {
       return
     }
+    const getShipAACIs = this.getShipAACIs
     const { _decks } = window
     switch (path) {
       case '/kcsapi/api_req_sortie/battle':
@@ -78,24 +79,34 @@ export default class AACIReporter extends BaseReporter {
                 (shipEquipDataSelectorFactory(shipId)(state) as EquipSelectorResult | undefined) ||
                 []
               )
-                .filter(([_equip, $equip, onslot] = []) => !!_equip && !!$equip)
-                .map(([_equip, $equip, onslot]) => ({ ...$equip, ..._equip }))
+                .filter(
+                  (entry: [Partial<NightBattleEquip>?, Partial<NightBattleEquip>?, unknown?]) => {
+                    const [_equip, $equip] = entry
+                    return !!_equip && !!$equip
+                  },
+                )
+                .map(([_equip, $equip]) => ({ ...$equip, ..._equip }))
               return [{ ...$ship, ..._ship } as AACIShip, equips as NightBattleEquip[]]
             },
           )
-          const deckAACIs = deckData.map(([ship, equips]) => this.getShipAACIs(ship, equips))
+          const deckAACIs = deckData.map(([ship, equips]) => getShipAACIs(ship, equips))
           const availIdx = deckAACIs.findIndex((aaci) => aaci.length > 0)
           const availKind = deckAACIs[availIdx]
           if (deckAACIs.filter((aaci) => aaci.length > 0).length !== 1) break // Report one available ship only.
+          if (!availKind) break
 
           // Triggered AACI
           if (_.get(response, 'api_kouku.api_stage2.api_e_count', 0) <= 0) break
           const idx = _.get(response, 'api_kouku.api_stage2.api_air_fire.api_idx')
           const kind = _.get(response, 'api_kouku.api_stage2.api_air_fire.api_kind')
-          if (!((idx == null && kind == null) || (idx === availIdx && availKind.includes(kind))))
+          if (idx == null && kind == null) {
+            // No AACI trigger fields means report available AACI only.
+          } else if (kind == null || idx !== availIdx || !availKind.includes(kind)) {
             break
+          }
 
           const [ship, equips] = deckData[availIdx]
+          if (!ship || !equips) break
 
           // Report
           this.report('/api/report/v2/aaci', {
@@ -104,8 +115,8 @@ export default class AACIReporter extends BaseReporter {
             triggered: kind,
             items: equips.map((equip) => equip.api_slotitem_id),
             improvement: equips.map((equip) => equip.api_level || 0),
-            rawLuck: ship.api_luck[0] + ship.api_kyouka[4],
-            rawTaiku: ship.api_tyku[0] + ship.api_kyouka[2],
+            rawLuck: (ship.api_luck[0] || 0) + (ship.api_kyouka[4] || 0),
+            rawTaiku: (ship.api_tyku[0] || 0) + (ship.api_kyouka[2] || 0),
             lv: ship.api_lv,
             hpPercent: Math.floor((ship.api_nowhp * 10000) / ship.api_maxhp) / 100,
             pos: idx,

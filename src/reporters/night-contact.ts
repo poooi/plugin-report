@@ -48,10 +48,15 @@ export default class NightContactReportor extends BaseReporter {
       case '/kcsapi/api_req_sortie/ld_airbattle':
         {
           const stage1 = _.get(response, 'api_kouku.api_stage1')
+          if (!stage1) {
+            this.isValid = false
+            break
+          }
           const planeCount = (stage1.api_f_count || 0) + (stage1.api_e_count || 0)
           this.isValid =
             response.api_midnight_flag === 1 &&
             planeCount > 0 &&
+            stage1.api_disp_seiku != null &&
             [1, 2, 3].includes(stage1.api_disp_seiku)
         }
         break
@@ -77,9 +82,12 @@ export default class NightContactReportor extends BaseReporter {
             for (const [iid, cnt] of _.zip(items, count) as Array<
               [number | undefined, number | undefined]
             >) {
+              if (iid == null) {
+                continue
+              }
               const item = getWindowSlotItem(iid)
               // Condition * & 4
-              if (item && item.api_slotitem_id === this.VALID_PLANE_ID && cnt > 0) {
+              if (item && item.api_slotitem_id === this.VALID_PLANE_ID && (cnt || 0) > 0) {
                 entries.push([ship, item])
               }
             }
@@ -102,8 +110,8 @@ export default class NightContactReportor extends BaseReporter {
             break
 
           // Prevent reporting data with null value.
-          for (const k of Object.keys(info)) {
-            if (info[k] == null) break
+          if (Object.values(info).some((value) => value == null)) {
+            break
           }
           this.report('/api/report/v2/night_contcat', info)
         }

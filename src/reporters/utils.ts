@@ -30,11 +30,8 @@ interface PlaneCountResult {
 
 type Predicate<T> = (value: T) => boolean
 
-const hasAtLeast =
-  <T>(num: number) =>
-  (f: Predicate<T>) =>
-  (xs: T[]) =>
-    xs.filter(f).length >= num
+const hasAtLeast = (num: number) => (f: Predicate<NightBattleEquip>) => (xs: NightBattleEquip[]) =>
+  xs.filter(f).length >= num
 const validAll =
   <T>(...func: Array<Predicate<T>>) =>
   (x: T) =>
@@ -210,7 +207,7 @@ export const getOwnedShipSnapshot = (): Record<string, number[]> => {
   >
   const yomiMap = _($ships)
     .groupBy('api_yomi')
-    .mapValues((group) => _.minBy(group, 'api_id').api_id)
+    .mapValues((group) => _.minBy(group, 'api_id')?.api_id ?? -1)
     .value()
 
   return _(ships)
