@@ -2,6 +2,7 @@ import url from 'url'
 import * as Sentry from '@sentry/electron'
 import fetch, { type RequestInit } from 'node-fetch'
 import https from 'https'
+import packageMeta from '../../package.json'
 import type { ReportPayload } from '../types/reporter'
 
 // Because let's encrypt has switched to a new root cert which is not supported in older version of Electron,
@@ -10,7 +11,6 @@ const insecureAgent = new https.Agent({
   rejectUnauthorized: false,
 })
 
-const packageMeta = require('../../package.json') as { version: string }
 const { SERVER_HOSTNAME, POI_VERSION } = window
 
 export default class BaseReporter {

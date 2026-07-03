@@ -45,6 +45,8 @@ export default class AACIReporter extends BaseReporter {
   constructor() {
     super()
     try {
+      // Runtime-provided optional Poi module; keep require guarded so reporter load still succeeds without it.
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const aaci = require('views/utils/aaci') as { getShipAACIs: typeof getShipAACIsHelper }
       this.getShipAACIs = aaci.getShipAACIs
     } catch (err) {
