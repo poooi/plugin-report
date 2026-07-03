@@ -52,7 +52,7 @@ export default class NightBattleCIReporter extends BaseReporter {
     const state = window.getStore()
 
     // normal map only
-    if (state.sortie.sortieMapId > 100) {
+    if ((state.sortie?.sortieMapId || 0) > 100) {
       return
     }
 
@@ -68,8 +68,11 @@ export default class NightBattleCIReporter extends BaseReporter {
         const equips = _(
           (shipEquipDataSelectorFactory(shipId)(state) as EquipSelectorResult | undefined) || [],
         )
-          .filter(([_equip, $equip, onslot] = []) => !!_equip && !!$equip)
-          .map(([_equip, $equip, onslot]) => ({ ...$equip, ..._equip }))
+          .filter((entry: [Partial<NightBattleEquip>?, Partial<NightBattleEquip>?, unknown?]) => {
+            const [_equip, $equip] = entry
+            return !!_equip && !!$equip
+          })
+          .map(([_equip, $equip]) => ({ ...$equip, ..._equip }))
           .value() as NightBattleEquip[]
         return [{ ...$ship, ..._ship } as NightBattleShip, equips]
       })
@@ -98,7 +101,7 @@ export default class NightBattleCIReporter extends BaseReporter {
 
     const searchLight = deckData.some(
       ([__, equips], index) =>
-        equips.some((equip) => equip.api_type[3] === 24) && api_f_nowhps[index] > 0,
+        equips.some((equip) => equip.api_type?.[3] === 24) && api_f_nowhps[index] > 0,
     )
 
     ReportIndex.forEach((i) => {

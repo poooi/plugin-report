@@ -115,6 +115,18 @@ export default class RemodelRecipeReporter extends BaseReporter {
     this.itemId = -1
     this.recipeId = -1
     this.recipes = {}
+    this.day = -1
+    this.stage = -1
+    this.fuel = undefined
+    this.ammo = 0
+    this.steel = 0
+    this.bauxite = 0
+    this.reqItemId = -1
+    this.reqItemCount = 0
+    this.buildkit = 0
+    this.remodelkit = 0
+    this.certainBuildkit = 0
+    this.certainRemodelkit = 0
   }
   getStage(level: number) {
     switch (true) {
@@ -202,7 +214,7 @@ export default class RemodelRecipeReporter extends BaseReporter {
           const upgradeToItemId =
             response.api_remodel_id[1] != this.itemId ? response.api_remodel_id[1] : -1
           const afterSlot = response.api_after_slot || {}
-          const upgradeToItemLevel = upgradeToItemId >= 0 ? afterSlot.api_level : -1
+          const upgradeToItemLevel = upgradeToItemId >= 0 ? (afterSlot.api_level ?? -1) : -1
           const secretary = response.api_voice_ship_id || -1
 
           const info: RemodelRecipeReportPayload = {

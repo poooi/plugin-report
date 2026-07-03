@@ -89,6 +89,36 @@ describe('CreateShipReporter', () => {
     consoleError.mockRestore()
   })
 
+  it('reports invalid construction secretary state instead of throwing', () => {
+    window._ships = {}
+    const reporter = new CreateShipReporter()
+    const report = attachReportSpy(reporter)
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    expect(() =>
+      reporter.handle(
+        'POST',
+        '/kcsapi/api_req_kousyou/createship',
+        {},
+        {
+          api_kdock_id: '2',
+          api_item1: '30',
+          api_item2: '31',
+          api_item3: '32',
+          api_item4: '33',
+          api_item5: '1',
+          api_large_flag: '1',
+          api_highspeed: '0',
+        },
+      ),
+    ).not.toThrow()
+
+    expect(reporter.creating).toBe(false)
+    expect(report).not.toHaveBeenCalled()
+    expect(consoleError).toHaveBeenCalledWith('Invalid create ship secretary data')
+    consoleError.mockRestore()
+  })
+
   it('reports invalid kdock updates instead of throwing', () => {
     const reporter = new CreateShipReporter()
     const report = attachReportSpy(reporter)

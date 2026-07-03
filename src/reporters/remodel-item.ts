@@ -51,8 +51,14 @@ export default class RemodelItemReporter extends BaseReporter {
             console.error(`Inconsistent remodel item data: ${this.itemId}, ${request.api_slot_id}`)
             return
           }
-          const flagship = _ships[_decks[0].api_ship[0]]
-          const consort = _ships[_decks[0].api_ship[1]]
+          const flagshipId = _decks[0]?.api_ship[0]
+          const consortId = _decks[0]?.api_ship[1]
+          const flagship = flagshipId == null ? undefined : _ships[flagshipId]
+          const consort = consortId == null ? undefined : _ships[consortId]
+          if (!flagship || !consort) {
+            console.error('Invalid remodel item secretary data')
+            return
+          }
           this.report('/api/report/v2/remodel_item', {
             successful: response.api_remodel_flag,
             itemId: response.api_remodel_id[0],

@@ -64,4 +64,24 @@ describe('CreateItemReporter', () => {
     expect(consoleError).toHaveBeenCalledWith('Invalid create item report data')
     consoleError.mockRestore()
   })
+
+  it('reports invalid secretary state instead of throwing', () => {
+    window._ships = {}
+    const reporter = new CreateItemReporter()
+    const report = attachReportSpy(reporter)
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    expect(() =>
+      reporter.handle(
+        'POST',
+        '/kcsapi/api_req_kousyou/createitem',
+        { api_get_items: [{ api_slotitem_id: 25 }] },
+        { api_item1: '10', api_item2: '20', api_item3: '30', api_item4: '40' },
+      ),
+    ).not.toThrow()
+
+    expect(report).not.toHaveBeenCalled()
+    expect(consoleError).toHaveBeenCalledWith('Invalid create item secretary data')
+    consoleError.mockRestore()
+  })
 })

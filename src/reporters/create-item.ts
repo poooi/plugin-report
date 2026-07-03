@@ -38,7 +38,12 @@ export default class CreateItemReporter extends BaseReporter {
         console.error('Invalid create item report data')
         return
       }
-      const secretaryIdx = _decks[0].api_ship[0]
+      const secretaryIdx = _decks[0]?.api_ship[0]
+      const secretary = secretaryIdx == null ? undefined : _ships[secretaryIdx]
+      if (!secretary) {
+        console.error('Invalid create item secretary data')
+        return
+      }
       body.api_get_items.forEach((item) => {
         this.report('/api/report/v2/create_item', {
           items: [
@@ -49,7 +54,7 @@ export default class CreateItemReporter extends BaseReporter {
           ],
           itemId: item.api_slotitem_id,
           teitokuLv: _teitokuLv,
-          secretary: _ships[secretaryIdx].api_ship_id,
+          secretary: secretary.api_ship_id,
           successful: item.api_slotitem_id !== -1,
         })
       })

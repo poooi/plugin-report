@@ -80,4 +80,32 @@ describe('RemodelItemReporter', () => {
     expect(consoleError).toHaveBeenCalledWith('Inconsistent remodel item data: 501, 999')
     consoleError.mockRestore()
   })
+
+  it('reports invalid remodel secretary state instead of throwing', () => {
+    const reporter = new RemodelItemReporter()
+    const report = attachReportSpy(reporter)
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    reporter.itemId = 501
+    window._ships = {}
+
+    expect(() =>
+      reporter.handle(
+        'POST',
+        '/kcsapi/api_req_kousyou/remodel_slot',
+        {
+          api_remodel_flag: 1,
+          api_remodel_id: [700],
+        },
+        {
+          api_slot_id: 501,
+          api_certain_flag: 1,
+        },
+      ),
+    ).not.toThrow()
+
+    expect(report).not.toHaveBeenCalled()
+    expect(consoleError).toHaveBeenCalledWith('Invalid remodel item secretary data')
+    consoleError.mockRestore()
+  })
 })

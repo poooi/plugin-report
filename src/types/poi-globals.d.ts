@@ -5,8 +5,13 @@ import type {
   WindowShip,
   WindowSlotItem,
 } from './window-state'
+import type { GameResponseEvent } from './game-api'
 
 declare global {
+  interface WindowEventMap {
+    'game.response': GameResponseEvent
+  }
+
   interface Window {
     POI_VERSION: string
     LATEST_COMMIT: string
