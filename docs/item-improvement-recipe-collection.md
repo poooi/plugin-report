@@ -1,8 +1,8 @@
-# Item improvement recipe collection plan
+# Remodel recipe collection plan
 
 ## Purpose
 
-Build a reliable item improvement recipe dataset from client observations. The dataset should eventually power a UI where users can answer questions such as:
+Build a reliable remodel recipe dataset from client observations. This plan is scoped to the recipe facts needed to answer questions such as:
 
 - What equipment can be improved on a given JST weekday?
 - Which helper ship is required?
@@ -10,18 +10,39 @@ Build a reliable item improvement recipe dataset from client observations. The d
 - What equipment or special items are consumed?
 - What can the equipment update into?
 
-Success-rate estimation is out of scope. The collection should focus on recipe availability, costs, helper/day conditions, star-level ranges, and update paths.
+Recommendation ranking, improvement-effect math, fit-bonus data, equipment categories, and clipping/list-management features should come from other datasets or applications. Do not expand this reporter to collect those non-recipe UI features.
+
+Success-rate estimation is optional and should remain separate from recipe facts. It can share the same observed execution events, but success/failure counts must not be required to prove recipe availability, exact costs, required materials, helper/day conditions, star-level ranges, or update paths.
+
+## Data sufficiency goal
+
+The reporter will need to be published before real-world coverage is complete, so the schema must be proven useful before release. Separate two questions:
+
+1. **Schema completeness**: whether every field needed by the canonical remodel recipe database can be represented by the collected payloads.
+2. **Population coverage**: whether enough players have observed enough recipes, days, helpers, star levels, and conversions.
+
+Schema completeness must be validated before publishing the reporter. Population coverage can only grow after release, but the data model must expose what is missing instead of silently producing incomplete public rows.
+
+Pre-release schema completeness requirements:
+
+- Every public canonical recipe field must have a source: list observation, detail observation, execution observation, master data, or manual/wiki override.
+- A fixture-driven external builder must be able to transform representative v3 facts into canonical rows without relying on any legacy v2-only field.
+- Unknown or unobserved data must remain explicit, for example `helperRequirement: "unknown"` or missing update fact, rather than being guessed.
+- Availability-only list facts must be useful for coverage tracking, but must not be enough to publish exact cost rows.
+- Detail facts must be enough to publish exact star-level costs and requirements even when the user cancels before execution.
+- Execution facts must add only conversion/update targets. Normal star-increment successes must not be required for recipe reconstruction.
+- Conflicting facts must be preserved as separate candidates and visible to the builder/admin report.
 
 ## Sources and verification
 
 This design must stay tied to actively maintained gameplay documentation and current API definitions. Before implementation, re-check the source freshness and update this section if any field or mechanic has changed.
 
-Verified on 2026-06-30 using the local proxy `127.0.0.1:1080` where needed.
+Initially verified on 2026-06-30 using the local proxy `127.0.0.1:1080` where needed. Japanese wiki freshness and remodel API field presence were spot-checked again on 2026-07-04.
 
 | Source                                                                                                                                                                                             | Verification status                                                                                                                                                                                          | Used for                                                                                                                                                         |
 | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [艦これ攻略 Wiki\* - 改修工廠](https://wikiwiki.jp/kancolle/%E6%94%B9%E4%BF%AE%E5%B7%A5%E5%BB%A0)                                                                                                  | Directly fetched; page reported `Last-modified: 2026-05-30 (土) 09:45:52`.                                                                                                                                   | Core mechanics: Akashi/Akashi Kai requirement, helper/day dependency, JST menu refresh, consumption behavior, update behavior.                                   |
-| [艦これ攻略 Wiki\* - 改修表](https://wikiwiki.jp/kancolle/%E6%94%B9%E4%BF%AE%E8%A1%A8)                                                                                                             | Directly fetched; page reported `Last-modified: 2026-06-29 (月) 06:37:20`.                                                                                                                                   | Recipe dimensions needed by the final UI: equipment, helper ship, weekday, star bracket, resource costs, required equipment/items, update target.                |
+| [艦これ攻略 Wiki\* - 改修表](https://wikiwiki.jp/kancolle/%E6%94%B9%E4%BF%AE%E8%A1%A8)                                                                                                             | Directly fetched; page reported `Last-modified: 2026-07-04 (土) 06:04:50` during the 2026-07-04 spot-check.                                                                                                  | Recipe dimensions needed by the final UI: equipment, helper ship, weekday, star bracket, resource costs, required equipment/items, update target.                |
 | [English KanColle Wiki - Akashi's Improvement Arsenal](https://en.kancollewiki.net/Akashi%27s_Improvement_Arsenal) and [Helper](https://en.kancollewiki.net/Akashi%27s_Improvement_Arsenal/Helper) | Direct fetch returned HTTP 403 during this planning session. Treat as a cross-language terminology/reference source only after manual verification; do not use as the sole source of truth for field design. | English naming/terminology and UI wording cross-check.                                                                                                           |
 | [KanColle Fandom - Akashi's Improvement Arsenal](https://kancolle.fandom.com/wiki/Akashi%27s_Improvement_Arsenal)                                                                                  | API metadata fetched; latest revision timestamp was `2020-04-03T14:10:14Z`, so it is not treated as an actively maintained source for current recipe mechanics.                                              | Historical/terminology reference only, not authoritative.                                                                                                        |
 | [`KagamiChan/kcsapi.ts` - `api_req_kousyou/remodel_slotlist/response.ts`](https://github.com/KagamiChan/kcsapi.ts/blob/master/api_req_kousyou/remodel_slotlist/response.ts)                        | Directly fetched from GitHub; blob SHA observed as `f52fbbe6b44f4c220f13fab2efe6ed7c9e1124dd`.                                                                                                               | Current typed fields for `remodel_slotlist`.                                                                                                                     |
@@ -132,22 +153,24 @@ Called only when the user executes the improvement.
 
 Useful response fields:
 
-| Field               | Meaning                                                                                                          |
-| ------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| `api_remodel_flag`  | Success flag. Do not use for success-rate collection; only use to know whether after-slot fields are meaningful. |
-| `api_remodel_id`    | `[beforeItemId, afterItemId]`.                                                                                   |
-| `api_after_slot`    | Result slot item when successful; includes `api_slotitem_id`, `api_level`, and optional `api_alv`.               |
-| `api_use_slot_id`   | Consumed roster slot IDs when present.                                                                           |
-| `api_voice_ship_id` | Helper voice ship ID; useful but not always the exact helper remodel form.                                       |
+| Field               | Meaning                                                                                                             |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `api_remodel_flag`  | Success flag. Required for optional success-rate telemetry; successful responses also make after-slot fields valid. |
+| `api_remodel_id`    | `[beforeItemId, afterItemId]`.                                                                                      |
+| `api_after_slot`    | Result slot item when successful; includes `api_slotitem_id`, `api_level`, and optional `api_alv`.                  |
+| `api_use_slot_id`   | Consumed roster slot IDs when present.                                                                              |
+| `api_voice_ship_id` | Helper voice ship ID; useful but not always the exact helper remodel form.                                          |
 
 What this adds:
 
 - Update target item ID and resulting star level when execution succeeds.
 - Confirmation that a recipe can update into another item.
+- Optional aggregate attempt telemetry for success-rate estimation.
 
 What this should not be required for:
 
 - Reporting basic recipe existence or exact costs.
+- Building the canonical remodel recipe database.
 
 ## Client data collection design
 
@@ -174,7 +197,9 @@ Recommended implementation:
 1. Keep `RemodelRecipeReporter` for `/api/report/v2/remodel_recipe`.
 2. Add a new reporter or extend the existing reporter to emit `/api/report/v3/item_improvement_recipe`.
 3. Prefer a separate `ItemImprovementRecipeReporter` if the code gets hard to reason about; otherwise keep one class with v2 and v3 methods.
-4. Do not re-enable the old `RemodelItemReporter` as-is. It was stopped in 2016 and collects attempt/success-rate-shaped data, which is not the goal.
+4. Do not re-enable the old `RemodelItemReporter` as-is. It was stopped in 2016 and only reports attempt-shaped records after execution, which is not enough for recipe reconstruction.
+5. If success-rate telemetry is included, prefer a separate reporter and endpoint, for example `ItemImprovementSuccessRateReporter` -> `/api/report/v3/item_improvement_attempt`. The success-rate reporter may listen to the same `remodel_slotlist_detail` and `remodel_slot` events, but it must own its own cached execution context and must not mutate recipe fact state.
+6. Do not mix success/failure counts into availability, cost, or update fact confidence.
 
 ### Event handling
 
@@ -254,17 +279,21 @@ Detail observation shape:
 #### On `remodel_slot`
 
 1. Match cached detail by `recipeId` and local-only `slotId`.
-2. If successful, `api_after_slot` exists, and the item actually converts (`api_remodel_id[0] !== api_remodel_id[1]` or `api_after_slot.api_slotitem_id !== itemId`):
+2. If optional success-rate telemetry is enabled, let the separate success-rate reporter report an aggregate attempt fact for both successful and failed executions:
+   - reuse the matched detail observation's `recipeId`, `itemId`, `itemLevel`, `stage`, `day`, `observedSecondShipId`, and `observedFlagshipId`
+   - include request `api_certain_flag` so guaranteed attempts can be excluded from normal success-rate estimation
+   - include only aggregate dimensions and `successful`; never send per-user identifiers or roster slot IDs
+3. If successful, `api_after_slot` exists, and the item actually converts (`api_remodel_id[0] !== api_remodel_id[1]` or `api_after_slot.api_slotitem_id !== itemId`):
    - set `source: "execution"`
    - set `upgradeObserved: true`
    - set `upgradeToItemId`
    - set `upgradeToItemLevel`
    - use `upgradeTo*` naming consistently; do not introduce separate `afterItem*` fields unless a later schema explicitly needs them
-3. Report this conversion as an `ItemImprovementRecipeUpdateFact`.
-4. Do not send v3 execution records for normal successful star increments; those do not add recipe information needed by the UI.
-5. Reuse the matched detail observation's `day`, `observedSecondShipId`, `observedFlagshipId`, `itemId`, and `itemLevel` for the update fact so the builder can join update facts to cost facts consistently.
-6. Reset only the matched cached detail; keep the current list cache if the game returns to the improvement list.
-7. Do not send the roster `slotId` to the backend; it is only a local correlation key.
+4. Report this conversion as an `ItemImprovementRecipeUpdateFact`.
+5. Do not send update facts for normal successful star increments; those do not add recipe information needed by the canonical recipe database. If attempt telemetry is enabled, the separate success-rate reporter already captures the success.
+6. Reuse the matched detail observation's `day`, `observedSecondShipId`, `observedFlagshipId`, `itemId`, and `itemLevel` for update and attempt facts so downstream aggregation can join them consistently.
+7. Reset only the matched cached detail; keep the current list cache if the game returns to the improvement list.
+8. Do not send the roster `slotId` to the backend; it is only a local correlation key.
 
 ### Normalization helpers
 
@@ -285,7 +314,7 @@ const normalizeRequiredPairs = (...pairs) => {
   }
 
   return Object.keys(counts)
-    .map(id => ({ id: parseInt(id, 10), count: counts[id] }))
+    .map((id) => ({ id: parseInt(id, 10), count: counts[id] }))
     .sort((a, b) => a.id - b.id)
 }
 ```
@@ -613,6 +642,50 @@ ItemImprovementRecipeUpdateFactSchema.index({ recipeId: 1 })
 ItemImprovementRecipeUpdateFactSchema.index({ upgradeToItemId: 1 })
 ```
 
+#### Optional success-rate attempt model
+
+Only add this if success-rate estimation is in scope for the deployment. This model is not needed to recreate the remodel recipe database, and it may live behind a separate endpoint such as `POST /api/report/v3/item_improvement_attempt`.
+
+Stores aggregate execution outcomes from `remodel_slot` after matching a prior detail observation. It should be a separate collection, and preferably a separate reporter/controller path, because failed attempts are useful for success-rate estimation but do not add recipe cost or update-target facts.
+
+Suggested payload:
+
+```ts
+export interface ItemImprovementAttemptFactPayload {
+  key: string
+  schemaVersion: number
+  recipeId: number
+  itemId: number
+  itemLevel: number
+  stage: number
+  day: number
+  observedSecondShipId: number
+  observedFlagshipIds: number[]
+  guaranteed: boolean
+  successful: boolean
+  changeFlag?: number
+  sources: string[]
+  origins: string[]
+  firstReported: number
+  lastReported: number
+  count: number
+}
+```
+
+Suggested key:
+
+```text
+v1|attempt|recipeId|itemId|itemLevel|stage|day|observedSecondShipId|guaranteed|successful|changeFlag
+```
+
+Aggregation rules:
+
+1. Estimate normal success rate only from `guaranteed: false` records.
+2. Keep `guaranteed: true` records for audit and volume diagnostics, but do not combine them with normal attempts.
+3. Group success-rate output by the same dimensions minus `successful`; `successful: true` and `successful: false` fact counts become numerator and denominator inputs.
+4. Treat attempt counts as statistical telemetry only. They must not raise recipe confidence or fill missing cost/update fields.
+5. Do not store roster slot IDs, consumed roster IDs, admiral identifiers, or any per-user attempt history.
+
 #### Optional raw observation model
 
 Only add this if storage volume is acceptable.
@@ -806,6 +879,28 @@ interface CanonicalItemImprovementRecipe {
 }
 ```
 
+### Canonical field provenance
+
+Before publishing the reporter, validate that each canonical field is either collected directly or intentionally supplied by another source:
+
+| Canonical field                          | Primary source                                                                                 | Pre-release validation                                                                                            |
+| ---------------------------------------- | ---------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `itemId`                                 | `remodel_slotlist.api_slot_id`; detail confirms from `window._slotitems[postBody.api_slot_id]` | Synthetic list/detail fixtures produce the same item ID.                                                          |
+| `itemName`                               | Kancolle master item data                                                                      | External builder joins master data; reporter does not send names.                                                 |
+| `helperRequirement` / `requiredHelperId` | Builder inference from `observedSecondShipId` plus optional manual/wiki overrides              | Fixtures cover no-second-ship, unknown-helper, and manually confirmed helper cases.                               |
+| `observedSecondShipIds`                  | Fleet context captured by list/detail/execution observers                                      | Fixtures cover known ship, confirmed no ship `0`, and unknown context rejection/quarantine.                       |
+| `days`                                   | JST day computed from event timestamp                                                          | Fixtures cover normal day and near-JST-midnight events.                                                           |
+| `starMin` / `starMax`                    | Detail `itemLevel`, then builder range merge                                                   | Fixtures cover exact levels `0`, `5`, `6`, `9`, and `10`, with merge and non-merge cases.                         |
+| `fuel` / `ammo` / `steel` / `bauxite`    | `remodel_slotlist` row matched by `recipeId`                                                   | Detail fixtures must fail or quarantine if the matching list row is unavailable.                                  |
+| `buildkit` / `remodelkit`                | `remodel_slotlist_detail`                                                                      | Fixture output uses detail values, not list fallbacks.                                                            |
+| `certainBuildkit` / `certainRemodelkit`  | `remodel_slotlist_detail`                                                                      | Fixtures cover normal values and guaranteed values.                                                               |
+| `reqSlotItems`                           | `api_req_slot_id*` / `api_req_slot_num*` fields from detail                                    | Fixtures cover none, one required equipment, secondary equipment, duplicate IDs, and malformed pairs.             |
+| `reqUseItems`                            | `api_req_useitem_id*` / `api_req_useitem_num*` fields from detail                              | Fixtures cover none, one special item, secondary special item, duplicate IDs, and malformed pairs.                |
+| `upgradeToItemId` / `upgradeToItemLevel` | Successful conversion execution, or manual/wiki override when no execution has been observed   | Fixtures cover update, non-update star increment, failed attempt, and missing update target.                      |
+| `confidence` / counts / timestamps       | Backend fact counters plus builder conflict policy                                             | Fixtures cover single sample, repeated matching samples, conflicting samples, stale samples, and manual override. |
+
+Fields outside this table, such as recommendation rank, improvement-effect formulas, fit bonuses, and equipment category presentation, are intentionally out of scope for this reporter.
+
 ### Aggregation algorithm
 
 1. Import facts incrementally by cursor.
@@ -881,6 +976,8 @@ Builder/admin reports should show:
 - conflicting facts requiring review
 - stale recipes not seen after a game update
 
+The coverage report is part of the product contract. If a row cannot be proven from detail or manual data, it should appear as missing coverage for operators, not as a best-effort public recipe.
+
 ## UI requirements for the canonical data
 
 The canonical DB should support:
@@ -915,12 +1012,14 @@ Tasks:
 4. Report detail observations from `remodel_slotlist_detail`.
 5. Report conversion update facts from `remodel_slot`.
 6. Keep v2 reporting unchanged until backend migration is complete.
+7. Optional: add a separate success-rate reporter for attempt facts; do not block recipe fact reporting on this.
 
 Acceptance criteria:
 
 - Opening the improvement list sends availability observations.
 - Opening recipe detail sends exact cost/material observations even without execution.
 - Executing an actual conversion creates a separate update fact with the update target.
+- Optional success-rate attempt reporting, if implemented, uses a separate reporter/endpoint and does not affect recipe fact confidence.
 - No personal/admiral identifiers are sent.
 - Existing v2 reporting still works.
 
@@ -936,6 +1035,7 @@ Tasks:
 4. Add paginated export endpoints for availability, cost, and update facts.
 5. Add validation and malformed-payload handling.
 6. Add indexes for `key`, export cursor, and common aggregation dimensions.
+7. Optional: add `POST /api/report/v3/item_improvement_attempt` and attempt-fact export only if success-rate estimation is implemented.
 
 Acceptance criteria:
 
@@ -988,6 +1088,77 @@ Acceptance criteria:
 
 ## Validation plan
 
+### Pre-publish completeness gate
+
+Do not publish a reporter that only "seems to collect useful data". Before release, build a small fixture-driven proof that the collected payloads can recreate the canonical recipe shape.
+
+Required artifacts:
+
+1. Reporter fixture tests that feed representative Kancolle API events and assert exact v3 payloads.
+2. Backend ingestion tests or manual requests that prove duplicate facts increment counts without overwriting candidate-defining fields.
+3. A minimal external-builder fixture that consumes exported availability, cost, and update facts and emits canonical rows matching expected JSON.
+4. A coverage report fixture that shows missing detail, missing exact star levels, missing update facts, conflicts, and stale rows.
+5. A local end-to-end debug run with fake data that exercises the full path: reporter-shaped payloads -> local `poi-server` v3 ingestion -> fact export -> external builder -> canonical database output.
+
+Minimum fixture scenarios:
+
+| Scenario                       | Expected proof                                                                        |
+| ------------------------------ | ------------------------------------------------------------------------------------- |
+| List-only recipe               | Creates availability coverage only; no public cost row.                               |
+| Detail opened then cancelled   | Creates exact cost/material row without execution.                                    |
+| Normal successful improvement  | Does not create update fact unless the item converts.                                 |
+| Failed improvement             | Does not affect recipe facts; optional success-rate reporter may count it separately. |
+| Conversion at `+10`            | Creates update fact and joins it to the matching detail cost fact.                    |
+| Special item requirement       | Preserves `reqUseItems` in canonical output.                                          |
+| Secondary required item fields | Preserves both primary and secondary requirement pairs.                               |
+| Confirmed no second ship       | Uses `observedSecondShipId: 0` and can prove a no-helper recipe candidate.            |
+| Unknown fleet context          | Rejects or quarantines the observation; never converts unknown context to no-helper.  |
+| Conflicting costs or targets   | Emits conflict candidates/diagnostics instead of overwriting with latest data.        |
+| Adjacent star levels same cost | Merges into a display range.                                                          |
+| Adjacent star levels differ    | Keeps separate ranges.                                                                |
+
+Release criteria:
+
+- Every canonical field in the provenance table has at least one passing fixture.
+- The builder can produce day/helper/item/update-target lookups from fixture data.
+- The coverage report identifies missing observations without inventing public rows.
+- Legacy v2 data is not required for any canonical field.
+- Optional success-rate fixtures, if implemented, are stored and exported through their separate reporter/backend path.
+- The local end-to-end debug run proves the server accepts, deduplicates, stores, exports, and rebuilds fake recipe data into the expected canonical database shape.
+
+### Local end-to-end debug run
+
+Before publishing the reporter, run a local dry run with deterministic fake observations. The goal is to prove the server and database pipeline work before waiting for real user data.
+
+Recommended flow:
+
+1. Start a local `poi-server` with a disposable local database.
+2. POST fake v3 payloads shaped exactly like the reporter output:
+   - list availability records
+   - detail cost/material records
+   - conversion update records
+   - malformed records that should be rejected or quarantined
+   - duplicate records that should increment `count`
+3. Call the export endpoints for availability, cost, and update facts.
+4. Run the external builder against the exported fake facts.
+5. Compare the generated canonical database JSON against checked-in expected fixtures.
+6. Inspect the coverage report and conflict report generated from the same fake dataset.
+
+The fake dataset should be small but representative:
+
+| Fake case                | Expected result                                                                          |
+| ------------------------ | ---------------------------------------------------------------------------------------- |
+| Complete recipe          | Canonical row includes day, helper state, exact star range, costs, and materials.        |
+| Detail without execution | Canonical row exists without update target.                                              |
+| Conversion update        | Canonical row includes `upgradeToItemId` and `upgradeToItemLevel`.                       |
+| List-only observation    | Coverage report shows missing detail; no public cost row is emitted.                     |
+| Conflicting detail facts | Conflict report preserves both candidates; canonical output does not silently overwrite. |
+| Duplicate detail fact    | Backend increments `count` and exports one deduplicated fact.                            |
+| Unknown fleet context    | Backend rejects or quarantines the record; it is not converted to no-helper.             |
+| Malformed required item  | Backend rejects or quarantines the record; malformed pairs are not dropped.              |
+
+This run should be repeatable from documented commands in the implementation PR. It does not need production data or live game traffic.
+
 ### `plugin-report`
 
 Existing `package.json` has no real test script. For implementation, either:
@@ -1030,7 +1201,8 @@ Manual checks:
 3. Where the external builder and canonical UI service will live.
 4. How to model helper remodel-line equivalence for UI display.
 5. How much manual/wiki override data is acceptable in the canonical builder.
+6. Whether success-rate telemetry should be implemented now, and if so where its separate reporter/backend/export should live.
 
 ## Recommended next step
 
-Implement Phase 1 and Phase 2 together behind v3 endpoints, then run the external builder against a small exported sample to validate that the facts can be merged into UI-ready records.
+Implement Phase 1 and Phase 2 behind v3 endpoints, then build the fixture-driven external-builder proof before publishing broadly. Only roll out the reporter after the fixtures show that collected list/detail/execution facts can recreate the canonical remodel recipe database shape and that missing coverage is reported explicitly.
