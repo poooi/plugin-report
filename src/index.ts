@@ -43,7 +43,7 @@ const handleResponse = (e: GameResponseEvent) => {
   if (!(gameAPIBroadcaster.serverInfo.num >= 1)) {
     return
   }
-  const { method, path, body, postBody, time } = e.detail
+  const { method, path, body, postBody, time = Date.now() } = e.detail
   for (const reporter of reporters) {
     try {
       reporter.handle(method, path, body, postBody, time)
