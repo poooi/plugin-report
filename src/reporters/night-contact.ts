@@ -1,6 +1,9 @@
 import _ from 'lodash'
 
 import BaseReporter from './base'
+import type { GameApiMethod, GameApiPath, GameApiPostBody } from '../types/game-api'
+import { getWindowShip, getWindowSlotItem } from '../types/window-state'
+import type { WindowShip, WindowSlotItem } from '../types/window-state'
 
 // Collect night contact data with followed conditions:
 // 1. Non-combined fleet
@@ -16,7 +19,7 @@ export default class NightContactReportor extends BaseReporter {
     this.VALID_PLANE_ID = 102
     this.isValid = null
   }
-  handle(method, path, body, postBody) {
+  handle(method: GameApiMethod, path: GameApiPath, body: any, postBody: GameApiPostBody) {
     switch (path) {
       case '/kcsapi/api_req_sortie/battle':
       case '/kcsapi/api_req_sortie/airbattle':
@@ -36,21 +39,25 @@ export default class NightContactReportor extends BaseReporter {
       case '/kcsapi/api_req_battle_midnight/battle':
         {
           if (this.isValid === false) break
-          const { _decks, _ships, _slotitems } = window
+          const { _decks } = window
           const touchId = (body.api_touch_plane || [-1, -1])[0]
 
-          const entries = [] // Array of [ship, item] pairs
-          const deck = _decks[body.api_deck_id - 1] || {}
-          const ships = deck.api_ship || []
+          const entries: Array<[WindowShip, WindowSlotItem]> = []
+          const deck = _decks[body.api_deck_id - 1]
+          const ships = deck?.api_ship || []
           for (const sid of ships) {
-            const ship = _ships[sid] || {}
+            const ship = getWindowShip(sid)
+            if (!ship) {
+              continue
+            }
             const items = ship.api_slot || []
             const count = ship.api_onslot || []
             for (const [iid, cnt] of _.zip(items, count) as any[]) {
-              const item = _slotitems[iid] || {}
+              const item = getWindowSlotItem(iid)
               // Condition * & 4
-              if (item.api_slotitem_id === this.VALID_PLANE_ID && cnt > 0)
+              if (item && item.api_slotitem_id === this.VALID_PLANE_ID && cnt > 0) {
                 entries.push([ship, item])
+              }
             }
           }
           if (!(entries.length === 1))

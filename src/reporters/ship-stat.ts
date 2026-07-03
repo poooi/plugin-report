@@ -1,8 +1,15 @@
 import _, { get } from 'lodash'
 import BaseReporter from './base'
+import type { GameApiMethod, GameApiPath, GameApiPostBody } from '../types/game-api'
 
 export default class ShipStatReporter extends BaseReporter {
-  handle = (method, path, body, postBody, time) => {
+  handle = (
+    method: GameApiMethod,
+    path: GameApiPath,
+    body: any,
+    postBody: GameApiPostBody,
+    time: number,
+  ) => {
     if (path !== '/kcsapi/api_get_member/ship3') {
       return
     }
@@ -14,7 +21,7 @@ export default class ShipStatReporter extends BaseReporter {
     if (
       _(ship.api_slot)
         .concat(ship.api_slot_ex)
-        .some(id => id > 0)
+        .some((id) => id > 0)
     ) {
       return
     }

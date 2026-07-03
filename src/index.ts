@@ -2,10 +2,18 @@ import * as Sentry from '@sentry/electron'
 import semver from 'semver'
 
 import { init } from './sentry'
+import type { GameResponseEvent } from './types/game-api'
+import type { Reporter } from './types/reporter'
 
 import * as remote from '@electron/remote'
 
-const gameAPIBroadcaster = remote.require('./lib/game-api-broadcaster')
+interface GameAPIBroadcaster {
+  serverInfo: {
+    num: number
+  }
+}
+
+const gameAPIBroadcaster = remote.require('./lib/game-api-broadcaster') as GameAPIBroadcaster
 
 if (
   process.env.NODE_ENV === 'production' &&
@@ -30,8 +38,8 @@ import {
   ShipStatReporter,
 } from './reporters'
 
-let reporters = []
-const handleResponse = e => {
+let reporters: Reporter[] = []
+const handleResponse = (e: GameResponseEvent) => {
   if (!(gameAPIBroadcaster.serverInfo.num >= 1)) {
     return
   }
@@ -44,13 +52,13 @@ const handleResponse = e => {
         area: 'poi-plugin-report',
         path,
       })
-      console.error(err.stack)
+      console.error(err instanceof Error ? err.stack : err)
     }
   }
 }
 
 export const show = false
-export const pluginDidLoad = e => {
+export const pluginDidLoad = (_e: unknown) => {
   reporters = [
     new QuestReporter(),
     new CreateShipReporter(),
@@ -64,6 +72,6 @@ export const pluginDidLoad = e => {
   ]
   window.addEventListener('game.response', handleResponse)
 }
-export const pluginWillUnload = e => {
+export const pluginWillUnload = (_e: unknown) => {
   window.removeEventListener('game.response', handleResponse)
 }

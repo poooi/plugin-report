@@ -1,3 +1,4 @@
+import { createRequire } from 'node:module'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
@@ -6,6 +7,10 @@ import {
   resetReporterTestState,
   sentryState,
 } from '../helpers/reporter-test-harness.mjs'
+
+const require = createRequire(import.meta.url)
+const packageMeta = require('../../package.json')
+const reporterUserAgent = `Reporter/${packageMeta.version} poi/10.7.0`
 
 beforeEach(resetReporterTestState)
 
@@ -21,8 +26,10 @@ describe('BaseReporter', () => {
 
     expect(fetchState.calls[0][0]).toBe('https://example.invalid/api/test')
     expect(fetchState.calls[0][1]).toMatchObject({
-      'User-Agent': 'Reporter/8.1.0 poi/10.7.0',
-      'X-Reporter': 'Reporter/8.1.0 poi/10.7.0',
+      headers: {
+        'User-Agent': reporterUserAgent,
+        'X-Reporter': reporterUserAgent,
+      },
       redirect: 'follow',
     })
   })
@@ -43,7 +50,7 @@ describe('BaseReporter', () => {
     })
     expect(sentryState.contexts).toContainEqual({
       name: 'versions',
-      context: { reporter: '8.1.0', poi: '10.7.0' },
+      context: { reporter: packageMeta.version, poi: '10.7.0' },
     })
     expect(sentryState.captured).toEqual([error])
     consoleError.mockRestore()
@@ -62,8 +69,8 @@ describe('BaseReporter', () => {
     expect(fetchState.calls[0][1]).toMatchObject({
       method: 'POST',
       headers: {
-        'User-Agent': 'Reporter/8.1.0 poi/10.7.0',
-        'X-Reporter': 'Reporter/8.1.0 poi/10.7.0',
+        'User-Agent': reporterUserAgent,
+        'X-Reporter': reporterUserAgent,
         'Content-Type': 'application/json',
       },
       redirect: 'follow',

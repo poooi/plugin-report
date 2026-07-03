@@ -1,4 +1,5 @@
 import BaseReporter from './base'
+import type { GameApiMethod, GameApiPath, GameApiPostBody } from '../types/game-api'
 
 export default class CreateShipReporter extends BaseReporter {
   creating: any
@@ -12,7 +13,7 @@ export default class CreateShipReporter extends BaseReporter {
     this.kdockId = -1
     this.info = null
   }
-  handle(method, path, body, postBody) {
+  handle(method: GameApiMethod, path: GameApiPath, body: any, postBody: GameApiPostBody) {
     const { _decks, _ships, _teitokuLv } = window
     if (path === '/kcsapi/api_req_kousyou/createship') {
       this.creating = true

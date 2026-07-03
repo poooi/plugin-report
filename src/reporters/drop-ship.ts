@@ -1,5 +1,6 @@
 import BaseReporter from './base'
 import { getOwnedShipSnapshot, getTeitokuHash, getFirstPlaneCounts } from './utils'
+import type { GameApiMethod, GameApiPath, GameApiPostBody } from '../types/game-api'
 
 /**
  * Make enemy_info report record from API data.
@@ -35,7 +36,7 @@ export default class DropShipReporter extends BaseReporter {
     this.drop = null
     this.ownedShipSnapshot = null
   }
-  handle(method, path, body, postBody) {
+  handle(method: GameApiMethod, path: GameApiPath, body: any, postBody: GameApiPostBody) {
     const { mapLv } = this
     const { _teitokuLv } = window
     const teitokuId = getTeitokuHash()
@@ -146,7 +147,7 @@ export default class DropShipReporter extends BaseReporter {
               mapLv: drop.mapLv,
               rewards: !Array.isArray(body.api_get_eventitem)
                 ? null
-                : body.api_get_eventitem.map(e => ({
+                : body.api_get_eventitem.map((e) => ({
                     rewardType: e.api_type,
                     rewardId: e.api_id,
                     rewardCount: e.api_value,
