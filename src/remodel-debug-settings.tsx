@@ -2,8 +2,8 @@ import { type CSSProperties, type ReactElement, useEffect, useState } from 'reac
 import { useTranslation } from 'react-i18next'
 import {
   clearRemodelDebugRecords,
+  getRemodelDebugRecordCount,
   exportRemodelDebugRecords,
-  getRemodelDebugRecords,
   isRemodelDebugRecorderEnabled,
   setRemodelDebugRecorderEnabled,
   subscribeRemodelDebugRecorder,
@@ -23,7 +23,7 @@ const buttonRowStyle: CSSProperties = {
 
 const getRecorderState = () => ({
   enabled: isRemodelDebugRecorderEnabled(),
-  count: getRemodelDebugRecords().length,
+  count: getRemodelDebugRecordCount(),
 })
 
 export default function RemodelDebugSettings(): ReactElement {

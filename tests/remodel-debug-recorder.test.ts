@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   clearRemodelDebugRecords,
   createRemodelDebugRecord,
+  getRemodelDebugRecordCount,
   getRemodelDebugRecords,
   recordRemodelDebugEvent,
   setRemodelDebugRecorderEnabled,
@@ -304,6 +305,7 @@ describe('remodel debug recorder', () => {
     snapshot.length = 0
 
     expect(getRemodelDebugRecords()).toHaveLength(1)
+    expect(getRemodelDebugRecordCount()).toBe(1)
     expect(getRemodelDebugRecords()[0]?.context.selectedSlotItem?.api_level).toBe(6)
   })
 

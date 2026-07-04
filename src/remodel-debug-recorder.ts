@@ -312,6 +312,8 @@ const cloneRecord = (record: RemodelDebugRecord): RemodelDebugRecord =>
 
 export const getRemodelDebugRecords = (): readonly RemodelDebugRecord[] => records.map(cloneRecord)
 
+export const getRemodelDebugRecordCount = (): number => records.length
+
 export const exportRemodelDebugRecords = (): void => {
   const blob = new Blob([JSON.stringify({ records: getRemodelDebugRecords() }, null, 2)], {
     type: 'application/json',
