@@ -1,6 +1,6 @@
 {
   "name": "poi-plugin-report",
-  "version": "8.1.0",
+  "version": "9.0.0",
   "description": "Report ship creating info and drop info, and so on.",
   "main": "index.js",
   "packageManager": "pnpm@10.28.0",
