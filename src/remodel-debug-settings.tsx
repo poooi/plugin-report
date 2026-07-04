@@ -28,7 +28,10 @@ const getRecorderState = () => ({
 export default function RemodelDebugSettings(): ReactElement {
   const [recorderState, setRecorderState] = useState(getRecorderState)
 
-  useEffect(() => subscribeRemodelDebugRecorder(() => setRecorderState(getRecorderState())), [])
+  useEffect(() => {
+    const unsubscribe = subscribeRemodelDebugRecorder(() => setRecorderState(getRecorderState()))
+    return unsubscribe
+  }, [])
 
   const toggleRecorder = () => {
     setRemodelDebugRecorderEnabled(!isRemodelDebugRecorderEnabled())

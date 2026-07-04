@@ -276,6 +276,7 @@ export default class RemodelRecipeReporter extends BaseReporter {
   }
   getStage(level: number, changeFlag = 0) {
     if (changeFlag) {
+      // api_change_flag marks an update/conversion detail, which belongs to the +10 stage.
       return 2
     }
     switch (true) {

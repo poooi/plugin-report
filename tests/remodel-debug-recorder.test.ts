@@ -54,6 +54,7 @@ const remodelDetailEvent: GameResponseEventDetail = {
 beforeEach(() => {
   storage.clear()
   globalThis.window = createWindow()
+  setRemodelDebugRecorderEnabled(false)
   clearRemodelDebugRecords()
 })
 
@@ -85,7 +86,7 @@ describe('remodel debug recorder', () => {
   })
 
   it('records only remodel APIs when enabled', () => {
-    window.localStorage.setItem('poi-plugin-report:remodel-debug-recorder', '1')
+    setRemodelDebugRecorderEnabled(true)
 
     recordRemodelDebugEvent({
       ...remodelDetailEvent,
@@ -94,6 +95,25 @@ describe('remodel debug recorder', () => {
     recordRemodelDebugEvent(remodelDetailEvent)
 
     expect(getRemodelDebugRecords()).toHaveLength(1)
+  })
+
+  it('caches enabled state after the first storage read', () => {
+    const getItem = vi.fn(() => '1')
+    globalThis.window = {
+      ...createWindow(),
+      localStorage: {
+        getItem,
+        setItem: vi.fn(),
+        removeItem: vi.fn(),
+      },
+    } as unknown as Window & typeof globalThis
+    setRemodelDebugRecorderEnabled(true)
+
+    recordRemodelDebugEvent(remodelDetailEvent)
+    recordRemodelDebugEvent(remodelDetailEvent)
+
+    expect(getItem).not.toHaveBeenCalled()
+    expect(getRemodelDebugRecords()).toHaveLength(2)
   })
 
   it('sanitizes fleet and slot context for captured remodel records', () => {
@@ -163,7 +183,7 @@ describe('remodel debug recorder', () => {
   })
 
   it('caps in-memory captures to the latest 200 records', () => {
-    window.localStorage.setItem('poi-plugin-report:remodel-debug-recorder', '1')
+    setRemodelDebugRecorderEnabled(true)
 
     for (let index = 0; index < 205; index += 1) {
       recordRemodelDebugEvent({

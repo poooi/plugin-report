@@ -35,6 +35,7 @@ export interface RemodelDebugRecord {
 
 const records: RemodelDebugRecord[] = []
 const listeners = new Set<() => void>()
+let enabledCache: boolean | undefined
 
 const notifyListeners = (): void => {
   for (const listener of listeners) {
@@ -50,14 +51,21 @@ const cloneJson = (value: unknown): unknown => {
 }
 
 export const isRemodelDebugRecorderEnabled = (): boolean => {
-  try {
-    return window.localStorage?.getItem(ENABLED_KEY) === '1'
-  } catch {
-    return false
+  if (enabledCache != null) {
+    return enabledCache
   }
+
+  try {
+    enabledCache = window.localStorage?.getItem(ENABLED_KEY) === '1'
+  } catch {
+    enabledCache = false
+  }
+
+  return enabledCache
 }
 
 export const setRemodelDebugRecorderEnabled = (enabled: boolean): void => {
+  enabledCache = enabled
   try {
     if (enabled) {
       window.localStorage?.setItem(ENABLED_KEY, '1')
