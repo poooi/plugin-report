@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { Component, type CSSProperties, type ReactNode } from 'react'
 import {
   clearRemodelDebugRecords,
   exportRemodelDebugRecords,
@@ -12,9 +12,9 @@ interface RemodelDebugSettingsState {
   count: number
 }
 
-const createStyle = (style: Record<string, string | number>) => style
+const createStyle = (style: CSSProperties): CSSProperties => style
 
-export default class RemodelDebugSettings extends React.Component<
+export default class RemodelDebugSettings extends Component<
   Record<string, never>,
   RemodelDebugSettingsState
 > {
@@ -58,7 +58,7 @@ export default class RemodelDebugSettings extends React.Component<
     exportRemodelDebugRecords()
   }
 
-  render() {
+  render(): ReactNode {
     const { enabled, count } = this.state
 
     return React.createElement(

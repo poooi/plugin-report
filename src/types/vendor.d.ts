@@ -38,33 +38,6 @@ declare module 'moment-timezone' {
   export default moment
 }
 
-declare module 'react' {
-  export type ReactNode = unknown
-
-  export class Component<P = Record<string, never>, S = Record<string, never>> {
-    constructor(props: P)
-    props: Readonly<P>
-    state: Readonly<S>
-    setState(state: Partial<S>): void
-    componentDidMount?(): void
-    componentWillUnmount?(): void
-    render(): ReactNode
-  }
-
-  export function createElement(
-    type: unknown,
-    props?: Record<string, unknown> | null,
-    ...children: unknown[]
-  ): ReactNode
-
-  const React: {
-    Component: typeof Component
-    createElement: typeof createElement
-  }
-
-  export default React
-}
-
 declare module 'views/utils/selectors' {
   export function shipDataSelectorFactory(shipId: unknown): (state: unknown) => unknown
   export function shipEquipDataSelectorFactory(shipId: unknown): (state: unknown) => unknown
