@@ -34,6 +34,13 @@ export interface RemodelDebugRecord {
 }
 
 const records: RemodelDebugRecord[] = []
+const listeners = new Set<() => void>()
+
+const notifyListeners = (): void => {
+  for (const listener of listeners) {
+    listener()
+  }
+}
 
 const cloneJson = (value: unknown): unknown => {
   if (value == null) {
@@ -54,12 +61,19 @@ export const setRemodelDebugRecorderEnabled = (enabled: boolean): void => {
   try {
     if (enabled) {
       window.localStorage?.setItem(ENABLED_KEY, '1')
-      return
+    } else {
+      window.localStorage?.removeItem(ENABLED_KEY)
     }
-
-    window.localStorage?.removeItem(ENABLED_KEY)
   } catch (err) {
     console.error(err)
+  }
+  notifyListeners()
+}
+
+export const subscribeRemodelDebugRecorder = (listener: () => void): (() => void) => {
+  listeners.add(listener)
+  return () => {
+    listeners.delete(listener)
   }
 }
 
@@ -269,6 +283,7 @@ export const recordRemodelDebugEvent = (event: GameResponseEventDetail): void =>
     if (records.length > MAX_RECORDS) {
       records.splice(0, records.length - MAX_RECORDS)
     }
+    notifyListeners()
   } catch (err) {
     console.error(err)
   }
@@ -276,6 +291,7 @@ export const recordRemodelDebugEvent = (event: GameResponseEventDetail): void =>
 
 export const clearRemodelDebugRecords = (): void => {
   records.length = 0
+  notifyListeners()
 }
 
 export const getRemodelDebugRecords = (): readonly RemodelDebugRecord[] => records

@@ -1,120 +1,84 @@
-import React, { Component, type CSSProperties, type ReactNode } from 'react'
+import React, { type CSSProperties, type ReactElement, useEffect, useState } from 'react'
 import {
   clearRemodelDebugRecords,
   exportRemodelDebugRecords,
   getRemodelDebugRecords,
   isRemodelDebugRecorderEnabled,
   setRemodelDebugRecorderEnabled,
+  subscribeRemodelDebugRecorder,
 } from './remodel-debug-recorder'
 
-interface RemodelDebugSettingsState {
-  enabled: boolean
-  count: number
+const rootStyle: CSSProperties = {
+  display: 'grid',
+  gap: 8,
+  lineHeight: 1.5,
+  maxWidth: 640,
 }
 
-const createStyle = (style: CSSProperties): CSSProperties => style
+const buttonRowStyle: CSSProperties = {
+  display: 'flex',
+  gap: 8,
+}
 
-export default class RemodelDebugSettings extends Component<
-  Record<string, never>,
-  RemodelDebugSettingsState
-> {
-  refreshTimer: ReturnType<typeof setInterval> | undefined
+const getRecorderState = () => ({
+  enabled: isRemodelDebugRecorderEnabled(),
+  count: getRemodelDebugRecords().length,
+})
 
-  constructor(props: Record<string, never>) {
-    super(props)
-    this.state = {
-      enabled: isRemodelDebugRecorderEnabled(),
-      count: getRemodelDebugRecords().length,
-    }
+export default function RemodelDebugSettings(): ReactElement {
+  const [recorderState, setRecorderState] = useState(getRecorderState)
+
+  useEffect(() => subscribeRemodelDebugRecorder(() => setRecorderState(getRecorderState())), [])
+
+  const toggleRecorder = () => {
+    setRemodelDebugRecorderEnabled(!isRemodelDebugRecorderEnabled())
   }
 
-  componentDidMount() {
-    this.refreshTimer = setInterval(() => {
-      this.setState({
-        enabled: isRemodelDebugRecorderEnabled(),
-        count: getRemodelDebugRecords().length,
-      })
-    }, 1000)
-  }
-
-  componentWillUnmount() {
-    if (this.refreshTimer) {
-      clearInterval(this.refreshTimer)
-    }
-  }
-
-  toggleRecorder = () => {
-    const enabled = !isRemodelDebugRecorderEnabled()
-    setRemodelDebugRecorderEnabled(enabled)
-    this.setState({ enabled })
-  }
-
-  clearRecords = () => {
+  const clearRecords = () => {
     clearRemodelDebugRecords()
-    this.setState({ count: 0 })
   }
 
-  exportRecords = () => {
-    exportRemodelDebugRecords()
-  }
-
-  render(): ReactNode {
-    const { enabled, count } = this.state
-
-    return React.createElement(
+  return React.createElement(
+    'div',
+    { style: rootStyle },
+    React.createElement('h4', null, 'Remodel recipe debug recorder'),
+    React.createElement(
+      'p',
+      null,
+      'Opt-in local recorder for validating Akashi remodel API sequences. It captures only allowlisted remodel fields, keeps records in memory, and writes a file only when Export is clicked.',
+    ),
+    React.createElement(
+      'label',
+      null,
+      React.createElement('input', {
+        checked: recorderState.enabled,
+        onChange: toggleRecorder,
+        type: 'checkbox',
+      }),
+      ' Enable remodel debug recorder',
+    ),
+    React.createElement('p', null, `Captured records: ${recorderState.count}`),
+    React.createElement(
       'div',
-      {
-        style: createStyle({
-          display: 'grid',
-          gap: 8,
-          lineHeight: 1.5,
-          maxWidth: 640,
-        }),
-      },
-      React.createElement('h4', null, 'Remodel recipe debug recorder'),
+      { style: buttonRowStyle },
       React.createElement(
-        'p',
-        null,
-        'Opt-in local recorder for validating Akashi remodel API sequences. It captures only allowlisted remodel fields, keeps records in memory, and writes a file only when Export is clicked.',
-      ),
-      React.createElement(
-        'label',
-        null,
-        React.createElement('input', {
-          checked: enabled,
-          onChange: this.toggleRecorder,
-          type: 'checkbox',
-        }),
-        ' Enable remodel debug recorder',
-      ),
-      React.createElement('p', null, `Captured records: ${count}`),
-      React.createElement(
-        'div',
+        'button',
         {
-          style: createStyle({
-            display: 'flex',
-            gap: 8,
-          }),
+          disabled: recorderState.count === 0,
+          onClick: exportRemodelDebugRecords,
+          type: 'button',
         },
-        React.createElement(
-          'button',
-          {
-            disabled: count === 0,
-            onClick: this.exportRecords,
-            type: 'button',
-          },
-          'Export',
-        ),
-        React.createElement(
-          'button',
-          {
-            disabled: count === 0,
-            onClick: this.clearRecords,
-            type: 'button',
-          },
-          'Clear',
-        ),
+        'Export',
       ),
-    )
-  }
+      React.createElement(
+        'button',
+        {
+          disabled: recorderState.count === 0,
+          onClick: clearRecords,
+          type: 'button',
+        },
+        'Clear',
+      ),
+    ),
+  )
 }

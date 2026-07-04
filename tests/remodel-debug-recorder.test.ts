@@ -6,6 +6,7 @@ import {
   getRemodelDebugRecords,
   recordRemodelDebugEvent,
   setRemodelDebugRecorderEnabled,
+  subscribeRemodelDebugRecorder,
 } from '../src/remodel-debug-recorder'
 import type { GameResponseEventDetail } from '../src/types/game-api'
 
@@ -153,6 +154,20 @@ describe('remodel debug recorder', () => {
 
     expect(getRemodelDebugRecords()).toHaveLength(200)
     expect(getRemodelDebugRecords()[0]?.time).toBe(5)
+  })
+
+  it('notifies subscribers when setting or records change', () => {
+    const listener = vi.fn()
+    const unsubscribe = subscribeRemodelDebugRecorder(listener)
+
+    setRemodelDebugRecorderEnabled(true)
+    recordRemodelDebugEvent(remodelDetailEvent)
+    clearRemodelDebugRecords()
+
+    expect(listener).toHaveBeenCalledTimes(3)
+    unsubscribe()
+    setRemodelDebugRecorderEnabled(false)
+    expect(listener).toHaveBeenCalledTimes(3)
   })
 
   it('does not throw when localStorage writes fail', () => {
