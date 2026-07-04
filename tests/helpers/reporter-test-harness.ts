@@ -14,28 +14,15 @@ import SourceQuestReporter from '../../src/reporters/quest'
 import SourceRemodelItemReporter from '../../src/reporters/remodel-item'
 import SourceRemodelRecipeReporter from '../../src/reporters/remodel-recipe'
 import SourceShipStatReporter from '../../src/reporters/ship-stat'
-import type { Reporter } from '../../src/types/reporter'
 
 type TestWindowShip = WindowShip & Record<string, unknown>
+type TestWindowShipOverrides = Partial<TestWindowShip>
 type GetShipAACIs = (ship: { api_ship_id?: number }, equips?: unknown) => number[]
 type TestStore = Record<string, unknown> & {
   battle: { _status: { result: { deckHp: number[] } } }
   const: { $ships: Record<number, Record<string, unknown>> }
   sortie: { sortieMapId: number }
 }
-type ReporterHandleArgs = Parameters<Reporter['handle']>
-type ReporterUnderTest = SourceBaseReporter &
-  Record<string, unknown> & {
-    handle(
-      method: ReporterHandleArgs[0],
-      path: ReporterHandleArgs[1],
-      body: ReporterHandleArgs[2],
-      postBody?: ReporterHandleArgs[3],
-      time?: ReporterHandleArgs[4],
-    ): ReturnType<Reporter['handle']>
-    processData: (...args: unknown[]) => unknown
-  }
-type ReporterUnderTestConstructor = new () => ReporterUnderTest
 type FetchResponseStub = {
   ok?: boolean
   status?: number
@@ -44,10 +31,6 @@ type FetchResponseStub = {
   text?: () => Promise<string>
 }
 
-const asReporterUnderTest = <T extends new () => SourceBaseReporter>(
-  Reporter: T,
-): ReporterUnderTestConstructor => Reporter as unknown as ReporterUnderTestConstructor
-
 const state = vi.hoisted(() => {
   const defaultStore = (): TestStore => ({
     sortie: { sortieMapId: 1 },
@@ -55,15 +38,16 @@ const state = vi.hoisted(() => {
     const: { $ships: {} },
   })
 
-  const ship = (overrides: Record<string, unknown> = {}) =>
-    ({
-      api_ship_id: 100,
-      api_lv: 50,
-      api_cond: 49,
-      api_slot: [],
-      api_onslot: [],
-      ...overrides,
-    }) as TestWindowShip
+  const defaultGetShipAACIs: GetShipAACIs = () => []
+
+  const ship = (overrides: TestWindowShipOverrides = {}): TestWindowShip => ({
+    api_ship_id: 100,
+    api_lv: 50,
+    api_cond: 49,
+    api_slot: [],
+    api_onslot: [],
+    ...overrides,
+  })
 
   const selectorState = {
     store: defaultStore(),
@@ -72,7 +56,7 @@ const state = vi.hoisted(() => {
   }
 
   const aaciState: { getShipAACIs: GetShipAACIs } = {
-    getShipAACIs: vi.fn(() => [] as number[]),
+    getShipAACIs: vi.fn(defaultGetShipAACIs),
   }
 
   const momentState = {
@@ -98,9 +82,13 @@ const state = vi.hoisted(() => {
   }
 
   const createWindow = () =>
-    ({
+    Object.assign(globalThis, {
       POI_VERSION: '10.7.0',
+      LATEST_COMMIT: 'test-commit',
+      ROOT: '/test/root',
+      APPDATA_PATH: '/test/appdata',
       SERVER_HOSTNAME: 'example.invalid',
+      name: 'test-window',
       _decks: [{ api_ship: [1, 2] }],
       _ships: {
         1: ship({ api_ship_id: 101, api_lv: 80, api_cond: 53 }),
@@ -116,10 +104,14 @@ const state = vi.hoisted(() => {
       _nickName: 'Admiral',
       _nickNameId: 99,
       getStore: () => selectorState.store as PoiWindowStoreState,
-    }) as unknown as Window & typeof globalThis
+    })
 
-  globalThis.window = createWindow()
-  ;(globalThis as { __reporterTestHarnessState?: unknown }).__reporterTestHarnessState = {
+  Object.defineProperty(globalThis, 'window', {
+    configurable: true,
+    writable: true,
+    value: createWindow(),
+  })
+  globalThis.__reporterTestHarnessState = {
     aaciState,
     selectorState,
   }
@@ -136,10 +128,14 @@ const state = vi.hoisted(() => {
 
 export const { aaciState, fetchState, momentState, selectorState, sentryState } = state
 
-;(globalThis as unknown as { __REPORTER_VERSION__: string }).__REPORTER_VERSION__ =
-  packageMeta.version
+Object.defineProperty(globalThis, '__REPORTER_VERSION__', {
+  configurable: true,
+  writable: true,
+  value: packageMeta.version,
+})
 
 declare global {
+  var __reporterTestHarnessState: unknown
   var __reporterTestHarnessPatched: boolean | undefined
 }
 
@@ -204,15 +200,14 @@ if (!globalThis.__reporterTestHarnessPatched) {
   globalThis.__reporterTestHarnessPatched = true
 }
 
-export const ship = (overrides: Record<string, unknown> = {}) =>
-  ({
-    api_ship_id: 100,
-    api_lv: 50,
-    api_cond: 49,
-    api_slot: [],
-    api_onslot: [],
-    ...overrides,
-  }) as TestWindowShip
+export const ship = (overrides: TestWindowShipOverrides = {}): TestWindowShip => ({
+  api_ship_id: 100,
+  api_lv: 50,
+  api_cond: 49,
+  api_slot: [],
+  api_onslot: [],
+  ...overrides,
+})
 
 export const equip = ({
   id = 0,
@@ -227,20 +222,24 @@ export const equip = ({
   api_houm: houm,
 })
 
-export const AACIReporter = asReporterUnderTest(SourceAACIReporter)
+export const AACIReporter = SourceAACIReporter
 export const BaseReporter = SourceBaseReporter
-export const CreateItemReporter = asReporterUnderTest(SourceCreateItemReporter)
-export const CreateShipReporter = asReporterUnderTest(SourceCreateShipReporter)
-export const DropShipReporter = asReporterUnderTest(SourceDropShipReporter)
-export const NightBattleCIReporter = asReporterUnderTest(SourceNightBattleCIReporter)
-export const NightContactReportor = asReporterUnderTest(SourceNightContactReportor)
-export const QuestReporter = asReporterUnderTest(SourceQuestReporter)
-export const RemodelItemReporter = asReporterUnderTest(SourceRemodelItemReporter)
-export const RemodelRecipeReporter = asReporterUnderTest(SourceRemodelRecipeReporter)
-export const ShipStatReporter = asReporterUnderTest(SourceShipStatReporter)
+export const CreateItemReporter = SourceCreateItemReporter
+export const CreateShipReporter = SourceCreateShipReporter
+export const DropShipReporter = SourceDropShipReporter
+export const NightBattleCIReporter = SourceNightBattleCIReporter
+export const NightContactReportor = SourceNightContactReportor
+export const QuestReporter = SourceQuestReporter
+export const RemodelItemReporter = SourceRemodelItemReporter
+export const RemodelRecipeReporter = SourceRemodelRecipeReporter
+export const ShipStatReporter = SourceShipStatReporter
 
 export const resetReporterTestState = () => {
-  globalThis.window = state.createWindow()
+  Object.defineProperty(globalThis, 'window', {
+    configurable: true,
+    writable: true,
+    value: state.createWindow(),
+  })
   selectorState.store = {
     sortie: { sortieMapId: 1 },
     battle: { _status: { result: { deckHp: [] } } },

@@ -19,9 +19,14 @@ describe('DropShipReporter', () => {
     const reporter = new DropShipReporter()
     const report = attachReportSpy(reporter)
 
-    reporter.handle('GET', '/kcsapi/api_get_member/mapinfo', {
-      api_map_info: [{ api_id: 12, api_eventmap: { api_selected_rank: 3 } }],
-    })
+    reporter.handle(
+      'GET',
+      '/kcsapi/api_get_member/mapinfo',
+      {
+        api_map_info: [{ api_id: 12, api_eventmap: { api_selected_rank: 3 } }],
+      },
+      {},
+    )
     reporter.handle(
       'POST',
       '/kcsapi/api_req_map/select_eventmap_rank',
@@ -32,33 +37,48 @@ describe('DropShipReporter', () => {
         api_rank: '4',
       },
     )
-    reporter.handle('POST', '/kcsapi/api_req_map/start', {
-      api_maparea_id: 1,
-      api_mapinfo_no: 2,
-      api_no: 5,
-      api_event_id: 5,
-    })
-    reporter.handle('POST', '/kcsapi/api_req_sortie/battle', {
-      api_ship_ke: [0, 900],
-      api_ship_lv: [0, 1],
-      api_e_maxhps: [0, 30],
-      api_eParam: [[0, 0, 0, 0]],
-      api_eSlot: [[-1, -1, -1, -1]],
-      api_formation: [1, 4],
-      api_kouku: {
-        api_stage1: { api_e_count: 12, api_e_lostcount: 2 },
-        api_stage2: { api_e_count: 4 },
+    reporter.handle(
+      'POST',
+      '/kcsapi/api_req_map/start',
+      {
+        api_maparea_id: 1,
+        api_mapinfo_no: 2,
+        api_no: 5,
+        api_event_id: 5,
       },
-    })
-    reporter.handle('POST', '/kcsapi/api_req_sortie/battleresult', {
-      api_enemy_info: { api_deck_name: 'Enemy Fleet' },
-      api_quest_name: 'A Victory',
-      api_win_rank: 'S',
-      api_get_base_exp: 120,
-      api_get_ship: { api_ship_id: 201 },
-      api_get_useitem: { api_useitem_id: 301 },
-      api_get_eventitem: [{ api_type: 1, api_id: 2, api_value: 3, api_slot_level: 4 }],
-    })
+      {},
+    )
+    reporter.handle(
+      'POST',
+      '/kcsapi/api_req_sortie/battle',
+      {
+        api_ship_ke: [0, 900],
+        api_ship_lv: [0, 1],
+        api_e_maxhps: [0, 30],
+        api_eParam: [[0, 0, 0, 0]],
+        api_eSlot: [[-1, -1, -1, -1]],
+        api_formation: [1, 4],
+        api_kouku: {
+          api_stage1: { api_e_count: 12, api_e_lostcount: 2 },
+          api_stage2: { api_e_count: 4 },
+        },
+      },
+      {},
+    )
+    reporter.handle(
+      'POST',
+      '/kcsapi/api_req_sortie/battleresult',
+      {
+        api_enemy_info: { api_deck_name: 'Enemy Fleet' },
+        api_quest_name: 'A Victory',
+        api_win_rank: 'S',
+        api_get_base_exp: 120,
+        api_get_ship: { api_ship_id: 201 },
+        api_get_useitem: { api_useitem_id: 301 },
+        api_get_eventitem: [{ api_type: 1, api_id: 2, api_value: 3, api_slot_level: 4 }],
+      },
+      {},
+    )
     await Promise.resolve()
 
     expect(report).toHaveBeenNthCalledWith(1, '/api/report/v2/select_rank', {
@@ -116,25 +136,35 @@ describe('DropShipReporter', () => {
     const reporter = new DropShipReporter()
     const report = attachReportSpy(reporter)
 
-    reporter.handle('POST', '/kcsapi/api_req_map/start', {
-      api_maparea_id: 2,
-      api_mapinfo_no: 3,
-      api_no: 4,
-      api_event_id: 1,
-      api_destruction_battle: {
-        api_ship_ke: [0, 800],
-        api_kouku: {
-          api_stage1: { api_e_count: 3, api_e_lostcount: 1 },
-          api_stage2: { api_e_count: 2 },
+    reporter.handle(
+      'POST',
+      '/kcsapi/api_req_map/start',
+      {
+        api_maparea_id: 2,
+        api_mapinfo_no: 3,
+        api_no: 4,
+        api_event_id: 1,
+        api_destruction_battle: {
+          api_ship_ke: [0, 800],
+          api_kouku: {
+            api_stage1: { api_e_count: 3, api_e_lostcount: 1 },
+            api_stage2: { api_e_count: 2 },
+          },
         },
       },
-    })
-    reporter.handle('POST', '/kcsapi/api_req_sortie/battleresult', {
-      api_enemy_info: { api_deck_name: 'No Drop' },
-      api_quest_name: '',
-      api_win_rank: 'A',
-      api_get_base_exp: 50,
-    })
+      {},
+    )
+    reporter.handle(
+      'POST',
+      '/kcsapi/api_req_sortie/battleresult',
+      {
+        api_enemy_info: { api_deck_name: 'No Drop' },
+        api_quest_name: '',
+        api_win_rank: 'A',
+        api_get_base_exp: 50,
+      },
+      {},
+    )
     await Promise.resolve()
 
     expect(report).toHaveBeenNthCalledWith(
@@ -165,18 +195,28 @@ describe('DropShipReporter', () => {
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
 
     expect(() =>
-      reporter.handle('POST', '/kcsapi/api_req_sortie/battle', {
-        api_formation: [1, 4],
-        api_ship_ke: [0, 900],
-      }),
+      reporter.handle(
+        'POST',
+        '/kcsapi/api_req_sortie/battle',
+        {
+          api_formation: [1, 4],
+          api_ship_ke: [0, 900],
+        },
+        {},
+      ),
     ).not.toThrow()
     expect(() =>
-      reporter.handle('POST', '/kcsapi/api_req_sortie/battleresult', {
-        api_enemy_info: { api_deck_name: 'Enemy Fleet' },
-        api_get_base_exp: 120,
-        api_quest_name: 'A Victory',
-        api_win_rank: 'S',
-      }),
+      reporter.handle(
+        'POST',
+        '/kcsapi/api_req_sortie/battleresult',
+        {
+          api_enemy_info: { api_deck_name: 'Enemy Fleet' },
+          api_get_base_exp: 120,
+          api_quest_name: 'A Victory',
+          api_win_rank: 'S',
+        },
+        {},
+      ),
     ).not.toThrow()
 
     expect(report).not.toHaveBeenCalled()

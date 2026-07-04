@@ -18,10 +18,15 @@ describe('AACIReporter', () => {
     reporter.getShipAACIs = null
     const report = attachReportSpy(reporter)
 
-    reporter.handle('POST', '/kcsapi/api_req_sortie/battle', {
-      api_deck_id: 1,
-      api_kouku: { api_stage2: { api_e_count: 1 } },
-    })
+    reporter.handle(
+      'POST',
+      '/kcsapi/api_req_sortie/battle',
+      {
+        api_deck_id: 1,
+        api_kouku: { api_stage2: { api_e_count: 1 } },
+      },
+      {},
+    )
 
     expect(report).not.toHaveBeenCalled()
   })
@@ -30,18 +35,28 @@ describe('AACIReporter', () => {
     const reporter = new AACIReporter()
     const report = attachReportSpy(reporter)
 
-    reporter.handle('POST', '/kcsapi/api_req_sortie/battle', {
-      api_deck_id: 2,
-      api_kouku: { api_stage2: { api_e_count: 1 } },
-    })
+    reporter.handle(
+      'POST',
+      '/kcsapi/api_req_sortie/battle',
+      {
+        api_deck_id: 2,
+        api_kouku: { api_stage2: { api_e_count: 1 } },
+      },
+      {},
+    )
     window._decks = [{ api_ship: [1] }]
     selectorState.ships.set(1, [ship({ api_ship_id: 400 }), {}])
     selectorState.equips.set(1, [[equip({ id: 10 }), { api_name: 'gun' }]])
     aaciState.getShipAACIs = vi.fn(() => [5])
-    reporter.handle('POST', '/kcsapi/api_req_sortie/battle', {
-      api_deck_id: 1,
-      api_kouku: { api_stage2: { api_e_count: 0 } },
-    })
+    reporter.handle(
+      'POST',
+      '/kcsapi/api_req_sortie/battle',
+      {
+        api_deck_id: 1,
+        api_kouku: { api_stage2: { api_e_count: 0 } },
+      },
+      {},
+    )
 
     expect(report).not.toHaveBeenCalled()
   })
@@ -70,15 +85,20 @@ describe('AACIReporter', () => {
     const reporter = new AACIReporter()
     const report = attachReportSpy(reporter)
 
-    reporter.handle('POST', '/kcsapi/api_req_sortie/battle', {
-      api_deck_id: 1,
-      api_kouku: {
-        api_stage2: {
-          api_e_count: 1,
-          api_air_fire: { api_idx: 0, api_kind: 5 },
+    reporter.handle(
+      'POST',
+      '/kcsapi/api_req_sortie/battle',
+      {
+        api_deck_id: 1,
+        api_kouku: {
+          api_stage2: {
+            api_e_count: 1,
+            api_air_fire: { api_idx: 0, api_kind: 5 },
+          },
         },
       },
-    })
+      {},
+    )
 
     expect(report).toHaveBeenCalledWith('/api/report/v2/aaci', {
       poiVersion: '10.7.0',
@@ -104,10 +124,15 @@ describe('AACIReporter', () => {
     const reporter = new AACIReporter()
     const report = attachReportSpy(reporter)
 
-    reporter.handle('POST', '/kcsapi/api_req_sortie/battle', {
-      api_deck_id: 1,
-      api_kouku: { api_stage2: { api_e_count: 1 } },
-    })
+    reporter.handle(
+      'POST',
+      '/kcsapi/api_req_sortie/battle',
+      {
+        api_deck_id: 1,
+        api_kouku: { api_stage2: { api_e_count: 1 } },
+      },
+      {},
+    )
 
     expect(report).not.toHaveBeenCalled()
   })
@@ -131,10 +156,15 @@ describe('AACIReporter', () => {
     const reporter = new AACIReporter()
     const report = attachReportSpy(reporter)
 
-    reporter.handle('POST', '/kcsapi/api_req_sortie/battle', {
-      api_deck_id: 1,
-      api_kouku: { api_stage2: { api_e_count: 1 } },
-    })
+    reporter.handle(
+      'POST',
+      '/kcsapi/api_req_sortie/battle',
+      {
+        api_deck_id: 1,
+        api_kouku: { api_stage2: { api_e_count: 1 } },
+      },
+      {},
+    )
 
     expect(report).toHaveBeenCalledWith(
       '/api/report/v2/aaci',
