@@ -75,6 +75,31 @@ const sentryStub = {
   },
 }
 
+class ReactComponent {
+  constructor(props) {
+    this.props = props
+    this.state = {}
+  }
+
+  setState(state) {
+    this.state = {
+      ...this.state,
+      ...state,
+    }
+  }
+}
+
+const reactStub = {
+  Component: ReactComponent,
+  createElement(type, props, ...children) {
+    return {
+      type,
+      props,
+      children,
+    }
+  },
+}
+
 const lodashImplementations = {
   compact(values) {
     return values.filter(Boolean)
@@ -203,6 +228,8 @@ Module._load = function smokeLoad(request, parent, isMain) {
       return sentryStub
     case 'node-fetch':
       return fetchStub
+    case 'react':
+      return reactStub
     case 'lodash':
       return lodashStub
     case 'moment-timezone':
@@ -229,6 +256,7 @@ async function main() {
     const plugin = require(entryPath)
 
     assert.strictEqual(plugin.show, false)
+    assert.strictEqual(typeof plugin.settingClass, 'function')
     assert.strictEqual(typeof plugin.pluginDidLoad, 'function')
     assert.strictEqual(typeof plugin.pluginWillUnload, 'function')
 

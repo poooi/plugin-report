@@ -1,7 +1,6 @@
 import type { GameResponseEventDetail } from './types/game-api'
 
 const ENABLED_KEY = 'poi-plugin-report:remodel-debug-recorder'
-const CONTAINER_ID = 'poi-plugin-report-remodel-debug-recorder'
 
 const REMODEL_PATHS = new Set([
   '/kcsapi/api_req_kousyou/remodel_slotlist',
@@ -34,7 +33,6 @@ export interface RemodelDebugRecord {
 }
 
 const records: RemodelDebugRecord[] = []
-let updateCounter: (() => void) | undefined
 
 const cloneJson = (value: unknown): unknown => {
   if (value == null) {
@@ -49,6 +47,15 @@ export const isRemodelDebugRecorderEnabled = (): boolean => {
   } catch {
     return false
   }
+}
+
+export const setRemodelDebugRecorderEnabled = (enabled: boolean): void => {
+  if (enabled) {
+    window.localStorage?.setItem(ENABLED_KEY, '1')
+    return
+  }
+
+  window.localStorage?.removeItem(ENABLED_KEY)
 }
 
 const getPostBodySlotId = (postBody: unknown): string | number | undefined => {
@@ -246,7 +253,6 @@ export const recordRemodelDebugEvent = (event: GameResponseEventDetail): void =>
     }
 
     records.push(record)
-    updateCounter?.()
   } catch (err) {
     console.error(err)
   }
@@ -254,12 +260,11 @@ export const recordRemodelDebugEvent = (event: GameResponseEventDetail): void =>
 
 export const clearRemodelDebugRecords = (): void => {
   records.length = 0
-  updateCounter?.()
 }
 
 export const getRemodelDebugRecords = (): readonly RemodelDebugRecord[] => records
 
-const exportRecords = (): void => {
+export const exportRemodelDebugRecords = (): void => {
   const blob = new Blob([JSON.stringify({ records }, null, 2)], {
     type: 'application/json',
   })
@@ -271,58 +276,4 @@ const exportRecords = (): void => {
     .replace(/[:.]/g, '-')}.json`
   anchor.click()
   URL.revokeObjectURL(href)
-}
-
-export const startRemodelDebugRecorder = (): (() => void) => {
-  if (!isRemodelDebugRecorderEnabled() || typeof document === 'undefined') {
-    return () => {}
-  }
-
-  const existing = document.getElementById(CONTAINER_ID)
-  if (existing) {
-    existing.remove()
-  }
-
-  const container = document.createElement('div')
-  container.id = CONTAINER_ID
-  container.style.cssText = [
-    'position:fixed',
-    'right:12px',
-    'bottom:12px',
-    'z-index:2147483647',
-    'display:flex',
-    'gap:6px',
-    'padding:6px',
-    'background:rgba(0,0,0,.75)',
-    'color:#fff',
-    'font:12px sans-serif',
-    'border-radius:4px',
-  ].join(';')
-
-  const count = document.createElement('span')
-  const exportButton = document.createElement('button')
-  const clearButton = document.createElement('button')
-
-  updateCounter = () => {
-    count.textContent = `Remodel debug: ${records.length}`
-  }
-  updateCounter()
-
-  exportButton.type = 'button'
-  exportButton.textContent = 'Export'
-  exportButton.addEventListener('click', exportRecords)
-
-  clearButton.type = 'button'
-  clearButton.textContent = 'Clear'
-  clearButton.addEventListener('click', clearRemodelDebugRecords)
-
-  container.append(count, exportButton, clearButton)
-  document.body.append(container)
-
-  return () => {
-    exportButton.removeEventListener('click', exportRecords)
-    clearButton.removeEventListener('click', clearRemodelDebugRecords)
-    container.remove()
-    updateCounter = undefined
-  }
 }

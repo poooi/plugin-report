@@ -4,7 +4,8 @@ import semver from 'semver'
 import { init } from './sentry'
 import type { GameResponseEvent } from './types/game-api'
 import type { Reporter } from './types/reporter'
-import { recordRemodelDebugEvent, startRemodelDebugRecorder } from './remodel-debug-recorder'
+import { recordRemodelDebugEvent } from './remodel-debug-recorder'
+import RemodelDebugSettings from './remodel-debug-settings'
 
 import * as remote from '@electron/remote'
 
@@ -40,7 +41,6 @@ import {
 } from './reporters'
 
 let reporters: Reporter[] = []
-let stopRemodelDebugRecorder: (() => void) | undefined
 const handleResponse = (e: GameResponseEvent) => {
   if (!(gameAPIBroadcaster.serverInfo.num >= 1)) {
     return
@@ -61,8 +61,8 @@ const handleResponse = (e: GameResponseEvent) => {
 }
 
 export const show = false
+export const settingClass = RemodelDebugSettings
 export const pluginDidLoad = (_e: unknown) => {
-  stopRemodelDebugRecorder = startRemodelDebugRecorder()
   reporters = [
     new QuestReporter(),
     new CreateShipReporter(),
@@ -78,6 +78,4 @@ export const pluginDidLoad = (_e: unknown) => {
 }
 export const pluginWillUnload = (_e: unknown) => {
   window.removeEventListener('game.response', handleResponse)
-  stopRemodelDebugRecorder?.()
-  stopRemodelDebugRecorder = undefined
 }

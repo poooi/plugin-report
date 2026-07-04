@@ -29,6 +29,7 @@ module.exports = defineConfig({
       'lodash',
       'moment-timezone',
       'node-fetch',
+      'react',
       'semver',
       /^views\//,
     ],
