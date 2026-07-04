@@ -14,6 +14,20 @@ const resetRecorder = (enabled: boolean): void => {
   clearRemodelDebugRecords()
 }
 
+const setupPoiGlobals = (): void => {
+  window._decks = [{ api_ship: [1, 2] }]
+  window._ships = {
+    1: { api_ship_id: 187 },
+    2: { api_ship_id: 141 },
+  }
+  window._slotitems = {
+    501: {
+      api_level: 6,
+      api_slotitem_id: 39,
+    },
+  }
+}
+
 const withRecorderState =
   (setup: () => void) =>
   (Story: StoryRender): ReactElement => {
@@ -51,6 +65,7 @@ export const Empty: Story = {
 export const EnabledWithCapture: Story = {
   decorators: [
     withRecorderState(() => {
+      setupPoiGlobals()
       resetRecorder(true)
       recordRemodelDebugEvent({
         time: Date.UTC(2026, 6, 3, 15),

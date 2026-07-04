@@ -39,7 +39,11 @@ let enabledCache: boolean | undefined
 
 const notifyListeners = (): void => {
   for (const listener of listeners) {
-    listener()
+    try {
+      listener()
+    } catch (err) {
+      console.error(err)
+    }
   }
 }
 

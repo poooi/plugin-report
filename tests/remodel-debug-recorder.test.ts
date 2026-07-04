@@ -323,6 +323,23 @@ describe('remodel debug recorder', () => {
     expect(listener).toHaveBeenCalledTimes(3)
   })
 
+  it('isolates listener failures during notifications', () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const healthyListener = vi.fn()
+    const unsubscribeBad = subscribeRemodelDebugRecorder(() => {
+      throw new Error('listener failed')
+    })
+    const unsubscribeHealthy = subscribeRemodelDebugRecorder(healthyListener)
+
+    expect(() => setRemodelDebugRecorderEnabled(true)).not.toThrow()
+
+    expect(consoleError).toHaveBeenCalledWith(expect.any(Error))
+    expect(healthyListener).toHaveBeenCalled()
+    unsubscribeBad()
+    unsubscribeHealthy()
+    consoleError.mockRestore()
+  })
+
   it('does not throw when localStorage writes fail', () => {
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
     globalThis.window = {
