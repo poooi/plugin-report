@@ -1,4 +1,4 @@
-import React from 'react'
+import type { ReactElement } from 'react'
 
 import RemodelDebugSettings from './remodel-debug-settings'
 import {
@@ -11,17 +11,16 @@ const meta = {
   title: 'Plugin/RemodelDebugSettings',
   component: RemodelDebugSettings,
   decorators: [
-    (Story: () => React.ReactElement) =>
-      React.createElement(
-        'div',
-        {
-          style: {
-            padding: 16,
-            maxWidth: 720,
-          },
-        },
-        React.createElement(Story),
-      ),
+    (Story: () => ReactElement) => (
+      <div
+        style={{
+          maxWidth: 720,
+          padding: 16,
+        }}
+      >
+        <Story />
+      </div>
+    ),
   ],
 }
 

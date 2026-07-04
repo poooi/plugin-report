@@ -22,7 +22,7 @@ export default tseslint.config(
   ...tseslint.configs.recommended,
   importX.flatConfigs.recommended,
   {
-    files: ['**/*.{js,cjs,mjs,ts}'],
+    files: ['**/*.{js,cjs,mjs,ts,tsx}'],
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: 'module',
@@ -61,6 +61,7 @@ export default tseslint.config(
           js: 'never',
           mjs: 'never',
           ts: 'never',
+          tsx: 'never',
         },
       ],
       'import-x/no-unresolved': [
@@ -78,7 +79,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ['src/**/*.ts'],
+    files: ['src/**/*.{ts,tsx}'],
     extends: [tseslint.configs.recommendedTypeChecked],
     languageOptions: {
       parserOptions: {
