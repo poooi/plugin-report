@@ -1,4 +1,10 @@
 {
   "Data Report": "數據匯報",
-  "Report data to database(http://db.kcwiki.moe)": "匯報建造數據、海域掉落數據、開發數據"
+  "Report data to database(http://db.kcwiki.moe)": "匯報建造數據、海域掉落數據、開發數據",
+  "Captured records": "已擷取記錄：{{count}}",
+  "Clear": "清除",
+  "Enable remodel debug recorder": "啟用改修除錯記錄器",
+  "Export": "匯出",
+  "Remodel recipe debug recorder": "改修配方除錯記錄器",
+  "Remodel recipe debug recorder description": "用於驗證明石改修 API 順序的本機選用記錄器。只擷取允許的改修欄位，記錄只保存在記憶體中，且只會在點擊匯出時寫入檔案。"
 }

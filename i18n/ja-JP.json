@@ -1,4 +1,10 @@
 {
   "Data Report": "統計データベースツール",
-  "Report data to database(http://db.kcwiki.moe)": "統計データベース(http://db.kcwiki.moe)登録用ツール"
+  "Report data to database(http://db.kcwiki.moe)": "統計データベース(http://db.kcwiki.moe)登録用ツール",
+  "Captured records": "記録数: {{count}}",
+  "Clear": "クリア",
+  "Enable remodel debug recorder": "改修デバッグレコーダーを有効化",
+  "Export": "エクスポート",
+  "Remodel recipe debug recorder": "改修レシピデバッグレコーダー",
+  "Remodel recipe debug recorder description": "明石の改修APIシーケンス検証用のローカルレコーダーです。許可された改修フィールドだけをメモリ上に記録し、エクスポートをクリックしたときだけファイルへ書き出します。"
 }

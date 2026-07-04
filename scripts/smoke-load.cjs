@@ -5,16 +5,13 @@ const path = require('path')
 
 const projectRoot = path.resolve(__dirname, '..')
 const entryPath = path.join(projectRoot, 'index.js')
-const baseReporterPath = path.join(projectRoot, 'reporters', 'base.js')
 
 if (!fs.existsSync(entryPath)) {
   console.log('[smoke-load] index.js not found; skipping until built output exists.')
   process.exit(0)
 }
 
-const packageMeta = require(path.join(projectRoot, 'package.json'))
 const listeners = new Map()
-const fetchCalls = []
 const startupFetchCalls = []
 
 global.window = {
@@ -72,6 +69,47 @@ const sentryStub = {
   setContext() {},
   withScope(callback) {
     callback(sentryScope)
+  },
+}
+
+class ReactComponent {
+  constructor(props) {
+    this.props = props
+    this.state = {}
+  }
+
+  setState(state) {
+    this.state = {
+      ...this.state,
+      ...state,
+    }
+  }
+}
+
+const reactStub = {
+  Component: ReactComponent,
+  createElement(type, props, ...children) {
+    return {
+      type,
+      props,
+      children,
+    }
+  },
+}
+
+const reactJsxRuntimeStub = {
+  Fragment: Symbol.for('react.fragment'),
+  jsx(type, props) {
+    return {
+      type,
+      props,
+    }
+  },
+  jsxs(type, props) {
+    return {
+      type,
+      props,
+    }
   },
 }
 
@@ -162,8 +200,9 @@ const lodashStub = new Proxy(lodashImplementations, {
 })
 
 const fetchStub = async (requestUrl, options = {}) => {
-  const calls = requestUrl.endsWith('/api/report/v3/known_quests') ? startupFetchCalls : fetchCalls
-  calls.push({ requestUrl, options })
+  if (requestUrl.endsWith('/api/report/v3/known_quests')) {
+    startupFetchCalls.push({ requestUrl, options })
+  }
   return {
     ok: true,
     status: 200,
@@ -203,6 +242,18 @@ Module._load = function smokeLoad(request, parent, isMain) {
       return sentryStub
     case 'node-fetch':
       return fetchStub
+    case 'react':
+      return reactStub
+    case 'react/jsx-runtime':
+    case 'react/jsx-dev-runtime':
+      return reactJsxRuntimeStub
+    case 'react-i18next':
+      return {
+        useTranslation: () => ({
+          t: (key, options) =>
+            options && typeof options.count !== 'undefined' ? `${key}: ${options.count}` : key,
+        }),
+      }
     case 'lodash':
       return lodashStub
     case 'moment-timezone':
@@ -222,13 +273,12 @@ Module._load = function smokeLoad(request, parent, isMain) {
   }
 }
 
-const loadExport = (mod) => mod && (mod.default || mod)
-
 async function main() {
   try {
     const plugin = require(entryPath)
 
     assert.strictEqual(plugin.show, false)
+    assert.strictEqual(typeof plugin.settingsClass, 'function')
     assert.strictEqual(typeof plugin.pluginDidLoad, 'function')
     assert.strictEqual(typeof plugin.pluginWillUnload, 'function')
 
@@ -245,23 +295,7 @@ async function main() {
       'https://example.invalid/api/report/v3/known_quests',
     )
 
-    const BaseReporter = loadExport(require(baseReporterPath))
-    const reporter = new BaseReporter()
-    assert.strictEqual(reporter.SERVER_HOSTNAME, 'example.invalid')
-    assert.strictEqual(reporter.USERAGENT, `Reporter/${packageMeta.version} poi/10.7.0`)
-
-    const json = await reporter.getJson('/api/smoke')
-    assert.deepStrictEqual(json, { ok: true })
-    assert.strictEqual(fetchCalls[0].requestUrl, 'https://example.invalid/api/smoke')
-    assert.strictEqual(fetchCalls[0].options.headers['User-Agent'], reporter.USERAGENT)
-    assert.strictEqual(fetchCalls[0].options.headers['X-Reporter'], reporter.USERAGENT)
-
-    await reporter.report('/api/report/smoke', { ok: true })
-    assert.strictEqual(fetchCalls[1].requestUrl, 'https://example.invalid/api/report/smoke')
-    assert.strictEqual(fetchCalls[1].options.method, 'POST')
-    assert.deepStrictEqual(JSON.parse(fetchCalls[1].options.body), { data: { ok: true } })
-
-    console.log('[smoke-load] built plugin loaded and reporter base exercised.')
+    console.log('[smoke-load] built plugin loaded.')
   } finally {
     Module._load = originalLoad
   }

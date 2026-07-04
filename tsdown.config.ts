@@ -1,26 +1,16 @@
 const { defineConfig } = require('tsdown')
+const packageMeta = require('./package.json')
 
 module.exports = defineConfig({
   entry: {
     index: 'src/index.ts',
-    'reporters/aaci': 'src/reporters/aaci.ts',
-    'reporters/base': 'src/reporters/base.ts',
-    'reporters/create-item': 'src/reporters/create-item.ts',
-    'reporters/create-ship': 'src/reporters/create-ship.ts',
-    'reporters/drop-ship': 'src/reporters/drop-ship.ts',
-    'reporters/index': 'src/reporters/index.ts',
-    'reporters/night-battle-ci': 'src/reporters/night-battle-ci.ts',
-    'reporters/night-contact': 'src/reporters/night-contact.ts',
-    'reporters/quest': 'src/reporters/quest.ts',
-    'reporters/remodel-item': 'src/reporters/remodel-item.ts',
-    'reporters/remodel-recipe': 'src/reporters/remodel-recipe.ts',
-    'reporters/ship-stat': 'src/reporters/ship-stat.ts',
-    'reporters/utils': 'src/reporters/utils.ts',
-    sentry: 'src/sentry.ts',
   },
   outDir: '.',
   outExtensions: () => ({ js: '.js' }),
   format: ['cjs'],
+  define: {
+    __REPORTER_VERSION__: JSON.stringify(packageMeta.version),
+  },
   deps: {
     neverBundle: [
       '@electron/remote',
@@ -29,17 +19,19 @@ module.exports = defineConfig({
       'lodash',
       'moment-timezone',
       'node-fetch',
+      'react',
+      'react-dom',
+      'react/jsx-runtime',
+      'react/jsx-dev-runtime',
+      'react-i18next',
       'semver',
       /^views\//,
     ],
   },
   dts: false,
-  clean: ['index.js', 'sentry.js', 'reporters', 'chunks'],
+  clean: ['index.js'],
   sourcemap: false,
   hash: false,
-  outputOptions: {
-    chunkFileNames: 'chunks/[name].js',
-  },
   treeshake: false,
   minify: false,
   shims: false,

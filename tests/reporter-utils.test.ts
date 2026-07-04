@@ -1,20 +1,26 @@
-import { createRequire } from 'node:module'
-import { describe, expect, it } from 'vitest'
+import { beforeAll, describe, expect, it } from 'vitest'
+import type * as ReporterUtils from '../src/reporters/utils'
 
-globalThis.window = {
-  _teitokuId: 1,
-  _ships: {},
-  $ships: {},
-} as unknown as Window & typeof globalThis
+let getFirstPlaneCounts: typeof ReporterUtils.getFirstPlaneCounts
+let getHpStyle: typeof ReporterUtils.getHpStyle
+let getNightBattleCVCIType: typeof ReporterUtils.getNightBattleCVCIType
+let getNightBattleDDCIType: typeof ReporterUtils.getNightBattleDDCIType
+let getNightBattleSSCIType: typeof ReporterUtils.getNightBattleSSCIType
 
-const require = createRequire(__filename)
-const {
-  getFirstPlaneCounts,
-  getHpStyle,
-  getNightBattleCVCIType,
-  getNightBattleDDCIType,
-  getNightBattleSSCIType,
-} = require('../reporters/utils.js')
+beforeAll(async () => {
+  globalThis.window = {
+    _teitokuId: 1,
+    _ships: {},
+    $ships: {},
+  } as unknown as Window & typeof globalThis
+  ;({
+    getFirstPlaneCounts,
+    getHpStyle,
+    getNightBattleCVCIType,
+    getNightBattleDDCIType,
+    getNightBattleSSCIType,
+  } = await import('../src/reporters/utils'))
+})
 
 const equip = ({ id = 0, type2 = 0, type3 = 0, houm = 0 } = {}) => ({
   api_slotitem_id: id,

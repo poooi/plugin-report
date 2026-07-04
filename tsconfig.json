@@ -8,9 +8,10 @@
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "strict": true,
+    "jsx": "react-jsx",
     "baseUrl": ".",
     "types": ["node"]
   },
-  "include": ["src/**/*.ts", "src/**/*.d.ts", "tests/**/*.ts"],
+  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.d.ts", "tests/**/*.ts", "tests/**/*.tsx"],
   "exclude": ["node_modules"]
 }

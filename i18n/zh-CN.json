@@ -1,4 +1,10 @@
 {
   "Data Report": "数据汇报",
-  "Report data to database(http://db.kcwiki.moe)": "汇报建造数据、海域掉落数据、开发数据"
+  "Report data to database(http://db.kcwiki.moe)": "汇报建造数据、海域掉落数据、开发数据",
+  "Captured records": "已捕获记录：{{count}}",
+  "Clear": "清空",
+  "Enable remodel debug recorder": "启用改修调试记录器",
+  "Export": "导出",
+  "Remodel recipe debug recorder": "改修配方调试记录器",
+  "Remodel recipe debug recorder description": "用于验证明石改修 API 顺序的本地可选记录器。只捕获允许的改修字段，记录仅保存在内存中，并且只会在点击导出时写入文件。"
 }

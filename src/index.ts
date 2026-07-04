@@ -4,6 +4,8 @@ import semver from 'semver'
 import { init } from './sentry'
 import type { GameResponseEvent } from './types/game-api'
 import type { Reporter } from './types/reporter'
+import { recordRemodelDebugEvent } from './remodel-debug-recorder'
+import RemodelDebugSettings from './remodel-debug-settings'
 
 import * as remote from '@electron/remote'
 
@@ -44,6 +46,7 @@ const handleResponse = (e: GameResponseEvent) => {
     return
   }
   const { method, path, body, postBody, time = Date.now() } = e.detail
+  recordRemodelDebugEvent({ method, path, body, postBody, time })
   for (const reporter of reporters) {
     try {
       reporter.handle(method, path, body, postBody, time)
@@ -58,6 +61,7 @@ const handleResponse = (e: GameResponseEvent) => {
 }
 
 export const show = false
+export const settingsClass = RemodelDebugSettings
 export const pluginDidLoad = (_e: unknown) => {
   reporters = [
     new QuestReporter(),
