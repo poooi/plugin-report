@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto'
 import Module from 'node:module'
 import { vi } from 'vitest'
+import packageMeta from '../../package.json'
 import type { WindowSlotItem } from '../../src/types/window-state'
 import SourceAACIReporter from '../../src/reporters/aaci'
 import SourceBaseReporter from '../../src/reporters/base'
@@ -78,7 +79,6 @@ const state = vi.hoisted(() => {
     }) as unknown as Window & typeof globalThis
 
   globalThis.window = createWindow()
-  ;(globalThis as unknown as { __REPORTER_VERSION__: string }).__REPORTER_VERSION__ = '8.1.0'
   ;(globalThis as any).__reporterTestHarnessState = {
     aaciState,
     selectorState,
@@ -95,6 +95,9 @@ const state = vi.hoisted(() => {
 })
 
 export const { aaciState, fetchState, momentState, selectorState, sentryState } = state
+
+;(globalThis as unknown as { __REPORTER_VERSION__: string }).__REPORTER_VERSION__ =
+  packageMeta.version
 
 declare global {
   var __reporterTestHarnessPatched: boolean | undefined
