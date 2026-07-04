@@ -1,6 +1,7 @@
 import type { GameResponseEventDetail } from './types/game-api'
 
 const ENABLED_KEY = 'poi-plugin-report:remodel-debug-recorder'
+const MAX_RECORDS = 200
 
 const REMODEL_PATHS = new Set([
   '/kcsapi/api_req_kousyou/remodel_slotlist',
@@ -50,12 +51,16 @@ export const isRemodelDebugRecorderEnabled = (): boolean => {
 }
 
 export const setRemodelDebugRecorderEnabled = (enabled: boolean): void => {
-  if (enabled) {
-    window.localStorage?.setItem(ENABLED_KEY, '1')
-    return
-  }
+  try {
+    if (enabled) {
+      window.localStorage?.setItem(ENABLED_KEY, '1')
+      return
+    }
 
-  window.localStorage?.removeItem(ENABLED_KEY)
+    window.localStorage?.removeItem(ENABLED_KEY)
+  } catch (err) {
+    console.error(err)
+  }
 }
 
 const getPostBodySlotId = (postBody: unknown): string | number | undefined => {
@@ -77,6 +82,14 @@ const pickStringOrNumber = (
 ): string | number | undefined => {
   const value = record[key]
   return typeof value === 'string' || typeof value === 'number' ? value : undefined
+}
+
+const pickBooleanOrNumber = (
+  record: Record<string, unknown>,
+  key: string,
+): boolean | number | undefined => {
+  const value = record[key]
+  return typeof value === 'boolean' || typeof value === 'number' ? value : undefined
 }
 
 const sanitizePostBody = (path: string, postBody: unknown): unknown => {
@@ -147,7 +160,7 @@ const sanitizeSlotBody = (body: unknown): unknown => {
       : {}
 
   return {
-    api_remodel_flag: pickNumber(record, 'api_remodel_flag'),
+    api_remodel_flag: pickBooleanOrNumber(record, 'api_remodel_flag'),
     api_remodel_id: Array.isArray(record.api_remodel_id)
       ? record.api_remodel_id.filter((value) => typeof value === 'number')
       : undefined,
@@ -174,7 +187,7 @@ const sanitizeBody = (path: string, body: unknown): unknown => {
 }
 
 const createSanitizedContext = (slotId: string | number | undefined): SanitizedFleetContext => {
-  const deckShipIds = window._decks[0]?.api_ship.slice(0, 2) || []
+  const deckShipIds = window._decks[0]?.api_ship?.slice(0, 2) || []
   const flagship = deckShipIds[0] == null ? undefined : window._ships[deckShipIds[0]]
   const secondShip = deckShipIds[1] == null ? undefined : window._ships[deckShipIds[1]]
   if (slotId != null) {
@@ -253,6 +266,9 @@ export const recordRemodelDebugEvent = (event: GameResponseEventDetail): void =>
     }
 
     records.push(record)
+    if (records.length > MAX_RECORDS) {
+      records.splice(0, records.length - MAX_RECORDS)
+    }
   } catch (err) {
     console.error(err)
   }
@@ -275,5 +291,5 @@ export const exportRemodelDebugRecords = (): void => {
     .toISOString()
     .replace(/[:.]/g, '-')}.json`
   anchor.click()
-  URL.revokeObjectURL(href)
+  setTimeout(() => URL.revokeObjectURL(href), 0)
 }

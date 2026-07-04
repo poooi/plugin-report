@@ -292,7 +292,7 @@ export default class RemodelRecipeReporter extends BaseReporter {
 
   getFleetContext(): RemodelRecipeFleetContext | undefined {
     const deck = window._decks[0]
-    const flagshipRosterId = deck?.api_ship[0]
+    const flagshipRosterId = deck?.api_ship?.[0]
     if (flagshipRosterId == null || Number(flagshipRosterId) <= 0) {
       return undefined
     }
@@ -303,7 +303,7 @@ export default class RemodelRecipeReporter extends BaseReporter {
       return undefined
     }
 
-    const secondRosterId = deck?.api_ship[1]
+    const secondRosterId = deck?.api_ship?.[1]
     if (secondRosterId == null || Number(secondRosterId) <= 0) {
       return {
         observedSecondShipId: 0,
@@ -603,11 +603,11 @@ export default class RemodelRecipeReporter extends BaseReporter {
             const update: ItemImprovementUpdatePayload = {
               schemaVersion: 1,
               source: 'execution',
-              clientObservedAt: currentDetail.clientObservedAt,
+              clientObservedAt: time,
               recipeId: currentDetail.recipeId,
               itemId: currentDetail.itemId,
               itemLevel: currentDetail.itemLevel,
-              day: currentDetail.day,
+              day: getJstDay(time),
               observedSecondShipId: currentDetail.observedSecondShipId,
               observedFlagshipId: currentDetail.observedFlagshipId,
               upgradeObserved: true,

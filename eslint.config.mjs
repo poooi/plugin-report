@@ -15,6 +15,7 @@ export default tseslint.config(
       'node_modules/**',
       'reporters/**',
       'sentry.js',
+      'storybook-static/**',
     ],
   },
   js.configs.recommended,

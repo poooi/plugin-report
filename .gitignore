@@ -31,3 +31,4 @@ chunks/*.js
 index.js
 reporters/*.js
 sentry.js
+storybook-static

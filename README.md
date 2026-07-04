@@ -6,6 +6,7 @@ Report ship creating info and drop info, and so on.
 
 - `pnpm run lint` checks JavaScript and TypeScript sources.
 - `pnpm run typecheck` runs TypeScript in strict mode.
+- `pnpm run storybook` previews React plugin UI surfaces.
 - `pnpm test` builds the plugin and runs the Vitest suite.
 
 ## Remodel debug recorder

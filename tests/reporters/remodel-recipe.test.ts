@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
   attachReportSpy,
@@ -6,7 +6,17 @@ import {
   resetReporterTestState,
 } from '../helpers/reporter-test-harness'
 
-beforeEach(resetReporterTestState)
+const fixedTestTime = Date.UTC(2026, 6, 3, 15)
+
+beforeEach(() => {
+  resetReporterTestState()
+  vi.useFakeTimers()
+  vi.setSystemTime(fixedTestTime)
+})
+
+afterEach(() => {
+  vi.useRealTimers()
+})
 
 describe('RemodelRecipeReporter', () => {
   const detailBody = {
@@ -28,6 +38,8 @@ describe('RemodelRecipeReporter', () => {
       api_req_bauxite: 40,
     },
   ]
+  const detailTime = fixedTestTime
+  const executionTime = Date.UTC(2026, 6, 4, 15)
 
   it('reports v3 availability and detail facts without execution', () => {
     window._slotitems[501] = { api_slotitem_id: 700, api_level: 0 }
@@ -112,11 +124,17 @@ describe('RemodelRecipeReporter', () => {
     const reporter = new RemodelRecipeReporter()
     const report = attachReportSpy(reporter)
 
-    reporter.handle('GET', '/kcsapi/api_req_kousyou/remodel_slotlist', listBody)
-    reporter.handle('POST', '/kcsapi/api_req_kousyou/remodel_slotlist_detail', detailBody, {
-      api_id: '33',
-      api_slot_id: 501,
-    })
+    reporter.handle('GET', '/kcsapi/api_req_kousyou/remodel_slotlist', listBody, {}, detailTime)
+    reporter.handle(
+      'POST',
+      '/kcsapi/api_req_kousyou/remodel_slotlist_detail',
+      detailBody,
+      {
+        api_id: '33',
+        api_slot_id: 501,
+      },
+      detailTime,
+    )
     reporter.handle(
       'POST',
       '/kcsapi/api_req_kousyou/remodel_slot',
@@ -129,6 +147,7 @@ describe('RemodelRecipeReporter', () => {
       {
         api_id: '33',
       },
+      executionTime,
     )
 
     expect(report).toHaveBeenCalledWith('/api/report/v2/remodel_recipe', {
@@ -154,11 +173,11 @@ describe('RemodelRecipeReporter', () => {
     expect(report).toHaveBeenCalledWith('/api/report/v3/item_improvement_recipe', {
       schemaVersion: 1,
       source: 'execution',
-      clientObservedAt: expect.any(Number),
+      clientObservedAt: executionTime,
       recipeId: 33,
       itemId: 700,
       itemLevel: 6,
-      day: 6,
+      day: 0,
       observedSecondShipId: 102,
       observedFlagshipId: 101,
       upgradeObserved: true,

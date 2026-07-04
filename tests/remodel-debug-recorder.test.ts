@@ -1,10 +1,11 @@
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
   clearRemodelDebugRecords,
   createRemodelDebugRecord,
   getRemodelDebugRecords,
   recordRemodelDebugEvent,
+  setRemodelDebugRecorderEnabled,
 } from '../src/remodel-debug-recorder'
 import type { GameResponseEventDetail } from '../src/types/game-api'
 
@@ -102,5 +103,76 @@ describe('remodel debug recorder', () => {
         },
       },
     })
+  })
+
+  it('keeps boolean remodel flags in slot execution captures', () => {
+    const record = createRemodelDebugRecord({
+      time: 1710000000001,
+      method: 'POST',
+      path: '/kcsapi/api_req_kousyou/remodel_slot',
+      postBody: {
+        api_id: '33',
+        api_slot_id: '501',
+        api_token: 'secret-token',
+      },
+      body: {
+        api_remodel_flag: true,
+        api_remodel_id: [700, 701],
+        api_after_slot: {
+          api_slotitem_id: 701,
+          api_level: 0,
+        },
+      },
+    })
+
+    expect(record).toMatchObject({
+      postBody: {
+        api_id: '33',
+      },
+      body: {
+        api_remodel_flag: true,
+      },
+    })
+  })
+
+  it('handles missing deck ship arrays while recording', () => {
+    window._decks = [{} as (typeof window._decks)[number]]
+
+    expect(() => recordRemodelDebugEvent(remodelDetailEvent)).not.toThrow()
+  })
+
+  it('caps in-memory captures to the latest 200 records', () => {
+    window.localStorage.setItem('poi-plugin-report:remodel-debug-recorder', '1')
+
+    for (let index = 0; index < 205; index += 1) {
+      recordRemodelDebugEvent({
+        ...remodelDetailEvent,
+        time: index,
+      })
+    }
+
+    expect(getRemodelDebugRecords()).toHaveLength(200)
+    expect(getRemodelDebugRecords()[0]?.time).toBe(5)
+  })
+
+  it('does not throw when localStorage writes fail', () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+    globalThis.window = {
+      ...createWindow(),
+      localStorage: {
+        getItem: () => null,
+        setItem: () => {
+          throw new Error('blocked')
+        },
+        removeItem: () => {
+          throw new Error('blocked')
+        },
+      },
+    } as unknown as Window & typeof globalThis
+
+    expect(() => setRemodelDebugRecorderEnabled(true)).not.toThrow()
+    expect(() => setRemodelDebugRecorderEnabled(false)).not.toThrow()
+    expect(consoleError).toHaveBeenCalledTimes(2)
+    consoleError.mockRestore()
   })
 })
