@@ -8,17 +8,20 @@ import type {
   GameApiResponseBody,
 } from '../types/game-api'
 import type { Reporter } from '../types/reporter'
+import { parseInt10 } from '../types/window-state'
 
-type CreateItemPostBody = Pick<
+type CreateItemPostBodyKey = keyof Pick<
   APIReqKousyouCreateitemRequest,
   'api_item1' | 'api_item2' | 'api_item3' | 'api_item4'
 >
 
+type CreateItemPostBody = Record<CreateItemPostBodyKey, string | number>
+
 type CreateItemResponseBody = Pick<APIReqKousyouCreateitemResponse, 'api_get_items'>
 
 const isCreateItemPostBody = (postBody: GameApiPostBody): postBody is CreateItemPostBody =>
-  ['api_item1', 'api_item2', 'api_item3', 'api_item4'].every(
-    (key) => typeof postBody[key] === 'string',
+  (['api_item1', 'api_item2', 'api_item3', 'api_item4'] as CreateItemPostBodyKey[]).every((key) =>
+    ['number', 'string'].includes(typeof postBody[key]),
   )
 
 const isCreateItemResponseBody = (body: GameApiResponseBody): body is CreateItemResponseBody =>
@@ -48,10 +51,10 @@ export default class CreateItemReporter extends BaseReporter implements Reporter
       body.api_get_items.forEach((item) => {
         void this.report('/api/report/v2/create_item', {
           items: [
-            parseInt(postBody.api_item1),
-            parseInt(postBody.api_item2),
-            parseInt(postBody.api_item3),
-            parseInt(postBody.api_item4),
+            parseInt10(postBody.api_item1),
+            parseInt10(postBody.api_item2),
+            parseInt10(postBody.api_item3),
+            parseInt10(postBody.api_item4),
           ],
           itemId: item.api_slotitem_id,
           teitokuLv: _teitokuLv,
