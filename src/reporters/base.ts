@@ -10,20 +10,26 @@ const insecureAgent = new https.Agent({
   rejectUnauthorized: false,
 })
 
-const { SERVER_HOSTNAME, POI_VERSION } = window
-const globalReporterVersion = (globalThis as { __REPORTER_VERSION__?: string }).__REPORTER_VERSION__
-const REPORTER_VERSION =
-  typeof __REPORTER_VERSION__ === 'string'
+const getReporterVersion = (): string => {
+  const globalReporterVersion = (globalThis as { __REPORTER_VERSION__?: string })
+    .__REPORTER_VERSION__
+  return typeof __REPORTER_VERSION__ === 'string'
     ? __REPORTER_VERSION__
     : (globalReporterVersion ?? '0.0.0-dev')
+}
 
 export default class BaseReporter {
   SERVER_HOSTNAME: string
   USERAGENT: string
+  POI_VERSION: string
+  REPORTER_VERSION: string
 
   constructor() {
+    const { SERVER_HOSTNAME, POI_VERSION } = globalThis.window
     this.SERVER_HOSTNAME = SERVER_HOSTNAME
-    this.USERAGENT = `Reporter/${REPORTER_VERSION} poi/${POI_VERSION}`
+    this.POI_VERSION = POI_VERSION
+    this.REPORTER_VERSION = getReporterVersion()
+    this.USERAGENT = `Reporter/${this.REPORTER_VERSION} poi/${this.POI_VERSION}`
   }
 
   getJson = async <T = unknown>(path: string): Promise<T | Record<string, never>> => {
@@ -46,8 +52,8 @@ export default class BaseReporter {
           path,
         })
         Sentry.setContext('versions', {
-          reporter: REPORTER_VERSION,
-          poi: POI_VERSION,
+          reporter: this.REPORTER_VERSION,
+          poi: this.POI_VERSION,
         })
         Sentry.captureException(err)
       })
@@ -83,8 +89,8 @@ export default class BaseReporter {
           path,
         })
         Sentry.setContext('versions', {
-          reporter: REPORTER_VERSION,
-          poi: POI_VERSION,
+          reporter: this.REPORTER_VERSION,
+          poi: this.POI_VERSION,
         })
         Sentry.setContext('data', info)
         Sentry.captureException(err)
