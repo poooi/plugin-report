@@ -293,10 +293,18 @@ describe('remodel debug recorder', () => {
     setRemodelDebugRecorderEnabled(true)
     recordRemodelDebugEvent(remodelDetailEvent)
 
-    const snapshot = getRemodelDebugRecords() as Array<unknown>
+    const snapshot = getRemodelDebugRecords() as unknown as Array<{
+      context?: {
+        selectedSlotItem?: {
+          api_level?: number
+        }
+      }
+    }>
+    snapshot[0]!.context!.selectedSlotItem!.api_level = 99
     snapshot.length = 0
 
     expect(getRemodelDebugRecords()).toHaveLength(1)
+    expect(getRemodelDebugRecords()[0]?.context.selectedSlotItem?.api_level).toBe(6)
   })
 
   it('notifies subscribers when setting or records change', () => {
@@ -334,7 +342,7 @@ describe('remodel debug recorder', () => {
     consoleError.mockRestore()
   })
 
-  it('exports captures as a delayed-revoked JSON blob', () => {
+  it('exports captures as a delayed-revoked JSON blob', async () => {
     vi.useFakeTimers()
     setRemodelDebugRecorderEnabled(true)
     recordRemodelDebugEvent(remodelDetailEvent)
@@ -349,13 +357,18 @@ describe('remodel debug recorder', () => {
     globalThis.document = {
       createElement,
     } as unknown as Document
-    const createObjectUrl = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:debug')
+    let exportedBlob: Blob | undefined
+    const createObjectUrl = vi.spyOn(URL, 'createObjectURL').mockImplementation((blob) => {
+      exportedBlob = blob as Blob
+      return 'blob:debug'
+    })
     const revokeObjectUrl = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {})
 
     exportRemodelDebugRecords()
 
     expect(createElement).toHaveBeenCalledWith('a')
     expect(createObjectUrl).toHaveBeenCalledWith(expect.any(Blob))
+    await expect(exportedBlob?.text()).resolves.toContain('"records"')
     expect(anchor.href).toBe('blob:debug')
     expect(anchor.download).toMatch(/^plugin-report-remodel-debug-/)
     expect(click).toHaveBeenCalled()

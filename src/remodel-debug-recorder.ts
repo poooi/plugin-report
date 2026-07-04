@@ -307,10 +307,13 @@ export const clearRemodelDebugRecords = (): void => {
   notifyListeners()
 }
 
-export const getRemodelDebugRecords = (): readonly RemodelDebugRecord[] => [...records]
+const cloneRecord = (record: RemodelDebugRecord): RemodelDebugRecord =>
+  cloneJson(record) as RemodelDebugRecord
+
+export const getRemodelDebugRecords = (): readonly RemodelDebugRecord[] => records.map(cloneRecord)
 
 export const exportRemodelDebugRecords = (): void => {
-  const blob = new Blob([JSON.stringify({ records }, null, 2)], {
+  const blob = new Blob([JSON.stringify({ records: getRemodelDebugRecords() }, null, 2)], {
     type: 'application/json',
   })
   const href = URL.createObjectURL(blob)
