@@ -249,9 +249,23 @@ describe('remodel debug recorder', () => {
     expect(() => recordRemodelDebugEvent(remodelDetailEvent)).not.toThrow()
   })
 
+  it('handles missing decks while creating sanitized records', () => {
+    window._decks = undefined as unknown as typeof window._decks
+
+    expect(createRemodelDebugRecord(remodelDetailEvent)).toMatchObject({
+      context: {
+        firstFleet: {},
+        selectedSlotItem: {
+          api_slotitem_id: 700,
+          api_level: 6,
+        },
+      },
+    })
+  })
+
   it('logs and skips malformed circular captures', () => {
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
-    window._decks = undefined as unknown as typeof window._decks
+    window._slotitems = undefined as unknown as typeof window._slotitems
     setRemodelDebugRecorderEnabled(true)
 
     recordRemodelDebugEvent(remodelDetailEvent)

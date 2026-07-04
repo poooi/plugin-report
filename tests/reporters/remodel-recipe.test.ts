@@ -385,6 +385,37 @@ describe('RemodelRecipeReporter', () => {
     consoleError.mockRestore()
   })
 
+  it('logs item id mismatches without mixing item and slot identifiers', () => {
+    window._slotitems[501] = { api_slotitem_id: 700, api_level: 6 }
+    const reporter = new RemodelRecipeReporter()
+    const report = attachReportSpy(reporter)
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    reporter.handle('GET', '/kcsapi/api_req_kousyou/remodel_slotlist', listBody)
+    reporter.handle('POST', '/kcsapi/api_req_kousyou/remodel_slotlist_detail', detailBody, {
+      api_id: '33',
+      api_slot_id: 501,
+    })
+    reporter.handle(
+      'POST',
+      '/kcsapi/api_req_kousyou/remodel_slot',
+      {
+        api_remodel_flag: true,
+        api_remodel_id: [999, 701],
+      },
+      {
+        api_id: '33',
+        api_slot_id: 501,
+      },
+    )
+
+    expect(report).not.toHaveBeenCalledWith('/api/report/v2/remodel_recipe', expect.anything())
+    expect(consoleError).toHaveBeenCalledWith(
+      'Inconsistent remodel item data: expected item 700, got 999',
+    )
+    consoleError.mockRestore()
+  })
+
   it('preserves v2 execution reporting when v3 fleet context is unavailable', () => {
     window._slotitems[501] = { api_slotitem_id: 700, api_level: 6 }
     window._decks = []

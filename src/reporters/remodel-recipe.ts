@@ -291,7 +291,7 @@ export default class RemodelRecipeReporter extends BaseReporter {
   }
 
   getFleetContext(): RemodelRecipeFleetContext | undefined {
-    const deck = window._decks[0]
+    const deck = window._decks?.[0]
     const flagshipRosterId = deck?.api_ship?.[0]
     if (flagshipRosterId == null || Number(flagshipRosterId) <= 0) {
       return undefined
@@ -534,7 +534,9 @@ export default class RemodelRecipeReporter extends BaseReporter {
           const currentDetail = this.currentDetail
 
           if (this.itemId != response.api_remodel_id[0]) {
-            console.error(`Inconsistent remodel item data: ${this.itemId}, ${request.api_slot_id}`)
+            console.error(
+              `Inconsistent remodel item data: expected item ${this.itemId}, got ${response.api_remodel_id[0]}`,
+            )
             this.resetExecutionState()
             return
           }
