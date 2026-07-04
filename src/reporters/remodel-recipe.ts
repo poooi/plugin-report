@@ -437,7 +437,7 @@ export default class RemodelRecipeReporter extends BaseReporter {
           this.itemLevel = slotItem?.api_level ?? -1
           const changeFlag = response.api_change_flag ?? 0
           this.stage = this.getStage(this.itemLevel, changeFlag)
-          if (this.itemId < 0 || this.stage < 0) {
+          if (this.itemId <= 0 || this.stage < 0) {
             console.error('Invalid remodel recipe slot item data')
             return
           }
