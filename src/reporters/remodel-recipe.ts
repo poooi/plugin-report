@@ -11,6 +11,7 @@ import type {
   GameApiPostBody,
   GameApiResponseBody,
 } from '../types/game-api'
+import { parseInt10 } from '../types/window-state'
 
 type RemodelRecipeListItem = Pick<
   APIReqKousyouRemodelSlotlistResponse,
@@ -148,8 +149,6 @@ const ITEM_IMPROVEMENT_RECIPE_REPORT_PATH = '/api/report/v3/item_improvement_rec
 
 const hasOwn = (record: object, key: string): boolean =>
   Object.prototype.hasOwnProperty.call(record, key)
-
-const parseInt10 = (value: string | number): number => parseInt(String(value), 10)
 
 const getJstDay = (time: number): number => {
   const date = new Date(time)

@@ -318,5 +318,5 @@ export const exportRemodelDebugRecords = (): void => {
     .toISOString()
     .replace(/[:.]/g, '-')}.json`
   anchor.click()
-  setTimeout(() => URL.revokeObjectURL(href), 0)
+  setTimeout(() => URL.revokeObjectURL(href), 1000)
 }
