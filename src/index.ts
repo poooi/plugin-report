@@ -61,7 +61,7 @@ const handleResponse = (e: GameResponseEvent) => {
 }
 
 export const show = false
-export const settingClass = RemodelDebugSettings
+export const settingsClass = RemodelDebugSettings
 export const pluginDidLoad = (_e: unknown) => {
   reporters = [
     new QuestReporter(),

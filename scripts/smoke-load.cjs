@@ -271,7 +271,7 @@ async function main() {
     const plugin = require(entryPath)
 
     assert.strictEqual(plugin.show, false)
-    assert.strictEqual(typeof plugin.settingClass, 'function')
+    assert.strictEqual(typeof plugin.settingsClass, 'function')
     assert.strictEqual(typeof plugin.pluginDidLoad, 'function')
     assert.strictEqual(typeof plugin.pluginWillUnload, 'function')
 
