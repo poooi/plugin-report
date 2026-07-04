@@ -7,6 +7,7 @@ import {
   recordRemodelDebugEvent,
   setRemodelDebugRecorderEnabled,
   subscribeRemodelDebugRecorder,
+  exportRemodelDebugRecords,
 } from '../src/remodel-debug-recorder'
 import type { GameResponseEventDetail } from '../src/types/game-api'
 
@@ -83,6 +84,15 @@ describe('remodel debug recorder', () => {
 
     expect(getItem).not.toHaveBeenCalled()
     expect(getRemodelDebugRecords()).toHaveLength(0)
+  })
+
+  it('does not create records for unrelated APIs', () => {
+    expect(
+      createRemodelDebugRecord({
+        ...remodelDetailEvent,
+        path: '/kcsapi/api_get_member/ship2',
+      }),
+    ).toBeUndefined()
   })
 
   it('records only remodel APIs when enabled', () => {
@@ -176,10 +186,79 @@ describe('remodel debug recorder', () => {
     })
   })
 
+  it('sanitizes malformed list and slot response shapes', () => {
+    expect(
+      createRemodelDebugRecord({
+        time: 1,
+        method: 'GET',
+        path: '/kcsapi/api_req_kousyou/remodel_slotlist',
+        postBody: null as unknown as GameResponseEventDetail['postBody'],
+        body: [
+          {
+            api_id: 33,
+            api_slot_id: 700,
+            api_req_fuel: 10,
+            api_req_bull: 20,
+            api_req_steel: 30,
+            api_req_bauxite: 40,
+            api_token: 'secret-token',
+          },
+          null,
+        ],
+      }),
+    ).toMatchObject({
+      body: [
+        {
+          api_id: 33,
+          api_slot_id: 700,
+          api_req_fuel: 10,
+          api_req_bull: 20,
+          api_req_steel: 30,
+          api_req_bauxite: 40,
+        },
+        {},
+      ],
+      postBody: {},
+    })
+    expect(
+      createRemodelDebugRecord({
+        time: 2,
+        method: 'POST',
+        path: '/kcsapi/api_req_kousyou/remodel_slot',
+        postBody: {
+          api_id: '33',
+        },
+        body: {
+          api_after_slot: null,
+          api_remodel_flag: 1,
+          api_remodel_id: ['bad', 701],
+        },
+      }),
+    ).toMatchObject({
+      body: {
+        api_after_slot: {},
+        api_remodel_flag: 1,
+        api_remodel_id: [701],
+      },
+    })
+  })
+
   it('handles missing deck ship arrays while recording', () => {
     window._decks = [{} as (typeof window._decks)[number]]
 
     expect(() => recordRemodelDebugEvent(remodelDetailEvent)).not.toThrow()
+  })
+
+  it('logs and skips malformed circular captures', () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+    window._decks = undefined as unknown as typeof window._decks
+    setRemodelDebugRecorderEnabled(true)
+
+    recordRemodelDebugEvent(remodelDetailEvent)
+
+    expect(getRemodelDebugRecords()).toHaveLength(0)
+    expect(consoleError).toHaveBeenCalled()
+    consoleError.mockRestore()
   })
 
   it('caps in-memory captures to the latest 200 records', () => {
@@ -239,5 +318,40 @@ describe('remodel debug recorder', () => {
     expect(() => setRemodelDebugRecorderEnabled(false)).not.toThrow()
     expect(consoleError).toHaveBeenCalledTimes(2)
     consoleError.mockRestore()
+  })
+
+  it('exports captures as a delayed-revoked JSON blob', () => {
+    vi.useFakeTimers()
+    setRemodelDebugRecorderEnabled(true)
+    recordRemodelDebugEvent(remodelDetailEvent)
+    const click = vi.fn()
+    const anchor = {
+      click,
+      download: '',
+      href: '',
+    }
+    const createElement = vi.fn(() => anchor as unknown as HTMLElement)
+    const originalDocument = globalThis.document
+    globalThis.document = {
+      createElement,
+    } as unknown as Document
+    const createObjectUrl = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:debug')
+    const revokeObjectUrl = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {})
+
+    exportRemodelDebugRecords()
+
+    expect(createElement).toHaveBeenCalledWith('a')
+    expect(createObjectUrl).toHaveBeenCalledWith(expect.any(Blob))
+    expect(anchor.href).toBe('blob:debug')
+    expect(anchor.download).toMatch(/^plugin-report-remodel-debug-/)
+    expect(click).toHaveBeenCalled()
+    expect(revokeObjectUrl).not.toHaveBeenCalled()
+    vi.advanceTimersByTime(1000)
+    expect(revokeObjectUrl).toHaveBeenCalledWith('blob:debug')
+
+    globalThis.document = originalDocument
+    createObjectUrl.mockRestore()
+    revokeObjectUrl.mockRestore()
+    vi.useRealTimers()
   })
 })

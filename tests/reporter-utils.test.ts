@@ -1,20 +1,20 @@
-import { createRequire } from 'node:module'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
-globalThis.window = {
-  _teitokuId: 1,
-  _ships: {},
-  $ships: {},
-} as unknown as Window & typeof globalThis
+vi.hoisted(() => {
+  globalThis.window = {
+    _teitokuId: 1,
+    _ships: {},
+    $ships: {},
+  } as unknown as Window & typeof globalThis
+})
 
-const require = createRequire(__filename)
-const {
+import {
   getFirstPlaneCounts,
   getHpStyle,
   getNightBattleCVCIType,
   getNightBattleDDCIType,
   getNightBattleSSCIType,
-} = require('../reporters/utils.js')
+} from '../src/reporters/utils'
 
 const equip = ({ id = 0, type2 = 0, type3 = 0, houm = 0 } = {}) => ({
   api_slotitem_id: id,

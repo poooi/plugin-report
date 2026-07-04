@@ -5,8 +5,8 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json-summary'],
-      include: ['reporters/*.js', 'chunks/*.js'],
-      exclude: ['reporters/index.js', 'reporters/base.js', 'chunks/rolldown-runtime.js'],
+      include: ['src/reporters/**/*.ts', 'src/remodel-debug-recorder.ts'],
+      exclude: ['src/reporters/index.ts'],
       all: true,
       thresholds: {
         lines: 95,

@@ -2,7 +2,6 @@ import url from 'url'
 import * as Sentry from '@sentry/electron'
 import fetch, { type RequestInit } from 'node-fetch'
 import https from 'https'
-import packageMeta from '../../package.json'
 import type { ReportPayload } from '../types/reporter'
 
 // Because let's encrypt has switched to a new root cert which is not supported in older version of Electron,
@@ -12,6 +11,8 @@ const insecureAgent = new https.Agent({
 })
 
 const { SERVER_HOSTNAME, POI_VERSION } = window
+const REPORTER_VERSION =
+  typeof __REPORTER_VERSION__ === 'string' ? __REPORTER_VERSION__ : '0.0.0-dev'
 
 export default class BaseReporter {
   SERVER_HOSTNAME: string
@@ -19,7 +20,7 @@ export default class BaseReporter {
 
   constructor() {
     this.SERVER_HOSTNAME = SERVER_HOSTNAME
-    this.USERAGENT = `Reporter/${packageMeta.version} poi/${POI_VERSION}`
+    this.USERAGENT = `Reporter/${REPORTER_VERSION} poi/${POI_VERSION}`
   }
 
   getJson = async <T = unknown>(path: string): Promise<T | Record<string, never>> => {
@@ -42,7 +43,7 @@ export default class BaseReporter {
           path,
         })
         Sentry.setContext('versions', {
-          reporter: packageMeta.version,
+          reporter: REPORTER_VERSION,
           poi: POI_VERSION,
         })
         Sentry.captureException(err)
@@ -79,7 +80,7 @@ export default class BaseReporter {
           path,
         })
         Sentry.setContext('versions', {
-          reporter: packageMeta.version,
+          reporter: REPORTER_VERSION,
           poi: POI_VERSION,
         })
         Sentry.setContext('data', info)

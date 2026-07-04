@@ -20,6 +20,8 @@ declare module 'electron' {
   export = electron
 }
 
+declare const __REPORTER_VERSION__: string | undefined
+
 declare module 'moment-timezone' {
   interface Moment {
     day(): number

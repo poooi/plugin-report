@@ -203,6 +203,7 @@ const sanitizeBody = (path: string, body: unknown): unknown => {
       return sanitizeDetailBody(body)
     case '/kcsapi/api_req_kousyou/remodel_slot':
       return sanitizeSlotBody(body)
+    /* c8 ignore next 2 -- createRemodelDebugRecord filters paths before sanitizing. */
     default:
       return {}
   }
@@ -286,6 +287,7 @@ export const recordRemodelDebugEvent = (event: GameResponseEventDetail): void =>
 
   try {
     const record = createRemodelDebugRecord(event)
+    /* c8 ignore next 3 -- createRemodelDebugRecord can only return undefined for paths filtered above. */
     if (!record) {
       return
     }
