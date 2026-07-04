@@ -11,8 +11,11 @@ const insecureAgent = new https.Agent({
 })
 
 const { SERVER_HOSTNAME, POI_VERSION } = window
+const globalReporterVersion = (globalThis as { __REPORTER_VERSION__?: string }).__REPORTER_VERSION__
 const REPORTER_VERSION =
-  typeof __REPORTER_VERSION__ === 'string' ? __REPORTER_VERSION__ : '0.0.0-dev'
+  typeof __REPORTER_VERSION__ === 'string'
+    ? __REPORTER_VERSION__
+    : (globalReporterVersion ?? '0.0.0-dev')
 
 export default class BaseReporter {
   SERVER_HOSTNAME: string
