@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto'
 import Module from 'node:module'
 import { vi } from 'vitest'
 import packageMeta from '../../package.json'
-import type { WindowSlotItem } from '../../src/types/window-state'
+import type { PoiWindowStoreState, WindowShip, WindowSlotItem } from '../../src/types/window-state'
 import SourceAACIReporter from '../../src/reporters/aaci'
 import SourceBaseReporter from '../../src/reporters/base'
 import SourceCreateItemReporter from '../../src/reporters/create-item'
@@ -15,23 +15,55 @@ import SourceRemodelItemReporter from '../../src/reporters/remodel-item'
 import SourceRemodelRecipeReporter from '../../src/reporters/remodel-recipe'
 import SourceShipStatReporter from '../../src/reporters/ship-stat'
 
+type TestWindowShip = WindowShip & Record<string, unknown>
+type GetShipAACIs = (ship: { api_ship_id?: number }, equips?: unknown) => number[]
+type TestStore = Record<string, unknown> & {
+  battle: { _status: { result: { deckHp: number[] } } }
+  const: { $ships: Record<number, Record<string, unknown>> }
+  sortie: { sortieMapId: number }
+}
+type LooseReporter = SourceBaseReporter &
+  Record<string, unknown> & {
+    handle: (...args: unknown[]) => unknown
+    processData: (...args: unknown[]) => unknown
+  }
+type LooseReporterConstructor = new () => LooseReporter
+type FetchResponseStub = {
+  ok?: boolean
+  status?: number
+  statusText?: string
+  json?: () => Promise<unknown>
+  text?: () => Promise<string>
+}
+
+const asLooseReporter = <T extends new () => SourceBaseReporter>(
+  Reporter: T,
+): LooseReporterConstructor => Reporter as unknown as LooseReporterConstructor
+
 const state = vi.hoisted(() => {
-  const ship = (overrides: Record<string, unknown> = {}): any => ({
-    api_ship_id: 100,
-    api_lv: 50,
-    api_cond: 49,
-    api_slot: [],
-    api_onslot: [],
-    ...overrides,
+  const defaultStore = (): TestStore => ({
+    sortie: { sortieMapId: 1 },
+    battle: { _status: { result: { deckHp: [] } } },
+    const: { $ships: {} },
   })
 
+  const ship = (overrides: Record<string, unknown> = {}) =>
+    ({
+      api_ship_id: 100,
+      api_lv: 50,
+      api_cond: 49,
+      api_slot: [],
+      api_onslot: [],
+      ...overrides,
+    }) as TestWindowShip
+
   const selectorState = {
-    store: {} as any,
+    store: defaultStore(),
     ships: new Map<number, unknown>(),
     equips: new Map<number, unknown>(),
   }
 
-  const aaciState: { getShipAACIs: any } = {
+  const aaciState: { getShipAACIs: GetShipAACIs } = {
     getShipAACIs: vi.fn(() => [] as number[]),
   }
 
@@ -41,8 +73,8 @@ const state = vi.hoisted(() => {
   }
 
   const fetchState = {
-    calls: [] as any[][],
-    implementation: async (..._args: any[]): Promise<any> => ({
+    calls: [] as unknown[][],
+    implementation: async (..._args: unknown[]): Promise<FetchResponseStub> => ({
       ok: true,
       status: 200,
       statusText: 'OK',
@@ -75,11 +107,11 @@ const state = vi.hoisted(() => {
       _teitokuLv: 120,
       _nickName: 'Admiral',
       _nickNameId: 99,
-      getStore: () => selectorState.store,
+      getStore: () => selectorState.store as PoiWindowStoreState,
     }) as unknown as Window & typeof globalThis
 
   globalThis.window = createWindow()
-  ;(globalThis as any).__reporterTestHarnessState = {
+  ;(globalThis as { __reporterTestHarnessState?: unknown }).__reporterTestHarnessState = {
     aaciState,
     selectorState,
   }
@@ -127,7 +159,7 @@ vi.mock('@sentry/electron', () => ({
 }))
 
 vi.mock('node-fetch', () => ({
-  default: async (...args: any[]) => {
+  default: async (...args: unknown[]) => {
     fetchState.calls.push(args)
     return fetchState.implementation(...args)
   },
@@ -164,14 +196,15 @@ if (!globalThis.__reporterTestHarnessPatched) {
   globalThis.__reporterTestHarnessPatched = true
 }
 
-export const ship = (overrides: Record<string, unknown> = {}): any => ({
-  api_ship_id: 100,
-  api_lv: 50,
-  api_cond: 49,
-  api_slot: [],
-  api_onslot: [],
-  ...overrides,
-})
+export const ship = (overrides: Record<string, unknown> = {}) =>
+  ({
+    api_ship_id: 100,
+    api_lv: 50,
+    api_cond: 49,
+    api_slot: [],
+    api_onslot: [],
+    ...overrides,
+  }) as TestWindowShip
 
 export const equip = ({
   id = 0,
@@ -186,17 +219,17 @@ export const equip = ({
   api_houm: houm,
 })
 
-export const AACIReporter: any = SourceAACIReporter
-export const BaseReporter: any = SourceBaseReporter
-export const CreateItemReporter: any = SourceCreateItemReporter
-export const CreateShipReporter: any = SourceCreateShipReporter
-export const DropShipReporter: any = SourceDropShipReporter
-export const NightBattleCIReporter: any = SourceNightBattleCIReporter
-export const NightContactReportor: any = SourceNightContactReportor
-export const QuestReporter: any = SourceQuestReporter
-export const RemodelItemReporter: any = SourceRemodelItemReporter
-export const RemodelRecipeReporter: any = SourceRemodelRecipeReporter
-export const ShipStatReporter: any = SourceShipStatReporter
+export const AACIReporter = asLooseReporter(SourceAACIReporter)
+export const BaseReporter = SourceBaseReporter
+export const CreateItemReporter = asLooseReporter(SourceCreateItemReporter)
+export const CreateShipReporter = asLooseReporter(SourceCreateShipReporter)
+export const DropShipReporter = asLooseReporter(SourceDropShipReporter)
+export const NightBattleCIReporter = asLooseReporter(SourceNightBattleCIReporter)
+export const NightContactReportor = asLooseReporter(SourceNightContactReportor)
+export const QuestReporter = asLooseReporter(SourceQuestReporter)
+export const RemodelItemReporter = asLooseReporter(SourceRemodelItemReporter)
+export const RemodelRecipeReporter = asLooseReporter(SourceRemodelRecipeReporter)
+export const ShipStatReporter = asLooseReporter(SourceShipStatReporter)
 
 export const resetReporterTestState = () => {
   globalThis.window = state.createWindow()
@@ -223,9 +256,10 @@ export const resetReporterTestState = () => {
   sentryState.tags = []
 }
 
-export const attachReportSpy = (reporter: { report: (...args: any[]) => Promise<void> }): any => {
-  reporter.report = vi.fn(() => Promise.resolve())
-  return reporter.report
+export const attachReportSpy = (reporter: SourceBaseReporter) => {
+  const report = vi.fn<SourceBaseReporter['report']>(() => Promise.resolve())
+  reporter.report = report
+  return report
 }
 
 export const teitokuHash = () =>

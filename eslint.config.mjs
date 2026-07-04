@@ -51,7 +51,7 @@ export default tseslint.config(
         },
       ],
       '@typescript-eslint/no-explicit-any': 'error',
-      '@typescript-eslint/no-require-imports': 'off',
+      '@typescript-eslint/no-require-imports': 'error',
       'import-x/extensions': [
         'error',
         'ignorePackages',
@@ -96,23 +96,8 @@ export default tseslint.config(
     languageOptions: {
       sourceType: 'commonjs',
     },
-  },
-  {
-    files: ['src/types/vendor.d.ts'],
     rules: {
-      '@typescript-eslint/no-explicit-any': 'off',
-    },
-  },
-  {
-    files: ['tests/**/*.ts'],
-    rules: {
-      '@typescript-eslint/no-explicit-any': 'off',
-      '@typescript-eslint/no-unsafe-argument': 'off',
-      '@typescript-eslint/no-unsafe-assignment': 'off',
-      '@typescript-eslint/no-unsafe-call': 'off',
-      '@typescript-eslint/no-unsafe-member-access': 'off',
-      '@typescript-eslint/no-unsafe-return': 'off',
-      'import-x/extensions': 'off',
+      '@typescript-eslint/no-require-imports': 'off',
     },
   },
   {

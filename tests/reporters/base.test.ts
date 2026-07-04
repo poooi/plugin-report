@@ -1,5 +1,5 @@
-import { createRequire } from 'node:module'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import packageMeta from '../../package.json'
 
 import {
   BaseReporter,
@@ -8,8 +8,6 @@ import {
   sentryState,
 } from '../helpers/reporter-test-harness'
 
-const require = createRequire(__filename)
-const packageMeta = require('../../package.json')
 const reporterUserAgent = `Reporter/${packageMeta.version} poi/10.7.0`
 
 beforeEach(resetReporterTestState)

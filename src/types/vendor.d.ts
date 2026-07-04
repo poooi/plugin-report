@@ -16,7 +16,7 @@ declare module '@sentry/electron' {
 }
 
 declare module 'electron' {
-  const electron: any
+  const electron: unknown
   export = electron
 }
 
