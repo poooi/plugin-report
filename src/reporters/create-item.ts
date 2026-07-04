@@ -7,6 +7,7 @@ import type {
   GameApiPostBody,
   GameApiResponseBody,
 } from '../types/game-api'
+import type { Reporter } from '../types/reporter'
 
 type CreateItemPostBody = Pick<
   APIReqKousyouCreateitemRequest,
@@ -25,7 +26,7 @@ const isCreateItemResponseBody = (body: GameApiResponseBody): body is CreateItem
   typeof body === 'object' &&
   Array.isArray((body as Partial<CreateItemResponseBody>).api_get_items)
 
-export default class CreateItemReporter extends BaseReporter {
+export default class CreateItemReporter extends BaseReporter implements Reporter {
   handle(
     method: GameApiMethod,
     path: GameApiPath,

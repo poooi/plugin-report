@@ -15,6 +15,7 @@ import type {
   GameApiPostBody,
   GameApiResponseBody,
 } from '../types/game-api'
+import type { Reporter } from '../types/reporter'
 
 interface NightBattleShip {
   api_kyouka: number[]
@@ -47,7 +48,7 @@ interface NightBattleCIBody {
 type ShipSelectorResult = [Partial<NightBattleShip>?, Partial<NightBattleShip>?]
 type EquipSelectorResult = Array<[Partial<NightBattleEquip>?, Partial<NightBattleEquip>?, unknown?]>
 
-export default class NightBattleCIReporter extends BaseReporter {
+export default class NightBattleCIReporter extends BaseReporter implements Reporter {
   processData = (body: NightBattleCIBody, time: number) => {
     const state = window.getStore()
 

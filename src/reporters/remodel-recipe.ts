@@ -11,6 +11,7 @@ import type {
   GameApiPostBody,
   GameApiResponseBody,
 } from '../types/game-api'
+import type { Reporter } from '../types/reporter'
 import { parseInt10 } from '../types/window-state'
 
 type RemodelRecipeListItem = Pick<
@@ -212,7 +213,7 @@ const toCostPayload = (detail: CurrentDetail): ItemImprovementCostPayload => ({
 })
 
 // Collecting remodel recipes
-export default class RemodelRecipeReporter extends BaseReporter {
+export default class RemodelRecipeReporter extends BaseReporter implements Reporter {
   id: number
   itemId: number
   itemLevel: number

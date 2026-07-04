@@ -9,6 +9,7 @@ import type {
   GameApiPostBody,
   GameApiResponseBody,
 } from '../types/game-api'
+import type { Reporter } from '../types/reporter'
 import type { NightBattleEquip } from './utils'
 
 interface AACIShip {
@@ -40,7 +41,7 @@ type EquipSelectorResult = Array<[Partial<NightBattleEquip>?, Partial<NightBattl
 type GetShipAACIs = (ship: AACIShip, equips: NightBattleEquip[]) => number[]
 type AACIModule = typeof aaciModule
 
-export default class AACIReporter extends BaseReporter {
+export default class AACIReporter extends BaseReporter implements Reporter {
   getShipAACIs: GetShipAACIs | null = null
 
   constructor() {

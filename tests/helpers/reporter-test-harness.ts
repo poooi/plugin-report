@@ -14,6 +14,7 @@ import SourceQuestReporter from '../../src/reporters/quest'
 import SourceRemodelItemReporter from '../../src/reporters/remodel-item'
 import SourceRemodelRecipeReporter from '../../src/reporters/remodel-recipe'
 import SourceShipStatReporter from '../../src/reporters/ship-stat'
+import type { Reporter } from '../../src/types/reporter'
 
 type TestWindowShip = WindowShip & Record<string, unknown>
 type GetShipAACIs = (ship: { api_ship_id?: number }, equips?: unknown) => number[]
@@ -22,12 +23,19 @@ type TestStore = Record<string, unknown> & {
   const: { $ships: Record<number, Record<string, unknown>> }
   sortie: { sortieMapId: number }
 }
-type LooseReporter = SourceBaseReporter &
+type ReporterHandleArgs = Parameters<Reporter['handle']>
+type ReporterUnderTest = SourceBaseReporter &
   Record<string, unknown> & {
-    handle: (...args: unknown[]) => unknown
+    handle(
+      method: ReporterHandleArgs[0],
+      path: ReporterHandleArgs[1],
+      body: ReporterHandleArgs[2],
+      postBody?: ReporterHandleArgs[3],
+      time?: ReporterHandleArgs[4],
+    ): ReturnType<Reporter['handle']>
     processData: (...args: unknown[]) => unknown
   }
-type LooseReporterConstructor = new () => LooseReporter
+type ReporterUnderTestConstructor = new () => ReporterUnderTest
 type FetchResponseStub = {
   ok?: boolean
   status?: number
@@ -36,9 +44,9 @@ type FetchResponseStub = {
   text?: () => Promise<string>
 }
 
-const asLooseReporter = <T extends new () => SourceBaseReporter>(
+const asReporterUnderTest = <T extends new () => SourceBaseReporter>(
   Reporter: T,
-): LooseReporterConstructor => Reporter as unknown as LooseReporterConstructor
+): ReporterUnderTestConstructor => Reporter as unknown as ReporterUnderTestConstructor
 
 const state = vi.hoisted(() => {
   const defaultStore = (): TestStore => ({
@@ -219,17 +227,17 @@ export const equip = ({
   api_houm: houm,
 })
 
-export const AACIReporter = asLooseReporter(SourceAACIReporter)
+export const AACIReporter = asReporterUnderTest(SourceAACIReporter)
 export const BaseReporter = SourceBaseReporter
-export const CreateItemReporter = asLooseReporter(SourceCreateItemReporter)
-export const CreateShipReporter = asLooseReporter(SourceCreateShipReporter)
-export const DropShipReporter = asLooseReporter(SourceDropShipReporter)
-export const NightBattleCIReporter = asLooseReporter(SourceNightBattleCIReporter)
-export const NightContactReportor = asLooseReporter(SourceNightContactReportor)
-export const QuestReporter = asLooseReporter(SourceQuestReporter)
-export const RemodelItemReporter = asLooseReporter(SourceRemodelItemReporter)
-export const RemodelRecipeReporter = asLooseReporter(SourceRemodelRecipeReporter)
-export const ShipStatReporter = asLooseReporter(SourceShipStatReporter)
+export const CreateItemReporter = asReporterUnderTest(SourceCreateItemReporter)
+export const CreateShipReporter = asReporterUnderTest(SourceCreateShipReporter)
+export const DropShipReporter = asReporterUnderTest(SourceDropShipReporter)
+export const NightBattleCIReporter = asReporterUnderTest(SourceNightBattleCIReporter)
+export const NightContactReportor = asReporterUnderTest(SourceNightContactReportor)
+export const QuestReporter = asReporterUnderTest(SourceQuestReporter)
+export const RemodelItemReporter = asReporterUnderTest(SourceRemodelItemReporter)
+export const RemodelRecipeReporter = asReporterUnderTest(SourceRemodelRecipeReporter)
+export const ShipStatReporter = asReporterUnderTest(SourceShipStatReporter)
 
 export const resetReporterTestState = () => {
   globalThis.window = state.createWindow()

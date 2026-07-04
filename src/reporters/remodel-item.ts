@@ -8,6 +8,7 @@ import type {
   GameApiPostBody,
   GameApiResponseBody,
 } from '../types/game-api'
+import type { Reporter } from '../types/reporter'
 
 type RemodelItemDetailPostBody = {
   api_slot_id: string | number
@@ -22,7 +23,7 @@ type RemodelItemSlotBody = Pick<APIReqKousyouRemodelSlotResponse, 'api_remodel_i
 }
 
 // Stopped at 2016.11.28. We have collected 800k records.
-export default class RemodelItemReporter extends BaseReporter {
+export default class RemodelItemReporter extends BaseReporter implements Reporter {
   itemId: string | number
 
   constructor() {

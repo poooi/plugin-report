@@ -7,6 +7,7 @@ import type {
   GameApiPostBody,
   GameApiResponseBody,
 } from '../types/game-api'
+import type { Reporter } from '../types/reporter'
 
 type CreateShipPostBody = Pick<
   APIReqKousyouCreateshipRequest,
@@ -49,7 +50,7 @@ const createShipPostBodyKeys: Array<keyof CreateShipPostBody> = [
 const isCreateShipPostBody = (postBody: GameApiPostBody): postBody is CreateShipPostBody =>
   createShipPostBodyKeys.every((key) => typeof postBody[key] === 'string')
 
-export default class CreateShipReporter extends BaseReporter {
+export default class CreateShipReporter extends BaseReporter implements Reporter {
   creating: boolean
   kdockId: number
   info: CreateShipReportPayload | null
