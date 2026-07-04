@@ -269,6 +269,9 @@ export const createRemodelDebugRecord = (
 }
 
 export const recordRemodelDebugEvent = (event: GameResponseEventDetail): void => {
+  if (!REMODEL_PATHS.has(event.path)) {
+    return
+  }
   if (!isRemodelDebugRecorderEnabled()) {
     return
   }

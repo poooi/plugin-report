@@ -64,6 +64,26 @@ describe('remodel debug recorder', () => {
     expect(getRemodelDebugRecords()).toHaveLength(0)
   })
 
+  it('ignores unrelated APIs before checking localStorage', () => {
+    const getItem = vi.fn(() => '1')
+    globalThis.window = {
+      ...createWindow(),
+      localStorage: {
+        getItem,
+        setItem: vi.fn(),
+        removeItem: vi.fn(),
+      },
+    } as unknown as Window & typeof globalThis
+
+    recordRemodelDebugEvent({
+      ...remodelDetailEvent,
+      path: '/kcsapi/api_get_member/ship2',
+    })
+
+    expect(getItem).not.toHaveBeenCalled()
+    expect(getRemodelDebugRecords()).toHaveLength(0)
+  })
+
   it('records only remodel APIs when enabled', () => {
     window.localStorage.setItem('poi-plugin-report:remodel-debug-recorder', '1')
 
