@@ -9,7 +9,6 @@ import tseslint from 'typescript-eslint'
 export default tseslint.config(
   {
     ignores: [
-      'chunks/**',
       'coverage/**',
       'index.js',
       'node_modules/**',

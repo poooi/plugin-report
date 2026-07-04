@@ -32,9 +32,6 @@ module.exports = defineConfig({
   clean: ['index.js'],
   sourcemap: false,
   hash: false,
-  outputOptions: {
-    chunkFileNames: 'chunks/[name].js',
-  },
   treeshake: false,
   minify: false,
   shims: false,

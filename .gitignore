@@ -27,7 +27,6 @@ build/Release
 node_modules
 
 # Generated plugin build output
-chunks/*.js
 index.js
 reporters/*.js
 sentry.js
