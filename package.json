@@ -70,6 +70,7 @@
     "prettier": "^3.9.4",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
+    "react-i18next": "^17.0.8",
     "storybook": "^10.4.6",
     "tsdown": "^0.22.0",
     "typescript": "^5.9.0",

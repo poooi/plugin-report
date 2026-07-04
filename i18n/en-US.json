@@ -1,2 +1,8 @@
 {
+  "Captured records": "Captured records: {{count}}",
+  "Clear": "Clear",
+  "Enable remodel debug recorder": "Enable remodel debug recorder",
+  "Export": "Export",
+  "Remodel recipe debug recorder": "Remodel recipe debug recorder",
+  "Remodel recipe debug recorder description": "Opt-in local recorder for validating Akashi remodel API sequences. It captures only allowlisted remodel fields, keeps records in memory, and writes a file only when Export is clicked."
 }

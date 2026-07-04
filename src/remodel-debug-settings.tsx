@@ -1,4 +1,5 @@
 import { type CSSProperties, type ReactElement, useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   clearRemodelDebugRecords,
   exportRemodelDebugRecords,
@@ -26,6 +27,7 @@ const getRecorderState = () => ({
 })
 
 export default function RemodelDebugSettings(): ReactElement {
+  const { t } = useTranslation('poi-plugin-report')
   const [recorderState, setRecorderState] = useState(getRecorderState)
 
   useEffect(() => {
@@ -43,27 +45,23 @@ export default function RemodelDebugSettings(): ReactElement {
 
   return (
     <div style={rootStyle}>
-      <h4>Remodel recipe debug recorder</h4>
-      <p>
-        Opt-in local recorder for validating Akashi remodel API sequences. It captures only
-        allowlisted remodel fields, keeps records in memory, and writes a file only when Export is
-        clicked.
-      </p>
+      <h4>{t('Remodel recipe debug recorder')}</h4>
+      <p>{t('Remodel recipe debug recorder description')}</p>
       <label>
-        <input checked={recorderState.enabled} onChange={toggleRecorder} type="checkbox" /> Enable
-        remodel debug recorder
+        <input checked={recorderState.enabled} onChange={toggleRecorder} type="checkbox" />{' '}
+        {t('Enable remodel debug recorder')}
       </label>
-      <p>Captured records: {recorderState.count}</p>
+      <p>{t('Captured records', { count: recorderState.count })}</p>
       <div style={buttonRowStyle}>
         <button
           disabled={recorderState.count === 0}
           onClick={exportRemodelDebugRecords}
           type="button"
         >
-          Export
+          {t('Export')}
         </button>
         <button disabled={recorderState.count === 0} onClick={clearRecords} type="button">
-          Clear
+          {t('Clear')}
         </button>
       </div>
     </div>

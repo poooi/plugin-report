@@ -247,6 +247,13 @@ Module._load = function smokeLoad(request, parent, isMain) {
     case 'react/jsx-runtime':
     case 'react/jsx-dev-runtime':
       return reactJsxRuntimeStub
+    case 'react-i18next':
+      return {
+        useTranslation: () => ({
+          t: (key, options) =>
+            options && typeof options.count !== 'undefined' ? `${key}: ${options.count}` : key,
+        }),
+      }
     case 'lodash':
       return lodashStub
     case 'moment-timezone':

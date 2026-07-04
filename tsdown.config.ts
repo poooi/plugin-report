@@ -23,6 +23,7 @@ module.exports = defineConfig({
       'react-dom',
       'react/jsx-runtime',
       'react/jsx-dev-runtime',
+      'react-i18next',
       'semver',
       /^views\//,
     ],
