@@ -215,10 +215,10 @@ const sanitizeBody = (path: string, body: unknown): unknown => {
 
 const createSanitizedContext = (slotId: string | number | undefined): SanitizedFleetContext => {
   const deckShipIds = window._decks?.[0]?.api_ship?.slice(0, 2) || []
-  const flagship = deckShipIds[0] == null ? undefined : window._ships[deckShipIds[0]]
-  const secondShip = deckShipIds[1] == null ? undefined : window._ships[deckShipIds[1]]
+  const flagship = deckShipIds[0] == null ? undefined : window._ships?.[deckShipIds[0]]
+  const secondShip = deckShipIds[1] == null ? undefined : window._ships?.[deckShipIds[1]]
   if (slotId != null) {
-    const slotitem = window._slotitems[slotId]
+    const slotitem = window._slotitems?.[slotId]
     if (slotitem) {
       return {
         firstFleet: {

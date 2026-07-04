@@ -264,16 +264,35 @@ describe('remodel debug recorder', () => {
     })
   })
 
-  it('logs and skips malformed circular captures', () => {
-    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+  it('keeps recording when slot item context is missing', () => {
     window._slotitems = undefined as unknown as typeof window._slotitems
     setRemodelDebugRecorderEnabled(true)
 
     recordRemodelDebugEvent(remodelDetailEvent)
 
-    expect(getRemodelDebugRecords()).toHaveLength(0)
-    expect(consoleError).toHaveBeenCalled()
-    consoleError.mockRestore()
+    expect(getRemodelDebugRecords()).toHaveLength(1)
+    expect(getRemodelDebugRecords()[0]?.context).toEqual({
+      firstFleet: {
+        flagship: { api_ship_id: 101 },
+        secondShip: { api_ship_id: 102 },
+      },
+    })
+  })
+
+  it('keeps recording when ship context is missing', () => {
+    window._ships = undefined as unknown as typeof window._ships
+    setRemodelDebugRecorderEnabled(true)
+
+    recordRemodelDebugEvent(remodelDetailEvent)
+
+    expect(getRemodelDebugRecords()).toHaveLength(1)
+    expect(getRemodelDebugRecords()[0]?.context).toEqual({
+      firstFleet: {},
+      selectedSlotItem: {
+        api_level: 6,
+        api_slotitem_id: 700,
+      },
+    })
   })
 
   it('caps in-memory captures to the latest 200 records', () => {
