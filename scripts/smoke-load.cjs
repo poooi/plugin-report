@@ -100,6 +100,22 @@ const reactStub = {
   },
 }
 
+const reactJsxRuntimeStub = {
+  Fragment: Symbol.for('react.fragment'),
+  jsx(type, props) {
+    return {
+      type,
+      props,
+    }
+  },
+  jsxs(type, props) {
+    return {
+      type,
+      props,
+    }
+  },
+}
+
 const lodashImplementations = {
   compact(values) {
     return values.filter(Boolean)
@@ -230,6 +246,9 @@ Module._load = function smokeLoad(request, parent, isMain) {
       return fetchStub
     case 'react':
       return reactStub
+    case 'react/jsx-runtime':
+    case 'react/jsx-dev-runtime':
+      return reactJsxRuntimeStub
     case 'lodash':
       return lodashStub
     case 'moment-timezone':

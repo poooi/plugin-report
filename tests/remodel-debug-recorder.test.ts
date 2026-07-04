@@ -196,6 +196,16 @@ describe('remodel debug recorder', () => {
     expect(getRemodelDebugRecords()[0]?.time).toBe(5)
   })
 
+  it('returns a copy of captured records', () => {
+    setRemodelDebugRecorderEnabled(true)
+    recordRemodelDebugEvent(remodelDetailEvent)
+
+    const snapshot = getRemodelDebugRecords() as Array<unknown>
+    snapshot.length = 0
+
+    expect(getRemodelDebugRecords()).toHaveLength(1)
+  })
+
   it('notifies subscribers when setting or records change', () => {
     const listener = vi.fn()
     const unsubscribe = subscribeRemodelDebugRecorder(listener)

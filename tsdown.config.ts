@@ -22,7 +22,6 @@ module.exports = defineConfig({
   outExtensions: () => ({ js: '.js' }),
   format: ['cjs'],
   deps: {
-    onlyBundle: ['react'],
     neverBundle: [
       '@electron/remote',
       '@sentry/electron',
@@ -30,6 +29,10 @@ module.exports = defineConfig({
       'lodash',
       'moment-timezone',
       'node-fetch',
+      'react',
+      'react-dom',
+      'react/jsx-runtime',
+      'react/jsx-dev-runtime',
       'semver',
       /^views\//,
     ],

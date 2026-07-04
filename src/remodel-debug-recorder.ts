@@ -305,7 +305,7 @@ export const clearRemodelDebugRecords = (): void => {
   notifyListeners()
 }
 
-export const getRemodelDebugRecords = (): readonly RemodelDebugRecord[] => records
+export const getRemodelDebugRecords = (): readonly RemodelDebugRecord[] => [...records]
 
 export const exportRemodelDebugRecords = (): void => {
   const blob = new Blob([JSON.stringify({ records }, null, 2)], {
