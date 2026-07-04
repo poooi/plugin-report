@@ -10,6 +10,7 @@ import type {
   GameApiPostBody,
   GameApiResponseBody,
 } from '../types/game-api'
+import type { Reporter } from '../types/reporter'
 
 const createHash = _.memoize((text: string) => crypto.createHash('md5').update(text).digest('hex'))
 
@@ -34,7 +35,7 @@ type QuestRewardPostBody = Pick<
 > &
   Record<`api_select_no${number}`, string | undefined>
 
-export default class QuestReporter extends BaseReporter {
+export default class QuestReporter extends BaseReporter implements Reporter {
   knownQuests: string[]
   enabled: boolean
   quests: QuestWithKey[]

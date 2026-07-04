@@ -1,7 +1,9 @@
-const { defineConfig } = require('tsdown')
-const packageMeta = require('./package.json')
+import { readFileSync } from 'node:fs'
+import { defineConfig } from 'tsdown'
 
-module.exports = defineConfig({
+const { version } = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8'))
+
+export default defineConfig({
   entry: {
     index: 'src/index.ts',
   },
@@ -9,7 +11,7 @@ module.exports = defineConfig({
   outExtensions: () => ({ js: '.js' }),
   format: ['cjs'],
   define: {
-    __REPORTER_VERSION__: JSON.stringify(packageMeta.version),
+    __REPORTER_VERSION__: JSON.stringify(version),
   },
   deps: {
     neverBundle: [

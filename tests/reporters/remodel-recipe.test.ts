@@ -191,7 +191,7 @@ describe('RemodelRecipeReporter', () => {
     const reporter = new RemodelRecipeReporter()
     const report = attachReportSpy(reporter)
 
-    reporter.handle('GET', '/kcsapi/api_req_kousyou/remodel_slotlist', listBody)
+    reporter.handle('GET', '/kcsapi/api_req_kousyou/remodel_slotlist', listBody, {})
     reporter.handle('POST', '/kcsapi/api_req_kousyou/remodel_slotlist_detail', detailBody, {
       api_id: '33',
       api_slot_id: 501,
@@ -251,7 +251,7 @@ describe('RemodelRecipeReporter', () => {
         api_id: '33',
       },
     )
-    reporter.handle('GET', '/kcsapi/api_req_kousyou/remodel_slotlist', listBody)
+    reporter.handle('GET', '/kcsapi/api_req_kousyou/remodel_slotlist', listBody, {})
     reporter.handle('POST', '/kcsapi/api_req_kousyou/remodel_slotlist_detail', detailBody, {
       api_id: '33',
       api_slot_id: 501,
@@ -294,7 +294,7 @@ describe('RemodelRecipeReporter', () => {
     const report = attachReportSpy(reporter)
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
 
-    reporter.handle('GET', '/kcsapi/api_req_kousyou/remodel_slotlist', listBody)
+    reporter.handle('GET', '/kcsapi/api_req_kousyou/remodel_slotlist', listBody, {})
 
     expect(report).not.toHaveBeenCalled()
     expect(consoleError).toHaveBeenCalledWith('Invalid remodel recipe fleet context')
@@ -307,7 +307,7 @@ describe('RemodelRecipeReporter', () => {
     const report = attachReportSpy(reporter)
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
 
-    reporter.handle('GET', '/kcsapi/api_req_kousyou/remodel_slotlist', listBody)
+    reporter.handle('GET', '/kcsapi/api_req_kousyou/remodel_slotlist', listBody, {})
     reporter.handle(
       'POST',
       '/kcsapi/api_req_kousyou/remodel_slotlist_detail',
@@ -332,7 +332,7 @@ describe('RemodelRecipeReporter', () => {
     const report = attachReportSpy(reporter)
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
 
-    reporter.handle('GET', '/kcsapi/api_req_kousyou/remodel_slotlist', listBody)
+    reporter.handle('GET', '/kcsapi/api_req_kousyou/remodel_slotlist', listBody, {})
     reporter.handle('POST', '/kcsapi/api_req_kousyou/remodel_slotlist_detail', detailBody, {
       api_id: '33',
       api_slot_id: 501,
@@ -360,7 +360,7 @@ describe('RemodelRecipeReporter', () => {
     const report = attachReportSpy(reporter)
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
 
-    reporter.handle('GET', '/kcsapi/api_req_kousyou/remodel_slotlist', listBody)
+    reporter.handle('GET', '/kcsapi/api_req_kousyou/remodel_slotlist', listBody, {})
     reporter.handle('POST', '/kcsapi/api_req_kousyou/remodel_slotlist_detail', detailBody, {
       api_id: '33',
       api_slot_id: 501,
@@ -377,7 +377,7 @@ describe('RemodelRecipeReporter', () => {
     const report = attachReportSpy(reporter)
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
 
-    reporter.handle('GET', '/kcsapi/api_req_kousyou/remodel_slotlist', listBody)
+    reporter.handle('GET', '/kcsapi/api_req_kousyou/remodel_slotlist', listBody, {})
     reporter.handle('POST', '/kcsapi/api_req_kousyou/remodel_slotlist_detail', detailBody, {
       api_id: '33',
       api_slot_id: 501,
@@ -408,7 +408,7 @@ describe('RemodelRecipeReporter', () => {
     const report = attachReportSpy(reporter)
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
 
-    reporter.handle('GET', '/kcsapi/api_req_kousyou/remodel_slotlist', listBody)
+    reporter.handle('GET', '/kcsapi/api_req_kousyou/remodel_slotlist', listBody, {})
     reporter.handle('POST', '/kcsapi/api_req_kousyou/remodel_slotlist_detail', detailBody, {
       api_id: '33',
       api_slot_id: 501,
@@ -440,7 +440,7 @@ describe('RemodelRecipeReporter', () => {
     const report = attachReportSpy(reporter)
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
 
-    reporter.handle('GET', '/kcsapi/api_req_kousyou/remodel_slotlist', listBody)
+    reporter.handle('GET', '/kcsapi/api_req_kousyou/remodel_slotlist', listBody, {})
     reporter.handle('POST', '/kcsapi/api_req_kousyou/remodel_slotlist_detail', detailBody, {
       api_id: '33',
       api_slot_id: 501,
@@ -477,7 +477,7 @@ describe('RemodelRecipeReporter', () => {
     const reporter = new RemodelRecipeReporter()
     const report = attachReportSpy(reporter)
 
-    reporter.handle('GET', '/kcsapi/api_req_kousyou/remodel_slotlist', listBody)
+    reporter.handle('GET', '/kcsapi/api_req_kousyou/remodel_slotlist', listBody, {})
     reporter.handle(
       'POST',
       '/kcsapi/api_req_kousyou/remodel_slotlist_detail',

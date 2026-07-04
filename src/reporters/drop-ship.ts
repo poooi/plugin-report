@@ -7,6 +7,7 @@ import type {
   GameApiPostBody,
   GameApiResponseBody,
 } from '../types/game-api'
+import type { Reporter } from '../types/reporter'
 
 interface EnemyReportSource extends PlaneCountData {
   api_eParam?: number[][]
@@ -111,7 +112,7 @@ const makeEnemyReport = (data: EnemyReportSource = {}) => {
   }
 }
 
-export default class DropShipReporter extends BaseReporter {
+export default class DropShipReporter extends BaseReporter implements Reporter {
   mapLv: number[]
   drop: DropReport | null
   ownedShipSnapshot: Record<string, number[]> | null

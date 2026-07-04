@@ -22,14 +22,24 @@ describe('NightContactReportor', () => {
     const reporter = new NightContactReportor()
     const report = attachReportSpy(reporter)
 
-    reporter.handle('POST', '/kcsapi/api_req_sortie/battle', {
-      api_midnight_flag: 1,
-      api_kouku: { api_stage1: { api_f_count: 1, api_e_count: 0, api_disp_seiku: 1 } },
-    })
-    reporter.handle('POST', '/kcsapi/api_req_battle_midnight/battle', {
-      api_deck_id: 1,
-      api_touch_plane: [102, -1],
-    })
+    reporter.handle(
+      'POST',
+      '/kcsapi/api_req_sortie/battle',
+      {
+        api_midnight_flag: 1,
+        api_kouku: { api_stage1: { api_f_count: 1, api_e_count: 0, api_disp_seiku: 1 } },
+      },
+      {},
+    )
+    reporter.handle(
+      'POST',
+      '/kcsapi/api_req_battle_midnight/battle',
+      {
+        api_deck_id: 1,
+        api_touch_plane: [102, -1],
+      },
+      {},
+    )
 
     expect(report).toHaveBeenCalledWith('/api/report/v2/night_contcat', {
       fleetType: 0,
@@ -52,10 +62,15 @@ describe('NightContactReportor', () => {
     const reporter = new NightContactReportor()
     const report = attachReportSpy(reporter)
 
-    reporter.handle('POST', '/kcsapi/api_req_battle_midnight/sp_midnight', {
-      api_deck_id: 1,
-      api_touch_plane: [-1, -1],
-    })
+    reporter.handle(
+      'POST',
+      '/kcsapi/api_req_battle_midnight/sp_midnight',
+      {
+        api_deck_id: 1,
+        api_touch_plane: [-1, -1],
+      },
+      {},
+    )
 
     expect(report).not.toHaveBeenCalled()
   })
@@ -65,10 +80,15 @@ describe('NightContactReportor', () => {
     const report = attachReportSpy(reporter)
 
     expect(() =>
-      reporter.handle('POST', '/kcsapi/api_req_sortie/battle', {
-        api_midnight_flag: 1,
-        api_kouku: {},
-      }),
+      reporter.handle(
+        'POST',
+        '/kcsapi/api_req_sortie/battle',
+        {
+          api_midnight_flag: 1,
+          api_kouku: {},
+        },
+        {},
+      ),
     ).not.toThrow()
 
     expect(reporter.isValid).toBe(false)

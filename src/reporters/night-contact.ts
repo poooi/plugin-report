@@ -7,6 +7,7 @@ import type {
   GameApiPostBody,
   GameApiResponseBody,
 } from '../types/game-api'
+import type { Reporter } from '../types/reporter'
 import { getWindowShip, getWindowSlotItem } from '../types/window-state'
 import type { WindowShip, WindowSlotItem } from '../types/window-state'
 
@@ -15,7 +16,7 @@ import type { WindowShip, WindowSlotItem } from '../types/window-state'
 // 2. Only one contactable plane equipped.
 // 3. Plane level must be equal or larger than 0.
 // 4. Plane count must larger than 0.
-export default class NightContactReportor extends BaseReporter {
+export default class NightContactReportor extends BaseReporter implements Reporter {
   VALID_PLANE_ID: number
   isValid: boolean | null
 

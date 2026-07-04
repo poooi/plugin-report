@@ -26,7 +26,7 @@ describe('CreateItemReporter', () => {
       'POST',
       '/kcsapi/api_req_kousyou/createitem',
       { api_get_items: [{ api_slotitem_id: 25 }, { api_slotitem_id: -1 }] },
-      { api_item1: '10', api_item2: '20', api_item3: '30', api_item4: '40' },
+      { api_item1: 10, api_item2: 20, api_item3: 30, api_item4: 40 },
     )
 
     expect(report).toHaveBeenCalledTimes(2)

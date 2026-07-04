@@ -7,8 +7,10 @@ import type {
   GameApiPostBody,
   GameApiResponseBody,
 } from '../types/game-api'
+import type { Reporter } from '../types/reporter'
+import { parseInt10 } from '../types/window-state'
 
-type CreateShipPostBody = Pick<
+type CreateShipPostBodyKey = keyof Pick<
   APIReqKousyouCreateshipRequest,
   | 'api_highspeed'
   | 'api_item1'
@@ -19,6 +21,8 @@ type CreateShipPostBody = Pick<
   | 'api_kdock_id'
   | 'api_large_flag'
 >
+
+type CreateShipPostBody = Record<CreateShipPostBodyKey, string | number>
 
 type CreateShipKdock = Pick<
   APIGetMemberKdockResponse,
@@ -35,7 +39,7 @@ interface CreateShipReportPayload {
   shipId: number
 }
 
-const createShipPostBodyKeys: Array<keyof CreateShipPostBody> = [
+const createShipPostBodyKeys: CreateShipPostBodyKey[] = [
   'api_highspeed',
   'api_item1',
   'api_item2',
@@ -47,9 +51,9 @@ const createShipPostBodyKeys: Array<keyof CreateShipPostBody> = [
 ]
 
 const isCreateShipPostBody = (postBody: GameApiPostBody): postBody is CreateShipPostBody =>
-  createShipPostBodyKeys.every((key) => typeof postBody[key] === 'string')
+  createShipPostBodyKeys.every((key) => ['number', 'string'].includes(typeof postBody[key]))
 
-export default class CreateShipReporter extends BaseReporter {
+export default class CreateShipReporter extends BaseReporter implements Reporter {
   creating: boolean
   kdockId: number
   info: CreateShipReportPayload | null
@@ -74,7 +78,7 @@ export default class CreateShipReporter extends BaseReporter {
         return
       }
       this.creating = true
-      this.kdockId = parseInt(postBody.api_kdock_id) - 1
+      this.kdockId = parseInt10(postBody.api_kdock_id) - 1
       const secretaryIdx = _decks[0]?.api_ship[0]
       const secretary = secretaryIdx == null ? undefined : _ships[secretaryIdx]
       if (!secretary) {
@@ -84,15 +88,15 @@ export default class CreateShipReporter extends BaseReporter {
       }
       this.info = {
         items: [
-          parseInt(postBody.api_item1),
-          parseInt(postBody.api_item2),
-          parseInt(postBody.api_item3),
-          parseInt(postBody.api_item4),
-          parseInt(postBody.api_item5),
+          parseInt10(postBody.api_item1),
+          parseInt10(postBody.api_item2),
+          parseInt10(postBody.api_item3),
+          parseInt10(postBody.api_item4),
+          parseInt10(postBody.api_item5),
         ],
         kdockId: this.kdockId,
-        largeFlag: parseInt(postBody.api_large_flag) != 0,
-        highspeed: parseInt(postBody.api_highspeed),
+        largeFlag: parseInt10(postBody.api_large_flag) != 0,
+        highspeed: parseInt10(postBody.api_highspeed),
         secretary: secretary.api_ship_id,
         teitokuLv: _teitokuLv,
         shipId: -1,

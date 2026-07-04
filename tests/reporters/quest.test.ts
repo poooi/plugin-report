@@ -16,17 +16,22 @@ describe('QuestReporter', () => {
     reporter.knownQuests = []
     const report = attachReportSpy(reporter)
 
-    reporter.handle('GET', '/kcsapi/api_get_member/questlist', {
-      api_list: [
-        {
-          api_no: 101,
-          api_title: 'Sortie',
-          api_detail: 'Win once',
-          api_category: 2,
-          api_type: 3,
-        },
-      ],
-    })
+    reporter.handle(
+      'GET',
+      '/kcsapi/api_get_member/questlist',
+      {
+        api_list: [
+          {
+            api_no: 101,
+            api_title: 'Sortie',
+            api_detail: 'Win once',
+            api_category: 2,
+            api_type: 3,
+          },
+        ],
+      },
+      {},
+    )
     expect(report).toHaveBeenCalledWith('/api/report/v3/quest', {
       quests: [
         {
@@ -75,17 +80,22 @@ describe('QuestReporter', () => {
     reporter.knownQuests = [knownHash.slice(0, 8)]
     const report = attachReportSpy(reporter)
 
-    reporter.handle('GET', '/kcsapi/api_get_member/questlist', {
-      api_list: [
-        {
-          api_no: 101,
-          api_title: 'Sortie',
-          api_detail: 'Win once',
-          api_category: 2,
-          api_type: 3,
-        },
-      ],
-    })
+    reporter.handle(
+      'GET',
+      '/kcsapi/api_get_member/questlist',
+      {
+        api_list: [
+          {
+            api_no: 101,
+            api_title: 'Sortie',
+            api_detail: 'Win once',
+            api_category: 2,
+            api_type: 3,
+          },
+        ],
+      },
+      {},
+    )
 
     expect(report).not.toHaveBeenCalled()
   })

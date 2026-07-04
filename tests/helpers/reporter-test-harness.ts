@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto'
 import Module from 'node:module'
 import { vi } from 'vitest'
 import packageMeta from '../../package.json'
-import type { WindowSlotItem } from '../../src/types/window-state'
+import type { PoiWindowStoreState, WindowShip, WindowSlotItem } from '../../src/types/window-state'
 import SourceAACIReporter from '../../src/reporters/aaci'
 import SourceBaseReporter from '../../src/reporters/base'
 import SourceCreateItemReporter from '../../src/reporters/create-item'
@@ -15,8 +15,32 @@ import SourceRemodelItemReporter from '../../src/reporters/remodel-item'
 import SourceRemodelRecipeReporter from '../../src/reporters/remodel-recipe'
 import SourceShipStatReporter from '../../src/reporters/ship-stat'
 
+type TestWindowShip = WindowShip & Record<string, unknown>
+type TestWindowShipOverrides = Partial<TestWindowShip>
+type GetShipAACIs = (ship: { api_ship_id?: number }, equips?: unknown) => number[]
+type TestStore = Record<string, unknown> & {
+  battle: { _status: { result: { deckHp: number[] } } }
+  const: { $ships: Record<number, Record<string, unknown>> }
+  sortie: { sortieMapId: number }
+}
+type FetchResponseStub = {
+  ok?: boolean
+  status?: number
+  statusText?: string
+  json?: () => Promise<unknown>
+  text?: () => Promise<string>
+}
+
 const state = vi.hoisted(() => {
-  const ship = (overrides: Record<string, unknown> = {}): any => ({
+  const defaultStore = (): TestStore => ({
+    sortie: { sortieMapId: 1 },
+    battle: { _status: { result: { deckHp: [] } } },
+    const: { $ships: {} },
+  })
+
+  const defaultGetShipAACIs: GetShipAACIs = () => []
+
+  const ship = (overrides: TestWindowShipOverrides = {}): TestWindowShip => ({
     api_ship_id: 100,
     api_lv: 50,
     api_cond: 49,
@@ -26,13 +50,13 @@ const state = vi.hoisted(() => {
   })
 
   const selectorState = {
-    store: {} as any,
+    store: defaultStore(),
     ships: new Map<number, unknown>(),
     equips: new Map<number, unknown>(),
   }
 
-  const aaciState: { getShipAACIs: any } = {
-    getShipAACIs: vi.fn(() => [] as number[]),
+  const aaciState: { getShipAACIs: GetShipAACIs } = {
+    getShipAACIs: vi.fn(defaultGetShipAACIs),
   }
 
   const momentState = {
@@ -41,8 +65,8 @@ const state = vi.hoisted(() => {
   }
 
   const fetchState = {
-    calls: [] as any[][],
-    implementation: async (..._args: any[]): Promise<any> => ({
+    calls: [] as unknown[][],
+    implementation: async (..._args: unknown[]): Promise<FetchResponseStub> => ({
       ok: true,
       status: 200,
       statusText: 'OK',
@@ -58,9 +82,13 @@ const state = vi.hoisted(() => {
   }
 
   const createWindow = () =>
-    ({
+    Object.assign(globalThis, {
       POI_VERSION: '10.7.0',
+      LATEST_COMMIT: 'test-commit',
+      ROOT: '/test/root',
+      APPDATA_PATH: '/test/appdata',
       SERVER_HOSTNAME: 'example.invalid',
+      name: 'test-window',
       _decks: [{ api_ship: [1, 2] }],
       _ships: {
         1: ship({ api_ship_id: 101, api_lv: 80, api_cond: 53 }),
@@ -75,11 +103,15 @@ const state = vi.hoisted(() => {
       _teitokuLv: 120,
       _nickName: 'Admiral',
       _nickNameId: 99,
-      getStore: () => selectorState.store,
-    }) as unknown as Window & typeof globalThis
+      getStore: () => selectorState.store as PoiWindowStoreState,
+    })
 
-  globalThis.window = createWindow()
-  ;(globalThis as any).__reporterTestHarnessState = {
+  Object.defineProperty(globalThis, 'window', {
+    configurable: true,
+    writable: true,
+    value: createWindow(),
+  })
+  globalThis.__reporterTestHarnessState = {
     aaciState,
     selectorState,
   }
@@ -96,10 +128,14 @@ const state = vi.hoisted(() => {
 
 export const { aaciState, fetchState, momentState, selectorState, sentryState } = state
 
-;(globalThis as unknown as { __REPORTER_VERSION__: string }).__REPORTER_VERSION__ =
-  packageMeta.version
+Object.defineProperty(globalThis, '__REPORTER_VERSION__', {
+  configurable: true,
+  writable: true,
+  value: packageMeta.version,
+})
 
 declare global {
+  var __reporterTestHarnessState: unknown
   var __reporterTestHarnessPatched: boolean | undefined
 }
 
@@ -127,7 +163,7 @@ vi.mock('@sentry/electron', () => ({
 }))
 
 vi.mock('node-fetch', () => ({
-  default: async (...args: any[]) => {
+  default: async (...args: unknown[]) => {
     fetchState.calls.push(args)
     return fetchState.implementation(...args)
   },
@@ -164,7 +200,7 @@ if (!globalThis.__reporterTestHarnessPatched) {
   globalThis.__reporterTestHarnessPatched = true
 }
 
-export const ship = (overrides: Record<string, unknown> = {}): any => ({
+export const ship = (overrides: TestWindowShipOverrides = {}): TestWindowShip => ({
   api_ship_id: 100,
   api_lv: 50,
   api_cond: 49,
@@ -186,20 +222,24 @@ export const equip = ({
   api_houm: houm,
 })
 
-export const AACIReporter: any = SourceAACIReporter
-export const BaseReporter: any = SourceBaseReporter
-export const CreateItemReporter: any = SourceCreateItemReporter
-export const CreateShipReporter: any = SourceCreateShipReporter
-export const DropShipReporter: any = SourceDropShipReporter
-export const NightBattleCIReporter: any = SourceNightBattleCIReporter
-export const NightContactReportor: any = SourceNightContactReportor
-export const QuestReporter: any = SourceQuestReporter
-export const RemodelItemReporter: any = SourceRemodelItemReporter
-export const RemodelRecipeReporter: any = SourceRemodelRecipeReporter
-export const ShipStatReporter: any = SourceShipStatReporter
+export const AACIReporter = SourceAACIReporter
+export const BaseReporter = SourceBaseReporter
+export const CreateItemReporter = SourceCreateItemReporter
+export const CreateShipReporter = SourceCreateShipReporter
+export const DropShipReporter = SourceDropShipReporter
+export const NightBattleCIReporter = SourceNightBattleCIReporter
+export const NightContactReportor = SourceNightContactReportor
+export const QuestReporter = SourceQuestReporter
+export const RemodelItemReporter = SourceRemodelItemReporter
+export const RemodelRecipeReporter = SourceRemodelRecipeReporter
+export const ShipStatReporter = SourceShipStatReporter
 
 export const resetReporterTestState = () => {
-  globalThis.window = state.createWindow()
+  Object.defineProperty(globalThis, 'window', {
+    configurable: true,
+    writable: true,
+    value: state.createWindow(),
+  })
   selectorState.store = {
     sortie: { sortieMapId: 1 },
     battle: { _status: { result: { deckHp: [] } } },
@@ -223,9 +263,10 @@ export const resetReporterTestState = () => {
   sentryState.tags = []
 }
 
-export const attachReportSpy = (reporter: { report: (...args: any[]) => Promise<void> }): any => {
-  reporter.report = vi.fn(() => Promise.resolve())
-  return reporter.report
+export const attachReportSpy = (reporter: SourceBaseReporter) => {
+  const report = vi.fn<SourceBaseReporter['report']>(() => Promise.resolve())
+  reporter.report = report
+  return report
 }
 
 export const teitokuHash = () =>

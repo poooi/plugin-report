@@ -89,7 +89,24 @@ describe('NightBattleCIReporter', () => {
     const reporter = new NightBattleCIReporter()
     const report = attachReportSpy(reporter)
 
-    reporter.processData({ api_hougeki: {} }, 123456)
+    reporter.processData(
+      {
+        api_f_maxhps: [],
+        api_f_nowhps: [],
+        api_flare_pos: [],
+        api_hougeki: {
+          api_at_eflag: [],
+          api_at_list: [],
+          api_cl_list: [],
+          api_damage: [],
+          api_df_list: [],
+          api_si_list: [],
+          api_sp_list: [],
+        },
+        api_ship_ke: [],
+      },
+      123456,
+    )
 
     expect(report).not.toHaveBeenCalled()
   })

@@ -7,6 +7,7 @@ import type {
   GameApiPostBody,
   GameApiResponseBody,
 } from '../types/game-api'
+import type { Reporter } from '../types/reporter'
 
 type ShipStatShip = Pick<
   APIShipData,
@@ -24,7 +25,7 @@ interface ShipStatResponseBody {
   api_ship_data?: ShipStatShip[]
 }
 
-export default class ShipStatReporter extends BaseReporter {
+export default class ShipStatReporter extends BaseReporter implements Reporter {
   handle = (
     method: GameApiMethod,
     path: GameApiPath,
